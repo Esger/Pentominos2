@@ -1,0 +1,53 @@
+<template id="hamburger">
+    <require from="components/menu.css"></require>
+    <i class="fa fa-bars"
+       click.delegate="showTheMenu()"
+       touchstart.delegate="showTheMenu()"></i>
+
+    <!-- <ul id="menu"
+        if.bind="settings.menuVisible">
+
+        <li click.delegate="hideTheMenu()"
+            touchstart.delegate="hideTheMenu()">
+            <i class="fa fa-times"></i></li>
+
+        <li if.bind="solutions['square'].length > 1"
+            mouseenter.delegate="toggleSubmenuBoards()"
+            mouseleave.delegate="toggleSubmenuBoards()"
+            touchend.delegate="toggleSubmenuBoards()">
+            Board sizes&nbsp;&nbsp;
+            <i class="fa fa-angle-right"></i>
+            <ul if.bind="settings.submenuBoardsVisible"
+                class="subMenu">
+                <li repeat.for="(key, val) in board.boardTypes track by $index"
+                    if.bind="showThisBoard(key)"
+                    class.bind="{'active' : board.boardType == key}"
+                    click.delegate="getStartPosition(key)"
+                    touchstart.delegate="getStartPosition(key)">{{val.w}}&nbsp;&times;&nbsp;{{val.h}}</li>
+            </ul>
+        </li>
+
+        <li click.delegate="setOpaqueBlocks()"
+            if.bind="settings.opaqueBlocks == false"
+            touchstart.delegate="setOpaqueBlocks()">Opaque</li>
+
+        <li click.delegate="setTransparentBlocks()"
+            if.bind="settings.opaqueBlocks == true"
+            touchstart.delegate="setTransparentBlocks()">Transparent</li>
+
+        <li click.delegate="methods.rotateBoard()"
+            touchstart.delegate="methods.rotateBoard()">Rotate&nbsp;Blocks</li>
+
+        <li click.delegate="methods.flipBoardYAxis()"
+            touchstart.delegate="methods.flipBoardYAxis()">Flip Blocks</li>
+
+        <li if.bind="screenIsLargeEnough()"
+            click.delegate="methods.mixBoard()"
+            touchstart.delegate="methods.mixBoard()">Shuffle</li>
+
+        <li if.bind="solutions[board.boardType].length > 20"
+            click.delegate="board.autoSolve()"
+            touchstart.delegate="board.autoSolve()">Spoiler</li>
+    </ul> -->
+
+</template>

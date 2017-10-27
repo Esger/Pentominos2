@@ -1,3 +1,13 @@
 <template>
-  <h1>${message}</h1>
+    <require from="reset.css"></require>
+    <require from="app.css"></require>
+    <require from="components/menu"></require>
+    <require from="components/board"></require>
+    <require from="components/footer.html"></require>
+    <header css.bind="board.theHeaderCss()">
+        <menu></menu>
+        <h1>${message}</h1>
+    </header>
+    <board></board>
+    <footer></footer>
 </template>

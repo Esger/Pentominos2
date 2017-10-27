@@ -1,0 +1,60 @@
+.pentomino {
+    position      : absolute;
+    left          : 0;
+    top           : 0;
+    pointer-events: none;
+}
+
+.part {
+    position      : absolute;
+    left          : 0;
+    top           : 0;
+    width         : 40px;
+    height        : 40px;
+    text-align    : center;
+    color         : white;
+    border        : 1px solid rgba(211, 211, 211, .2);
+    box-sizing    : border-box;
+    pointer-events: auto;
+    cursor        : move;
+    /* fallback: no `url()` support or images disabled */
+    cursor        : -webkit-grab;
+    /* Chrome 1-21, Safari 4+ */
+    cursor        : -moz-grab;
+    /* Firefox 1.5-26 */
+    cursor        : grab;
+    /* W3C standards syntax, should come least */
+}
+
+.part > span {
+    line-height: 40px;
+}
+
+.part:active {
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+    cursor: grabbing;
+}
+
+.part::before {
+    line-height: 38px;
+    opacity    : .2;
+    /*display: none;*/
+}
+
+.block_n .part::before, .block_y .part::before {
+    opacity: .4;
+}
+
+.block_t .part::before, .block_v .part::before {
+    opacity: .3;
+}
+
+.pentomino.active .part::before, .pentomino:hover .part::before {
+    opacity: 1;
+    /*display: inline;*/
+}
+
+.pentomino.transparent .part {
+    opacity: .7;
+}

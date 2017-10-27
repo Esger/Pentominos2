@@ -1,0 +1,43 @@
+#controls {
+    margin-top: 5px;
+    text-align: center;
+}
+
+#controls button, #controls span {
+    display         : inline-block;
+    height          : 30px;
+    line-height     : 30px;
+    font-family     : inherit;
+    background-color: transparent;
+    border          : none;
+    outline         : none;
+    text-align      : center;
+    color           : white;
+    font-size       : 14px;
+    margin-top      : 10px;
+    padding         : 0 10px;
+}
+
+#controls span.solved {
+    border: 1px dotted lime;
+}
+
+#controls button {
+    cursor: pointer;
+}
+
+#controls button.small {
+    width      : 40px;
+    height     : 40px;
+    line-height: 40px;
+    margin-top : 5px;
+}
+
+#controls button+icon {
+    margin     : 0 10px;
+    line-height: 30px;
+}
+
+#controls button[disabled='disabled'] {
+    visibility: hidden;
+}
