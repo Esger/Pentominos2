@@ -1,20 +1,15 @@
-<template>
-    <div class="pentomino block_{{pentomino.name}}"
-         ng-repeat="pentomino in pentominos track by $index"
-         ng-hide="(board.boardTypes[board.boardType].surface == 60) && ($index > 11)"
-         ng-style="methods.getPentominoCss(pentomino.position)"
-         ng-class="{
-            'active' : {{methods.isActive($index)}},
-            'transparent' : settings.opaqueBlocks == false
-        }">
-        <div class="relContainer"
-             ng-repeat="face in pentomino.faces track by $index"
-             ng-if="$index == pentomino.face">
-            <div class="part {{methods.getPartClasses(pentomino, $index)}}"
-                 ng-repeat="part in face track by $index"
+<template class="relContainer">
+    <require from="components/pentominos.css"></require>
+    <div repeat.for="pentomino of ps.pentominos"
+         class="${'pentomino block_' + pentomino.name}"
+         css.bind="getPentominoCSS(pentomino.position, pentomino.color)">
+        <div class="relContainer inheritBgColor">
+            <div repeat.for="part of pentomino.faces[pentomino.face]"
+                 class="part"
+                 class.bind="getPartClasses(pentomino, $index)"
+                 css.bind="getPartCSS(part)"
                  ng-mousedown="methods.startDrag(pentomino, $index, $event)"
-                 ng-touchstart="methods.startDrag(pentomino, $index, $event)"
-                 ng-style="{{methods.getPartCss(pentomino, part)}}">
+                 ng-touchstart="methods.startDrag(pentomino, $index, $event)">
             </div>
         </div>
     </div>

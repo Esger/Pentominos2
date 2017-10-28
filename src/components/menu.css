@@ -1,11 +1,11 @@
-#hamburger {
+.hamburger {
     position: absolute;
     left    : 2px;
     top     : 2px;
     z-index : 100;
 }
 
-#hamburger .fa-bars {
+.hamburger .fa-bars {
     height     : 40px;
     line-height: 40px;
     padding    : 0 10px;
@@ -13,18 +13,18 @@
     cursor     : pointer;
 }
 
-nav ul#menu {
+menu ul#menu {
     position: absolute;
     left    : -5px;
     top     : 0;
 }
 
-nav ul {
+menu ul {
     background-color: rgba(34, 34, 34, .7);
     border          : 1px solid rgba(34, 34, 34, .7);
 }
 
-nav ul li {
+menu ul li {
     position        : relative;
     font-size       : 14px;
     color           : #333;
@@ -35,15 +35,15 @@ nav ul li {
     cursor          : pointer;
 }
 
-nav ul li:hover {
+menu ul li:hover {
     background-color: gainsboro;
 }
 
-nav ul li.active {
+menu ul li.active {
     background-color: silver;
 }
 
-nav ul.subMenu {
+menu ul.subMenu {
     position: absolute;
     left    : 99%;
     top     : -2px;
