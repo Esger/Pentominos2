@@ -59,15 +59,16 @@ export class DragService {
         if (this.ps.currentPentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                if (((this.ps.currentPentomino.type < 4) && (this.part < 3)) ||
-                    ((this.ps.currentPentomino.type == 4) && (this.part < 1))) {
-                    this.adjustPosition();
-                    this.flipRotate($scope.currentPentomino, this.part);
+                if (((this.ps.currentPentomino.type < 4) && (this.ps.part < 3)) ||
+                    ((this.ps.currentPentomino.type == 4) && (this.ps.part < 1))) {
+                    this.ps.adjustPosition();
+                    this.ps.flipRotate();
                 }
             }
             this.ps.registerPiece(this.ps.currentPentomino.index, 1);
             this.ps.isSolved();
         }
+        console.log(this.ps.currentPentomino);
         this.resetVars();
     }
 

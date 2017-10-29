@@ -19,15 +19,13 @@ export class PentominosCustomElement {
         this.ds = dragService;
     }
 
-    getPentominoCSS(position, color) {
-        if (position) {
-            let css = {
-                left: position.x * this.ss.partSize + 'px',
-                top: position.y * this.ss.partSize + 'px',
-                backgroundColor: color
-            }
-            return css;
+    getPentominoCSS(x, y, color) {
+        let css = {
+            left: x * this.ss.partSize + 'px',
+            top: y * this.ss.partSize + 'px',
+            backgroundColor: color
         }
+        return css;
     }
 
     getPartCSS(part) {
