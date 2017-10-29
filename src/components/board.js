@@ -2,34 +2,22 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
-import { PentominoService } from '../services/pentomino-service';
+import { BoardService } from '../services/board-service';
 
-@inject(EventAggregator, PentominoService)
+@inject(BoardService)
 export class BoardCustomElement {
 
-    constructor(eventAggregator, pentominoService) {
-        this.ea = eventAggregator;
-        this.ps = pentominoService;
+    constructor(boardService) {
+        this.bs = boardService;
     }
 
     getBoardSizeCSS() {
-        let boardType = this.ps.boardTypes[this.ps.boardType];
+        let boardType = this.bs.boardTypes[this.bs.boardType];
         let css = {
-            width: boardType.w * this.ps.partSize + 'px',
-            height: boardType.h * this.ps.partSize + 'px'
+            width: boardType.w * this.bs.partSize + 'px',
+            height: boardType.h * this.bs.partSize + 'px'
         }
         return css;
-    }
-
-    addEventListeners() {
-
-    }
-
-    attached() {
-        this.addEventListeners();
     }
 
 }

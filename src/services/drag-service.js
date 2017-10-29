@@ -1,0 +1,93 @@
+import {
+    inject,
+    bindable
+} from 'aurelia-framework';
+import { SettingService } from './setting-service';
+import { PentominoService } from './pentomino-service';
+
+@inject(SettingService, PentominoService)
+export class DragService {
+
+    constructor(settingService, pentominoService) {
+        this.ss = settingService;
+        this.ps = pentominoService;
+        this.dragStartPos = {};
+        this.dragEndPos = {};
+    }
+
+    getClientPos(event) {
+        let clientX = (event.touches) ? event.touches[0].clientX : event.clientX;
+        let clientY = (event.touches) ? event.touches[0].clientY : event.clientY;
+        return {
+            x: clientX / this.ss.scale,
+            y: clientY / this.ss.scale
+        };
+    }
+
+    startDrag(pentomino, part, event) {
+        let clientPos = this.getClientPos(event);
+        this.ps.setCurrentPentomino(pentomino);
+        this.ps.setCurrentPart(part);
+        this.ps.registerPiece(pentomino.index, -1);
+        this.container = event.target.offsetParent.offsetParent;
+        this.container.style.zIndex = 100;
+        this.startX = clientPos.x - this.container.offsetLeft;
+        this.startY = clientPos.y - this.container.offsetTop;
+        this.x = clientPos.x - this.startX;
+        this.y = clientPos.y - this.startY;
+        this.dragStartPos.x = this.x;
+        this.dragStartPos.y = this.y;
+        // console.log('start', this.x, this.y);
+        return false;
+    }
+
+    doDrag(event) {
+        let clientPos = this.getClientPos(event);
+        if (this.ps.currentPentomino) {
+            // console.log(event);
+            this.x = clientPos.x - this.startX;
+            this.y = clientPos.y - this.startY;
+            this.container.style.left = this.x + 'px';
+            this.container.style.top = this.y + 'px';
+            // console.log('drag', this.x, this.y);
+        }
+    }
+
+    stopDrag(event) {
+        this.dragEndPos.x = this.x;
+        this.dragEndPos.y = this.y;
+        if (this.ps.currentPentomino) {
+            this.alignToGrid();
+            if (!this.isDragged()) {
+                if (((this.ps.currentPentomino.type < 4) && (this.part < 3)) ||
+                    ((this.ps.currentPentomino.type == 4) && (this.part < 1))) {
+                    this.adjustPosition();
+                    this.flipRotate($scope.currentPentomino, this.part);
+                }
+            }
+            this.ps.registerPiece(this.ps.currentPentomino.index, 1);
+            this.ps.isSolved();
+        }
+        this.resetVars();
+    }
+
+    resetVars() {
+        if (this.container) {
+            this.container.style.zIndex = '';
+            this.container = null;
+        }
+        this.ps.resetCurrentPentomino();
+    }
+
+    alignToGrid() {
+        let newX = Math.round(this.x / this.ss.partSize);
+        let newY = Math.round(this.y / this.ss.partSize);
+        this.ps.alignCurrentPentomino(newX, newY);
+        this.container.style.left = newX * this.ss.partSize + 'px';
+        this.container.style.top = newY * this.ss.partSize + 'px';
+    }
+
+    isDragged() {
+        return ((Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19) || (Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19));
+    }
+}

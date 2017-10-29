@@ -4,7 +4,13 @@
     <require from="components/header"></require>
     <require from="components/board"></require>
     <require from="components/footer.html"></require>
-    <header></header>
-    <board></board>
-    <footer></footer>
+    <div class="dragArea"
+         mousemove.delegate="ds.doDrag($event)"
+         touchmove.delegate="ds.doDrag($event)"
+         mouseup.delegate="ds.stopDrag($event)"
+         touchend.delegate="ds.stopDrag($event)">
+        <header></header>
+        <board></board>
+        <footer></footer>
+    </div>
 </template>

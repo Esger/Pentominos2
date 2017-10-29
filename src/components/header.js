@@ -2,20 +2,20 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import { PentominoService } from '../services/pentomino-service';
+import { BoardService } from '../services/board-service';
 
-@inject(PentominoService)
+@inject(BoardService)
 export class HeaderCustomElement {
 
-    constructor(pentominoService) {
-        this.ps = pentominoService;
+    constructor(boardService) {
+        this.bs = boardService;
         this.title = 'Pentomino';
     }
 
     getHeaderSizeCss() {
-        let boardType = this.ps.boardTypes[this.ps.boardType];
+        let boardType = this.bs.boardTypes[this.bs.boardType];
         let css = {
-            width: boardType.w * this.ps.partSize + 'px',
+            width: boardType.w * this.bs.partSize + 'px',
         }
         return css;
     }
