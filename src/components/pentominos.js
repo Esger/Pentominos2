@@ -2,18 +2,14 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
 import { PentominoService } from '../services/pentomino-service';
 import { SettingService } from '../services/setting-service';
 import { DragService } from '../services/drag-service';
 
-@inject(EventAggregator, PentominoService, SettingService, DragService)
+@inject(PentominoService, SettingService, DragService)
 export class PentominosCustomElement {
 
-    constructor(eventAggregator, pentominoService, settingService, dragService) {
-        this.ea = eventAggregator;
+    constructor(pentominoService, settingService, dragService) {
         this.ps = pentominoService;
         this.ss = settingService;
         this.ds = dragService;
@@ -43,16 +39,16 @@ export class PentominosCustomElement {
         return classes.join(' ');
     }
 
-    getPartClasses(pentomino, partIndex) {
+    getPartClasses(pentomino, partIndex, face) {
         let classes = ['fa', 'part'];
         // C and T blocks don't need mirrorring around symmetric direction
-        let flipH = !(this.ps.pentominos.indexOf(pentomino) === 1 &&
+        let flipH = !(pentomino.index === 1 &&
             pentomino.dimensions[0] > pentomino.dimensions[1] ||
-            this.ps.pentominos.indexOf(pentomino) === 6 &&
+            pentomino.index === 6 &&
             pentomino.face % 2 === 0);
-        let flipV = !(this.ps.pentominos.indexOf(pentomino) === 1 &&
+        let flipV = !(pentomino.index === 1 &&
             pentomino.dimensions[0] < pentomino.dimensions[1] ||
-            this.ps.pentominos.indexOf(pentomino) === 6 &&
+            pentomino.index === 6 &&
             pentomino.face % 2 === 1);
         if (partIndex === 0 && pentomino.type < 5) {
             classes.push('fa-refresh');
@@ -67,14 +63,6 @@ export class PentominosCustomElement {
             classes.push('flipV');
         }
         return classes.join(' ');
-    }
-
-    addEventListeners() {
-
-    }
-
-    attached() {
-        this.addEventListeners();
     }
 
 }

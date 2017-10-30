@@ -4,13 +4,16 @@ import {
 } from 'aurelia-framework';
 import { SettingService } from './setting-service';
 import { PentominoService } from './pentomino-service';
+import { PermutationService } from './permutation-service';
 
-@inject(SettingService, PentominoService)
+@inject(SettingService, PentominoService, PermutationService)
+
 export class DragService {
 
-    constructor(settingService, pentominoService) {
+    constructor(settingService, pentominoService, permutationService) {
         this.ss = settingService;
         this.ps = pentominoService;
+        this.prms = permutationService;
         this.dragStartPos = {};
         this.dragEndPos = {};
     }
@@ -24,11 +27,10 @@ export class DragService {
         };
     }
 
-    startDrag(pentomino, part, event) {
+    startDrag(pentomino, partIndex, event) {
         let clientPos = this.getClientPos(event);
-        this.ps.setCurrentPentomino(pentomino);
-        this.ps.setCurrentPart(part);
-        this.ps.registerPiece(pentomino.index, -1);
+        this.ps.setCurrentPentomino(pentomino, partIndex);
+        this.ps.registerPiece(pentomino, -1);
         this.container = event.target.offsetParent.offsetParent;
         this.container.style.zIndex = 100;
         this.startX = clientPos.x - this.container.offsetLeft;
@@ -59,20 +61,21 @@ export class DragService {
         if (this.ps.currentPentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                if (((this.ps.currentPentomino.type < 4) && (this.ps.part < 3)) ||
-                    ((this.ps.currentPentomino.type == 4) && (this.ps.part < 1))) {
+                if (((this.ps.currentPentomino.type < 4) &&
+                    (this.ps.currentPentomino.activePart < 3)) ||
+                    ((this.ps.currentPentomino.type == 4) && (this.ps.currentPentomino.activePart < 1))) {
                     this.ps.adjustPosition();
-                    this.ps.flipRotate();
+                    this.prms.flipRotate(this.ps.currentPentomino);
                 }
             }
-            this.ps.registerPiece(this.ps.currentPentomino.index, 1);
+            this.ps.registerPiece(this.ps.currentPentomino, 1);
             this.ps.isSolved();
         }
-        console.log(this.ps.currentPentomino);
-        this.resetVars();
+        // console.log(this.ps.currentPentomino);
+        this.releasePentomino();
     }
 
-    resetVars() {
+    releasePentomino() {
         if (this.container) {
             this.container.style.zIndex = '';
             this.container = null;

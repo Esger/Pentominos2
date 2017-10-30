@@ -20,4 +20,11 @@ export class BoardCustomElement {
         return css;
     }
 
+    getBoardClasses() {
+        let classes = ['board'];
+        let solvedClass = (this.solved) ? 'solved' : '';
+        classes.push(solvedClass);
+        return classes.join(' ');
+    }
+
 }

@@ -40,6 +40,19 @@ export class BoardService {
                 surface: 60
             }
         };
+        this.solved = false;
+    }
+
+    setSolved() {
+        this.solved = true;
+    }
+
+    unsetSolved() {
+        this.solved = false;
+    }
+
+    setBoardType(shape) {
+        this.boardType = shape;
     }
 
     getWidth() {
@@ -48,6 +61,17 @@ export class BoardService {
 
     getHeight() {
         return this.boardTypes[this.boardType].h;
+    }
+
+    pentominosLength() {
+        let blockCount = (this.boardType == 'square') ? 13 : 12;
+        return blockCount;
+    }
+
+    boardsCount() {
+        let count = 0;
+        for (let k in this.boardTypes) if (this.boardTypes.hasOwnProperty(k)) count++;
+        return count;
     }
 
     onBoard(x, y) {
