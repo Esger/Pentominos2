@@ -23,6 +23,7 @@ export class SolutionService {
         // A number indicates an existing solution
         // A string indicate a new solution
         if (!isNaN(solutionResult)) {
+            // show this solution
             this.currentSolution = solutionResult;
             this.newSolution = false;
         } else {
@@ -33,24 +34,35 @@ export class SolutionService {
     }
 
     isNewSolution(pentominos) {
-        let solutionString = this.solution2String(pentominos);
         let isNewSolution = true;
-        let theLength = this.bs.boardsCount();
         let rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        let solutionString = this.solution2String(pentominos);
+        let foundSolStr = solutionString;
+        let theLength = this.solutions[this.bs.boardType].length;
+
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
             // Rotate
             for (let rotation = 0; rotation < rotations; rotation++) {
+                // Existing solutions
                 for (let i = 0; i < theLength; i++) {
                     solutionString = this.solution2String(pentominos);
                     isNewSolution = isNewSolution && (this.solutions[this.bs.boardType][i] !== solutionString);
                     if (!isNewSolution) return i;
                 }
+                // solutionString = this.solution2String(pentominos);
+                // let existingSolStr = this.solutions[this.bs.boardType[this.bs.boardType]];
+                // isNewSolution = isNewSolution &&
+                //     (existingSolStr !== 'undefined') &&
+                //     (existingSolStr !== solutionString);
+                // if (!isNewSolution) return i;
+
+                // Return to original position the last time
                 this.prms.rotateBoard(pentominos);
             }
             this.prms.flipBoardYAxis(pentominos);
         }
-        return solutionString;
+        return foundSolStr;
     }
 
     solution2String(pentominos) {

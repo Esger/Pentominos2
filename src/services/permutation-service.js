@@ -39,10 +39,11 @@ export class PermutationService {
     }
 
     // Returns the new face index for a given face, action and blocktype
-    flipRotate(pentomino) {
-        pentomino.face = this.rotable[pentomino.activePart][pentomino.type][pentomino.face];
+    flipRotate(pentomino, part) {
+        if (part == undefined) { part = pentomino.activePart };
+        pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
-        if (pentomino.activePart === 0) {
+        if (part === 0) {
             pentomino.dimensions.reverse();
         }
     }
@@ -65,7 +66,7 @@ export class PermutationService {
             // bottom left of current rectangle occupied by pentomino
             origin.x = pentomino.position.x;
             origin.y = pentomino.position.y + pentomino.dimensions[1];
-            // rotated position in board
+            // rotated position on board
             pentomino.position.x = this.bs.getWidth() - origin.y;
             pentomino.position.y = origin.x;
             // rotated pentomino

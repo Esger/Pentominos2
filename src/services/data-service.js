@@ -76,13 +76,13 @@ export class DataService {
                 localStorage.removeItem("pentominos");
             } else {
                 solutions = {};
-            }
-        }
-        let boardTypes = this.bs.boardTypes;
-        for (let type in boardTypes) {
-            if (boardTypes.hasOwnProperty(type)) {
-                if (!solutions.hasOwnProperty(type)) {
-                    solutions[type] = [];
+                let boardTypes = this.bs.boardTypes;
+                for (let type in boardTypes) {
+                    if (boardTypes.hasOwnProperty(type)) {
+                        // if (!solutions.hasOwnProperty(type)) {
+                        solutions[type] = [];
+                        // }
+                    }
                 }
             }
         }

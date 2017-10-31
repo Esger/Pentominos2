@@ -104,7 +104,7 @@ define('components/board',['exports', 'aurelia-framework', '../services/board-se
 
         BoardCustomElement.prototype.getBoardClasses = function getBoardClasses() {
             var classes = ['board'];
-            var solvedClass = this.solved ? 'solved' : '';
+            var solvedClass = this.bs.solved ? 'solved' : '';
             classes.push(solvedClass);
             return classes.join(' ');
         };
@@ -1096,13 +1096,11 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
                     localStorage.removeItem("pentominos");
                 } else {
                     solutions = {};
-                }
-            }
-            var boardTypes = this.bs.boardTypes;
-            for (var type in boardTypes) {
-                if (boardTypes.hasOwnProperty(type)) {
-                    if (!solutions.hasOwnProperty(type)) {
-                        solutions[type] = [];
+                    var boardTypes = this.bs.boardTypes;
+                    for (var type in boardTypes) {
+                        if (boardTypes.hasOwnProperty(type)) {
+                            solutions[type] = [];
+                        }
                     }
                 }
             }
@@ -1161,6 +1159,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
         PentominoService.prototype.boardIsFull = function boardIsFull() {
             var h = this.bs.getHeight();
             var w = this.bs.getWidth();
+            console.table(this.fields);
             for (var y = 0; y < h; y++) {
                 for (var x = 0; x < w; x++) {
                     if (this.fields[y][x] !== 1) {
@@ -1662,10 +1661,11 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
         };
 
         SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
-            var solutionString = this.solution2String(pentominos);
             var isNewSolution = true;
-            var theLength = this.bs.boardsCount();
             var rotations = this.bs.boardType == 'square' ? 4 : 2;
+            var solutionString = this.solution2String(pentominos);
+            var foundSolStr = solutionString;
+            var theLength = this.solutions[this.bs.boardType].length;
 
             for (var flip = 0; flip < 2; flip++) {
                 for (var rotation = 0; rotation < rotations; rotation++) {
@@ -1674,11 +1674,12 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
                         isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
                         if (!isNewSolution) return i;
                     }
+
                     this.prms.rotateBoard(pentominos);
                 }
                 this.prms.flipBoardYAxis(pentominos);
             }
-            return solutionString;
+            return foundSolStr;
         };
 
         SolutionService.prototype.solution2String = function solution2String(pentominos) {
@@ -1728,10 +1729,13 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
             this.rotable = [[[1, 2, 3, 0, 5, 6, 7, 4], [1, 2, 3, 0], [1, 2, 3, 0], [1, 0, 3, 2], [1, 0], [0]], [[4, 7, 6, 5, 0, 3, 2, 1], [3, 2, 1, 0], [0, 3, 2, 1], [2, 3, 0, 1], [0, 1], [0]], [[6, 5, 4, 7, 2, 1, 0, 3], [1, 0, 3, 2], [2, 1, 0, 3], [2, 3, 0, 1], [0, 1], [0]]];
         }
 
-        PermutationService.prototype.flipRotate = function flipRotate(pentomino) {
-            pentomino.face = this.rotable[pentomino.activePart][pentomino.type][pentomino.face];
+        PermutationService.prototype.flipRotate = function flipRotate(pentomino, part) {
+            if (part == undefined) {
+                part = pentomino.activePart;
+            };
+            pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
 
-            if (pentomino.activePart === 0) {
+            if (part === 0) {
                 pentomino.dimensions.reverse();
             }
         };

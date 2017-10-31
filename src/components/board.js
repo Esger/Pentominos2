@@ -22,7 +22,7 @@ export class BoardCustomElement {
 
     getBoardClasses() {
         let classes = ['board'];
-        let solvedClass = (this.solved) ? 'solved' : '';
+        let solvedClass = (this.bs.solved) ? 'solved' : '';
         classes.push(solvedClass);
         return classes.join(' ');
     }
