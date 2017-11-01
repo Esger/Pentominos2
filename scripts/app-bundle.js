@@ -102,9 +102,9 @@ define('components/board',['exports', 'aurelia-framework', '../services/board-se
             return css;
         };
 
-        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses() {
+        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses(newSolution) {
             var classes = ['board'];
-            var solvedClass = this.bs.solved ? 'solved' : '';
+            var solvedClass = newSolution ? 'solved' : '';
             classes.push(solvedClass);
             return classes.join(' ');
         };
@@ -1498,6 +1498,7 @@ define('services/board-service',['exports', 'aurelia-framework'], function (expo
                 }
             };
             this.solved = false;
+            this.newSolution = false;
         }
 
         BoardService.prototype.setSolved = function setSolved() {
@@ -1506,6 +1507,14 @@ define('services/board-service',['exports', 'aurelia-framework'], function (expo
 
         BoardService.prototype.unsetSolved = function unsetSolved() {
             this.solved = false;
+        };
+
+        BoardService.prototype.setNewSolution = function setNewSolution() {
+            this.newSolution = true;
+        };
+
+        BoardService.prototype.unsetNewSolution = function unsetNewSolution() {
+            this.newSolution = false;
         };
 
         BoardService.prototype.setBoardType = function setBoardType(shape) {
@@ -1652,11 +1661,11 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
 
             if (!isNaN(solutionResult)) {
                 this.currentSolution = solutionResult;
-                this.newSolution = false;
+                this.bs.unsetNewSolution();
             } else {
                 this.ds.saveSolution(solutionResult);
                 this.solutions[this.bs.boardType].push(solutionResult);
-                this.newSolution = true;
+                this.bs.setNewSolution();
             }
         };
 
@@ -1786,10 +1795,10 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <footer></footer>\n    </div>\n</template>"; });
 define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n}\n@media (min-height: 700px) {\n    .dragArea {\n        justify-content: center;\n    }\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses()\"\n          css.bind=\"getBoardSizeCSS()\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <require from=\"components/controls\"></require>\n    <pentominos></pentominos>\n    <controls></controls>\n</template>"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS()\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <require from=\"components/controls\"></require>\n    <pentominos></pentominos>\n    <controls></controls>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
 define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <!-- <button class=\"small r\"\n            title=\"Show next solution\"\n            if.bind=\"settings.solutionsShown\"\n            disabled.bind=\"(currentSolution == solutions[board.boardType].length - 1)\"\n            click.delegate=\"showNextSolution(board.boardType)\"\n            touchstart.delegate=\"showNextSolution(board.boardType)\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    <button class=\"small l\"\n            title=\"Show previous solution\"\n            if.bind=\"settings.solutionsShown\"\n            disabled.bind=\"(currentSolution == 0)\"\n            click.delegate=\"showPreviousSolution(board.boardType)\"\n            touchstart.delegate=\"showPreviousSolution(board.boardType)\">\n            <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n    <button class=\"rounded\"\n            if.bind=\"!settings.solutionsShown\"\n            ng-class=\"{'solved' : (board.solved && !board.newSolution)}\"\n            click.delegate=\"showSolution()\"\n            touchstart.delegate=\"showSolution()\">Show solution\n            {{currentSolution + 1}} / {{solutions[board.boardType].length}}\n        </button>\n    <span class=\"rounded\"\n          if.bind=\"settings.solutionsShown\"\n          ng-class=\"{'solved' : (board.solved && !board.newSolution)}\">\n            Solution {{currentSolution + 1}} / {{solutions[board.boardType].length}}\n        </span> -->\n\n</template>"; });
-define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    position        : relative;\n    /*margin: 40px auto;*/\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
+define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    position        : relative;\n    /*margin: 40px auto;*/\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
 define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <a href=\"http://www.ashware.nl\"\n       target=\"_blank\"\n       class=\"r\">&copy;&nbsp;ashWare</a>\n    <!-- <span class='st_sharethis' displayText='ShareThis'></span> -->\n</template>"; });
 define('text!components/controls.css', ['module'], function(module) { module.exports = "#controls {\n    margin-top: 5px;\n    text-align: center;\n}\n\n#controls button, #controls span {\n    display         : inline-block;\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    text-align      : center;\n    color           : white;\n    font-size       : 14px;\n    margin-top      : 10px;\n    padding         : 0 10px;\n}\n\n#controls span.solved {\n    border: 1px dotted lime;\n}\n\n#controls button {\n    cursor: pointer;\n}\n\n#controls button.small {\n    width      : 40px;\n    height     : 40px;\n    line-height: 40px;\n    margin-top : 5px;\n}\n\n#controls button+icon {\n    margin     : 0 10px;\n    line-height: 30px;\n}\n\n#controls button[disabled='disabled'] {\n    visibility: hidden;\n}\n"; });
 define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <!-- <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"solutions['square'].length > 1\"\n            mouseenter.delegate=\"toggleSubmenuBoards()\"\n            mouseleave.delegate=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;\n            <i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"(key, val) in board.boardTypes track by $index\"\n                    if.bind=\"showThisBoard(key)\"\n                    class.bind=\"{'active' : board.boardType == key}\"\n                    click.delegate=\"getStartPosition(key)\"\n                    touchstart.delegate=\"getStartPosition(key)\">{{val.w}}&nbsp;&times;&nbsp;{{val.h}}</li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"setOpaqueBlocks()\"\n            if.bind=\"settings.opaqueBlocks == false\"\n            touchstart.delegate=\"setOpaqueBlocks()\">Opaque</li>\n\n        <li click.delegate=\"setTransparentBlocks()\"\n            if.bind=\"settings.opaqueBlocks == true\"\n            touchstart.delegate=\"setTransparentBlocks()\">Transparent</li>\n\n        <li click.delegate=\"methods.rotateBoard()\"\n            touchstart.delegate=\"methods.rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"methods.flipBoardYAxis()\"\n            touchstart.delegate=\"methods.flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"methods.mixBoard()\"\n            touchstart.delegate=\"methods.mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"solutions[board.boardType].length > 20\"\n            click.delegate=\"board.autoSolve()\"\n            touchstart.delegate=\"board.autoSolve()\">Spoiler</li>\n    </ul> -->\n\n</template>"; });

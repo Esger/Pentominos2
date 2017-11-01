@@ -41,6 +41,7 @@ export class BoardService {
             }
         };
         this.solved = false;
+        this.newSolution = false;
     }
 
     setSolved() {
@@ -49,6 +50,14 @@ export class BoardService {
 
     unsetSolved() {
         this.solved = false;
+    }
+
+    setNewSolution() {
+        this.newSolution = true;
+    }
+
+    unsetNewSolution() {
+        this.newSolution = false;
     }
 
     setBoardType(shape) {

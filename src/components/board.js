@@ -20,9 +20,9 @@ export class BoardCustomElement {
         return css;
     }
 
-    getBoardClasses() {
+    getBoardClasses(newSolution) {
         let classes = ['board'];
-        let solvedClass = (this.bs.solved) ? 'solved' : '';
+        let solvedClass = (newSolution) ? 'solved' : '';
         classes.push(solvedClass);
         return classes.join(' ');
     }

@@ -25,11 +25,11 @@ export class SolutionService {
         if (!isNaN(solutionResult)) {
             // show this solution
             this.currentSolution = solutionResult;
-            this.newSolution = false;
+            this.bs.unsetNewSolution();
         } else {
             this.ds.saveSolution(solutionResult);
             this.solutions[this.bs.boardType].push(solutionResult);
-            this.newSolution = true;
+            this.bs.setNewSolution();
         }
     }
 
@@ -50,13 +50,6 @@ export class SolutionService {
                     isNewSolution = isNewSolution && (this.solutions[this.bs.boardType][i] !== solutionString);
                     if (!isNewSolution) return i;
                 }
-                // solutionString = this.solution2String(pentominos);
-                // let existingSolStr = this.solutions[this.bs.boardType[this.bs.boardType]];
-                // isNewSolution = isNewSolution &&
-                //     (existingSolStr !== 'undefined') &&
-                //     (existingSolStr !== solutionString);
-                // if (!isNewSolution) return i;
-
                 // Return to original position the last time
                 this.prms.rotateBoard(pentominos);
             }
