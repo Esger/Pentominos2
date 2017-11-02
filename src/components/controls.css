@@ -1,43 +1,45 @@
-#controls {
-    margin-top: 5px;
-    text-align: center;
+.controls {
+    width          : 320px;
+    height         : 40px;
+    display        : flex;
+    justify-content: center;
 }
 
-#controls button, #controls span {
-    display         : inline-block;
-    height          : 30px;
-    line-height     : 30px;
+.controls .indicator, .controls button {
+    height          : 40px;
+    line-height     : 40px;
     font-family     : inherit;
     background-color: transparent;
     border          : none;
     outline         : none;
-    text-align      : center;
     color           : white;
     font-size       : 14px;
-    margin-top      : 10px;
     padding         : 0 10px;
+    transition      : all .3s ease;
 }
 
-#controls span.solved {
+.controls indicator.solved {
     border: 1px dotted lime;
 }
 
-#controls button {
+.controls button {
     cursor: pointer;
 }
 
-#controls button.small {
+.controls button.small {
     width      : 40px;
     height     : 40px;
     line-height: 40px;
-    margin-top : 5px;
 }
 
-#controls button+icon {
-    margin     : 0 10px;
-    line-height: 30px;
+.controls button icon {
+    line-height: 40px;
 }
 
-#controls button[disabled='disabled'] {
-    visibility: hidden;
+.controls button:disabled {
+    cursor: not-allowed;
+}
+
+[class*='fa-step-'] {
+    vertical-align: 0;
 }

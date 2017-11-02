@@ -7,7 +7,7 @@ export class SettingService {
 
     constructor() {
         this.opaqueBlocks = true;
-        this.solutionsShown = false;
+        this.showSolutions = false;
         this.scale = 1;
         this.partSize = 40;
     }
@@ -25,5 +25,9 @@ export class SettingService {
             'transform': 'scale(' + scale + ', ' + scale + ')'
         };
     };
+
+    setShowSolutions() {
+        this.showSolutions = true;
+    }
 
 }

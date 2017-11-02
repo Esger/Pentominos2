@@ -1,31 +1,25 @@
 <template>
-    <!-- <button class="small r"
-            title="Show next solution"
-            if.bind="settings.solutionsShown"
-            disabled.bind="(currentSolution == solutions[board.boardType].length - 1)"
-            click.delegate="showNextSolution(board.boardType)"
-            touchstart.delegate="showNextSolution(board.boardType)">
+    <require from="components/controls.css"></require>
+    <div class="controls"
+         if.bind="ss.showSolutions">
+        <button class.bind="small"
+                title="Show previous solution"
+                if.bind="showButton()"
+                disabled.bind="disablePreviousButton(sls.currentSolution)"
+                click.delegate="showPreviousSolution()"
+                touchstart.delegate="showPreviousSolution()">
+         <icon class="fa fa-step-backward fa-lg"></icon>
+        </button>
+        <div class.bind="getIndicatorClass()">
+            ${getIndicatorText()}
+        </div>
+        <button class="small"
+                title="Show next solution"
+                if.bind="showButton()"
+                disabled.bind="disableNextButton(sls.currentSolution)"
+                click.delegate="showNextSolution()"
+                touchstart.delegate="showNextSolution()">
             <icon class="fa fa-step-forward fa-lg"></icon>
         </button>
-    <button class="small l"
-            title="Show previous solution"
-            if.bind="settings.solutionsShown"
-            disabled.bind="(currentSolution == 0)"
-            click.delegate="showPreviousSolution(board.boardType)"
-            touchstart.delegate="showPreviousSolution(board.boardType)">
-            <icon class="fa fa-step-backward fa-lg"></icon>
-        </button>
-    <button class="rounded"
-            if.bind="!settings.solutionsShown"
-            ng-class="{'solved' : (board.solved && !board.newSolution)}"
-            click.delegate="showSolution()"
-            touchstart.delegate="showSolution()">Show solution
-            {{currentSolution + 1}} / {{solutions[board.boardType].length}}
-        </button>
-    <span class="rounded"
-          if.bind="settings.solutionsShown"
-          ng-class="{'solved' : (board.solved && !board.newSolution)}">
-            Solution {{currentSolution + 1}} / {{solutions[board.boardType].length}}
-        </span> -->
-
+    </div>
 </template>

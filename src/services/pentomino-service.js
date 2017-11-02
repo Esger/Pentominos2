@@ -23,12 +23,17 @@ export class PentominoService {
         this.start();
     }
 
+    pentominoCount() {
+        return this.pentominos.length;
+    }
+
     isSolved() {
         let boardIsFull = this.boardIsFull();
         if (boardIsFull) {
             this.bs.setSolved();
             this.sls.saveSolution(this.pentominos);
         } else {
+            this.bs.unsetNewSolution();
             this.bs.unsetSolved();
         }
     }
@@ -36,7 +41,7 @@ export class PentominoService {
     boardIsFull() {
         let h = this.bs.getHeight();
         let w = this.bs.getWidth();
-        console.table(this.fields);
+        // console.table(this.fields);
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 if (this.fields[y][x] !== 1) {

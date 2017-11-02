@@ -5,17 +5,27 @@ import {
 import { BoardService } from './board-service';
 import { PermutationService } from './permutation-service';
 import { DataService } from './data-service';
+import { SettingService } from '../services/setting-service';
 
-@inject(BoardService, PermutationService, DataService)
+@inject(BoardService, PermutationService, DataService, SettingService)
 
 export class SolutionService {
 
-    constructor(boardService, permutationService, dataService) {
+    constructor(boardService, permutationService, dataService, settingService) {
         this.bs = boardService;
         this.ds = dataService;
+        this.ss = settingService;
         this.prms = permutationService;
+        this.boardType = this.bs.boardType;
         this.currentSolution = 0;
+        this.getSolutions();
+    }
+
+    getSolutions() {
         this.solutions = this.ds.getSolutions();
+        if (this.solutions[this.bs.boardType].length > 0) {
+            this.ss.setShowSolutions();
+        }
     }
 
     saveSolution(pentominos) {
@@ -28,17 +38,17 @@ export class SolutionService {
             this.bs.unsetNewSolution();
         } else {
             this.ds.saveSolution(solutionResult);
-            this.solutions[this.bs.boardType].push(solutionResult);
+            this.solutions[this.boardType].push(solutionResult);
             this.bs.setNewSolution();
         }
     }
 
     isNewSolution(pentominos) {
         let isNewSolution = true;
-        let rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        let rotations = (this.boardType == 'square') ? 4 : 2;
         let solutionString = this.solution2String(pentominos);
         let foundSolStr = solutionString;
-        let theLength = this.solutions[this.bs.boardType].length;
+        let theLength = this.solutions[this.boardType].length;
 
         // Mirror
         for (let flip = 0; flip < 2; flip++) {

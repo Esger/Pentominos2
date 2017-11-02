@@ -112,7 +112,7 @@ define('components/board',['exports', 'aurelia-framework', '../services/board-se
         return BoardCustomElement;
     }()) || _class);
 });
-define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _aureliaEventAggregator) {
+define('components/controls',['exports', 'aurelia-framework', '../services/board-service', '../services/setting-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _boardService, _settingService, _pentominoService, _solutionService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -128,20 +128,107 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-agg
 
     var _dec, _class;
 
-    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
-        function ControlsCustomElement(eventAggregator) {
+    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _settingService.SettingService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
+        function ControlsCustomElement(boardService, settingService, pentominoService, solutionService) {
             _classCallCheck(this, ControlsCustomElement);
 
-            this.ea = eventAggregator;
+            this.bs = boardService;
+            this.ss = settingService;
+            this.ps = pentominoService;
+            this.sls = solutionService;
+            this.pentominoCount = this.bs.pentominosLength();
+            this.solutionCount = this.sls.solutions[this.sls.boardType].length;
         }
 
-        ControlsCustomElement.prototype.addEventListeners = function addEventListeners() {};
+        ControlsCustomElement.prototype.getIndicatorClass = function getIndicatorClass() {
+            var classes = ['indicator', 'rounded'];
+            var solvedClass = this.ss.solved && !this.ss.newSolution ? 'solved' : '';
+            classes.push(solvedClass);
+            return classes.join(' ');
+        };
 
-        ControlsCustomElement.prototype.attached = function attached() {
-            this.addEventListeners();
+        ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText() {
+            var text = 'Solution ' + (this.sls.currentSolution + 1) + '/' + this.sls.solutions[this.sls.boardType].length;
+            return text;
+        };
+
+        ControlsCustomElement.prototype.showSolution = function showSolution() {
+            var pentominos = this.ps.pentominos;
+            var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
+            var splitString = solutionString.substr(1).split('#');
+            for (var i = 0; i < this.pentominoCount; i++) {
+                var pentomino = this.ps.pentominos[i];
+                var props = splitString[i].split('_');
+                pentomino.face = parseInt(props[1], 10);
+                pentomino.position.x = parseInt(props[2], 10);
+                pentomino.position.y = parseInt(props[3], 10);
+                this.ps.adjustDimensions(i);
+            }
+            this.ps.registerPieces();
+        };
+
+        ControlsCustomElement.prototype.showButton = function showButton() {
+            return this.solutionCount > 0;
+        };
+
+        ControlsCustomElement.prototype.disableNextButton = function disableNextButton() {
+            return this.sls.currentSolution + 1 == this.solutionCount;
+        };
+
+        ControlsCustomElement.prototype.disablePreviousButton = function disablePreviousButton() {
+            return this.sls.currentSolution == 0;
+        };
+
+        ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
+            if (!this.disablePreviousButton()) {
+                this.sls.currentSolution--;
+                this.showSolution();
+            }
+        };
+
+        ControlsCustomElement.prototype.showNextSolution = function showNextSolution() {
+            if (!this.disableNextButton()) {
+                this.sls.currentSolution++;
+                this.showSolution();
+            }
         };
 
         return ControlsCustomElement;
+    }()) || _class);
+});
+define('components/header',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.HeaderCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function HeaderCustomElement(boardService) {
+            _classCallCheck(this, HeaderCustomElement);
+
+            this.bs = boardService;
+            this.title = 'Pentomino';
+        }
+
+        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss() {
+            var boardType = this.bs.boardTypes[this.bs.boardType];
+            var css = {
+                width: boardType.w * this.bs.partSize + 'px'
+            };
+            return css;
+        };
+
+        return HeaderCustomElement;
     }()) || _class);
 });
 define('components/menu',['exports', 'aurelia-framework', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _aureliaEventAggregator) {
@@ -1014,6 +1101,109 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
+define('services/board-service',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.BoardService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var BoardService = exports.BoardService = function () {
+        function BoardService() {
+            _classCallCheck(this, BoardService);
+
+            this.partSize = 40;
+            this.boardType = 'square';
+            this.boardTypes = {
+                'square': {
+                    w: 8,
+                    h: 8,
+                    surface: 64
+                },
+                'rectangle': {
+                    w: 6,
+                    h: 10,
+                    surface: 60
+                },
+                'dozen': {
+                    w: 12,
+                    h: 5,
+                    surface: 60
+                },
+                'beam': {
+                    w: 15,
+                    h: 4,
+                    surface: 60
+                },
+                'stick': {
+                    w: 16,
+                    h: 4,
+                    surface: 64
+                },
+                'twig': {
+                    w: 20,
+                    h: 3,
+                    surface: 60
+                }
+            };
+            this.solved = false;
+            this.newSolution = false;
+        }
+
+        BoardService.prototype.setSolved = function setSolved() {
+            this.solved = true;
+        };
+
+        BoardService.prototype.unsetSolved = function unsetSolved() {
+            this.solved = false;
+        };
+
+        BoardService.prototype.setNewSolution = function setNewSolution() {
+            this.newSolution = true;
+        };
+
+        BoardService.prototype.unsetNewSolution = function unsetNewSolution() {
+            this.newSolution = false;
+        };
+
+        BoardService.prototype.setBoardType = function setBoardType(shape) {
+            this.boardType = shape;
+        };
+
+        BoardService.prototype.getWidth = function getWidth() {
+            return this.boardTypes[this.boardType].w;
+        };
+
+        BoardService.prototype.getHeight = function getHeight() {
+            return this.boardTypes[this.boardType].h;
+        };
+
+        BoardService.prototype.pentominosLength = function pentominosLength() {
+            var blockCount = this.boardType == 'square' ? 13 : 12;
+            return blockCount;
+        };
+
+        BoardService.prototype.boardsCount = function boardsCount() {
+            var count = 0;
+            for (var k in this.boardTypes) {
+                if (this.boardTypes.hasOwnProperty(k)) count++;
+            }return count;
+        };
+
+        BoardService.prototype.onBoard = function onBoard(x, y) {
+            return x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight();
+        };
+
+        return BoardService;
+    }();
+});
 define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-client', './board-service'], function (exports, _aureliaFramework, _aureliaHttpClient, _boardService) {
     'use strict';
 
@@ -1116,6 +1306,109 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         return DataService;
     }()) || _class);
 });
+define('services/drag-service',['exports', 'aurelia-framework', './setting-service', './pentomino-service', './permutation-service'], function (exports, _aureliaFramework, _settingService, _pentominoService, _permutationService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.DragService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var DragService = exports.DragService = (_dec = (0, _aureliaFramework.inject)(_settingService.SettingService, _pentominoService.PentominoService, _permutationService.PermutationService), _dec(_class = function () {
+        function DragService(settingService, pentominoService, permutationService) {
+            _classCallCheck(this, DragService);
+
+            this.ss = settingService;
+            this.ps = pentominoService;
+            this.prms = permutationService;
+            this.dragStartPos = {};
+            this.dragEndPos = {};
+        }
+
+        DragService.prototype.getClientPos = function getClientPos(event) {
+            var clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            var clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            return {
+                x: clientX / this.ss.scale,
+                y: clientY / this.ss.scale
+            };
+        };
+
+        DragService.prototype.startDrag = function startDrag(pentomino, partIndex, event) {
+            var clientPos = this.getClientPos(event);
+            this.ps.setCurrentPentomino(pentomino, partIndex);
+            this.ps.registerPiece(pentomino, -1);
+            this.container = event.target.offsetParent.offsetParent;
+            this.container.style.zIndex = 100;
+            this.startX = clientPos.x - this.container.offsetLeft;
+            this.startY = clientPos.y - this.container.offsetTop;
+            this.x = clientPos.x - this.startX;
+            this.y = clientPos.y - this.startY;
+            this.dragStartPos.x = this.x;
+            this.dragStartPos.y = this.y;
+
+            return false;
+        };
+
+        DragService.prototype.doDrag = function doDrag(event) {
+            var clientPos = this.getClientPos(event);
+            if (this.ps.currentPentomino) {
+                this.x = clientPos.x - this.startX;
+                this.y = clientPos.y - this.startY;
+                this.container.style.left = this.x + 'px';
+                this.container.style.top = this.y + 'px';
+            }
+        };
+
+        DragService.prototype.stopDrag = function stopDrag(event) {
+            this.dragEndPos.x = this.x;
+            this.dragEndPos.y = this.y;
+            if (this.ps.currentPentomino) {
+                this.alignToGrid();
+                if (!this.isDragged()) {
+                    if (this.ps.currentPentomino.type < 4 && this.ps.currentPentomino.activePart < 3 || this.ps.currentPentomino.type == 4 && this.ps.currentPentomino.activePart < 1) {
+                        this.ps.adjustPosition();
+                        this.prms.flipRotate(this.ps.currentPentomino);
+                    }
+                }
+                this.ps.registerPiece(this.ps.currentPentomino, 1);
+                this.ps.isSolved();
+            }
+
+            this.releasePentomino();
+        };
+
+        DragService.prototype.releasePentomino = function releasePentomino() {
+            if (this.container) {
+                this.container.style.zIndex = '';
+                this.container = null;
+            }
+            this.ps.resetCurrentPentomino();
+        };
+
+        DragService.prototype.alignToGrid = function alignToGrid() {
+            var newX = Math.round(this.x / this.ss.partSize);
+            var newY = Math.round(this.y / this.ss.partSize);
+            this.ps.alignCurrentPentomino(newX, newY);
+            this.container.style.left = newX * this.ss.partSize + 'px';
+            this.container.style.top = newY * this.ss.partSize + 'px';
+        };
+
+        DragService.prototype.isDragged = function isDragged() {
+            return Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19 || Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19;
+        };
+
+        return DragService;
+    }()) || _class);
+});
 define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-event-aggregator', './data-service', './board-service', './solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _dataService, _boardService, _solutionService) {
     'use strict';
 
@@ -1146,12 +1439,17 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
             this.start();
         }
 
+        PentominoService.prototype.pentominoCount = function pentominoCount() {
+            return this.pentominos.length;
+        };
+
         PentominoService.prototype.isSolved = function isSolved() {
             var boardIsFull = this.boardIsFull();
             if (boardIsFull) {
                 this.bs.setSolved();
                 this.sls.saveSolution(this.pentominos);
             } else {
+                this.bs.unsetNewSolution();
                 this.bs.unsetSolved();
             }
         };
@@ -1159,7 +1457,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
         PentominoService.prototype.boardIsFull = function boardIsFull() {
             var h = this.bs.getHeight();
             var w = this.bs.getWidth();
-            console.table(this.fields);
+
             for (var y = 0; y < h; y++) {
                 for (var x = 0; x < w; x++) {
                     if (this.fields[y][x] !== 1) {
@@ -1307,413 +1605,6 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
         return PentominoService;
     }()) || _class);
 });
-define('components/header',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.HeaderCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function HeaderCustomElement(boardService) {
-            _classCallCheck(this, HeaderCustomElement);
-
-            this.bs = boardService;
-            this.title = 'Pentomino';
-        }
-
-        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss() {
-            var boardType = this.bs.boardTypes[this.bs.boardType];
-            var css = {
-                width: boardType.w * this.bs.partSize + 'px'
-            };
-            return css;
-        };
-
-        return HeaderCustomElement;
-    }()) || _class);
-});
-define('services/drag-service',['exports', 'aurelia-framework', './setting-service', './pentomino-service', './permutation-service'], function (exports, _aureliaFramework, _settingService, _pentominoService, _permutationService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.DragService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var DragService = exports.DragService = (_dec = (0, _aureliaFramework.inject)(_settingService.SettingService, _pentominoService.PentominoService, _permutationService.PermutationService), _dec(_class = function () {
-        function DragService(settingService, pentominoService, permutationService) {
-            _classCallCheck(this, DragService);
-
-            this.ss = settingService;
-            this.ps = pentominoService;
-            this.prms = permutationService;
-            this.dragStartPos = {};
-            this.dragEndPos = {};
-        }
-
-        DragService.prototype.getClientPos = function getClientPos(event) {
-            var clientX = event.touches ? event.touches[0].clientX : event.clientX;
-            var clientY = event.touches ? event.touches[0].clientY : event.clientY;
-            return {
-                x: clientX / this.ss.scale,
-                y: clientY / this.ss.scale
-            };
-        };
-
-        DragService.prototype.startDrag = function startDrag(pentomino, partIndex, event) {
-            var clientPos = this.getClientPos(event);
-            this.ps.setCurrentPentomino(pentomino, partIndex);
-            this.ps.registerPiece(pentomino, -1);
-            this.container = event.target.offsetParent.offsetParent;
-            this.container.style.zIndex = 100;
-            this.startX = clientPos.x - this.container.offsetLeft;
-            this.startY = clientPos.y - this.container.offsetTop;
-            this.x = clientPos.x - this.startX;
-            this.y = clientPos.y - this.startY;
-            this.dragStartPos.x = this.x;
-            this.dragStartPos.y = this.y;
-
-            return false;
-        };
-
-        DragService.prototype.doDrag = function doDrag(event) {
-            var clientPos = this.getClientPos(event);
-            if (this.ps.currentPentomino) {
-                this.x = clientPos.x - this.startX;
-                this.y = clientPos.y - this.startY;
-                this.container.style.left = this.x + 'px';
-                this.container.style.top = this.y + 'px';
-            }
-        };
-
-        DragService.prototype.stopDrag = function stopDrag(event) {
-            this.dragEndPos.x = this.x;
-            this.dragEndPos.y = this.y;
-            if (this.ps.currentPentomino) {
-                this.alignToGrid();
-                if (!this.isDragged()) {
-                    if (this.ps.currentPentomino.type < 4 && this.ps.currentPentomino.activePart < 3 || this.ps.currentPentomino.type == 4 && this.ps.currentPentomino.activePart < 1) {
-                        this.ps.adjustPosition();
-                        this.prms.flipRotate(this.ps.currentPentomino);
-                    }
-                }
-                this.ps.registerPiece(this.ps.currentPentomino, 1);
-                this.ps.isSolved();
-            }
-
-            this.releasePentomino();
-        };
-
-        DragService.prototype.releasePentomino = function releasePentomino() {
-            if (this.container) {
-                this.container.style.zIndex = '';
-                this.container = null;
-            }
-            this.ps.resetCurrentPentomino();
-        };
-
-        DragService.prototype.alignToGrid = function alignToGrid() {
-            var newX = Math.round(this.x / this.ss.partSize);
-            var newY = Math.round(this.y / this.ss.partSize);
-            this.ps.alignCurrentPentomino(newX, newY);
-            this.container.style.left = newX * this.ss.partSize + 'px';
-            this.container.style.top = newY * this.ss.partSize + 'px';
-        };
-
-        DragService.prototype.isDragged = function isDragged() {
-            return Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19 || Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19;
-        };
-
-        return DragService;
-    }()) || _class);
-});
-define('services/board-service',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.BoardService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var BoardService = exports.BoardService = function () {
-        function BoardService() {
-            _classCallCheck(this, BoardService);
-
-            this.partSize = 40;
-            this.boardType = 'square';
-            this.boardTypes = {
-                'square': {
-                    w: 8,
-                    h: 8,
-                    surface: 64
-                },
-                'rectangle': {
-                    w: 6,
-                    h: 10,
-                    surface: 60
-                },
-                'dozen': {
-                    w: 12,
-                    h: 5,
-                    surface: 60
-                },
-                'beam': {
-                    w: 15,
-                    h: 4,
-                    surface: 60
-                },
-                'stick': {
-                    w: 16,
-                    h: 4,
-                    surface: 64
-                },
-                'twig': {
-                    w: 20,
-                    h: 3,
-                    surface: 60
-                }
-            };
-            this.solved = false;
-            this.newSolution = false;
-        }
-
-        BoardService.prototype.setSolved = function setSolved() {
-            this.solved = true;
-        };
-
-        BoardService.prototype.unsetSolved = function unsetSolved() {
-            this.solved = false;
-        };
-
-        BoardService.prototype.setNewSolution = function setNewSolution() {
-            this.newSolution = true;
-        };
-
-        BoardService.prototype.unsetNewSolution = function unsetNewSolution() {
-            this.newSolution = false;
-        };
-
-        BoardService.prototype.setBoardType = function setBoardType(shape) {
-            this.boardType = shape;
-        };
-
-        BoardService.prototype.getWidth = function getWidth() {
-            return this.boardTypes[this.boardType].w;
-        };
-
-        BoardService.prototype.getHeight = function getHeight() {
-            return this.boardTypes[this.boardType].h;
-        };
-
-        BoardService.prototype.pentominosLength = function pentominosLength() {
-            var blockCount = this.boardType == 'square' ? 13 : 12;
-            return blockCount;
-        };
-
-        BoardService.prototype.boardsCount = function boardsCount() {
-            var count = 0;
-            for (var k in this.boardTypes) {
-                if (this.boardTypes.hasOwnProperty(k)) count++;
-            }return count;
-        };
-
-        BoardService.prototype.onBoard = function onBoard(x, y) {
-            return x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight();
-        };
-
-        return BoardService;
-    }();
-});
-define('services/settings-service',["exports", "aurelia-framework"], function (exports, _aureliaFramework) {
-    "use strict";
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SettingsService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var SettingsService = exports.SettingsService = function () {
-        function SettingsService() {
-            _classCallCheck(this, SettingsService);
-
-            this.opaqueBlocks = true;
-            this.solutionsShown = false;
-            this.scale = 1;
-        }
-
-        SettingsService.prototype.getScale = function getScale() {
-            var screenWidth = document.querySelectorAll("html")[0].clientWidth;
-            var boardWidth = document.querySelectorAll(".board")[0].clientWidth;
-            var scale = Math.min(screenWidth / boardWidth, 1);
-            scale = Math.floor(scale * 10) / 10;
-            this.scale = scale;
-            return {
-                'transformOrigin': 'top',
-                '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
-                '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
-                'transform': 'scale(' + scale + ', ' + scale + ')'
-            };
-        };
-
-        return SettingsService;
-    }();
-});
-define('services/setting-service',["exports", "aurelia-framework"], function (exports, _aureliaFramework) {
-    "use strict";
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SettingService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var SettingService = exports.SettingService = function () {
-        function SettingService() {
-            _classCallCheck(this, SettingService);
-
-            this.opaqueBlocks = true;
-            this.solutionsShown = false;
-            this.scale = 1;
-            this.partSize = 40;
-        }
-
-        SettingService.prototype.getScale = function getScale() {
-            var screenWidth = document.querySelectorAll("html")[0].clientWidth;
-            var boardWidth = document.querySelectorAll(".board")[0].clientWidth;
-            var scale = Math.min(screenWidth / boardWidth, 1);
-            scale = Math.floor(scale * 10) / 10;
-            this.scale = scale;
-            return {
-                'transformOrigin': 'top',
-                '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
-                '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
-                'transform': 'scale(' + scale + ', ' + scale + ')'
-            };
-        };
-
-        return SettingService;
-    }();
-});
-define('services/solution-service',['exports', 'aurelia-framework', './board-service', './permutation-service', './data-service'], function (exports, _aureliaFramework, _boardService, _permutationService, _dataService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SolutionService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var SolutionService = exports.SolutionService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _permutationService.PermutationService, _dataService.DataService), _dec(_class = function () {
-        function SolutionService(boardService, permutationService, dataService) {
-            _classCallCheck(this, SolutionService);
-
-            this.bs = boardService;
-            this.ds = dataService;
-            this.prms = permutationService;
-            this.currentSolution = 0;
-            this.solutions = this.ds.getSolutions();
-        }
-
-        SolutionService.prototype.saveSolution = function saveSolution(pentominos) {
-            var solutionResult = this.isNewSolution(pentominos);
-
-            if (!isNaN(solutionResult)) {
-                this.currentSolution = solutionResult;
-                this.bs.unsetNewSolution();
-            } else {
-                this.ds.saveSolution(solutionResult);
-                this.solutions[this.bs.boardType].push(solutionResult);
-                this.bs.setNewSolution();
-            }
-        };
-
-        SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
-            var isNewSolution = true;
-            var rotations = this.bs.boardType == 'square' ? 4 : 2;
-            var solutionString = this.solution2String(pentominos);
-            var foundSolStr = solutionString;
-            var theLength = this.solutions[this.bs.boardType].length;
-
-            for (var flip = 0; flip < 2; flip++) {
-                for (var rotation = 0; rotation < rotations; rotation++) {
-                    for (var i = 0; i < theLength; i++) {
-                        solutionString = this.solution2String(pentominos);
-                        isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
-                        if (!isNewSolution) return i;
-                    }
-
-                    this.prms.rotateBoard(pentominos);
-                }
-                this.prms.flipBoardYAxis(pentominos);
-            }
-            return foundSolStr;
-        };
-
-        SolutionService.prototype.solution2String = function solution2String(pentominos) {
-            var solutionString = "";
-            var theLength = this.bs.pentominosLength();
-            for (var i = 0; i < theLength; i++) {
-                solutionString += this.pentomino2string(pentominos[i]);
-            }
-            return solutionString;
-        };
-
-        SolutionService.prototype.pentomino2string = function pentomino2string(pentomino) {
-            var parts = [];
-            if (pentomino) {
-                parts.push('#' + pentomino.name);
-                parts.push(pentomino.face);
-                parts.push(pentomino.position.x);
-                parts.push(pentomino.position.y);
-                return parts.join('_');
-            }
-        };
-
-        return SolutionService;
-    }()) || _class);
-});
 define('services/permutation-service',['exports', 'aurelia-framework', './board-service'], function (exports, _aureliaFramework, _boardService) {
     'use strict';
 
@@ -1793,19 +1684,158 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
         return PermutationService;
     }()) || _class);
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <footer></footer>\n    </div>\n</template>"; });
+define('services/setting-service',["exports", "aurelia-framework"], function (exports, _aureliaFramework) {
+    "use strict";
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SettingService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var SettingService = exports.SettingService = function () {
+        function SettingService() {
+            _classCallCheck(this, SettingService);
+
+            this.opaqueBlocks = true;
+            this.showSolutions = false;
+            this.scale = 1;
+            this.partSize = 40;
+        }
+
+        SettingService.prototype.getScale = function getScale() {
+            var screenWidth = document.querySelectorAll("html")[0].clientWidth;
+            var boardWidth = document.querySelectorAll(".board")[0].clientWidth;
+            var scale = Math.min(screenWidth / boardWidth, 1);
+            scale = Math.floor(scale * 10) / 10;
+            this.scale = scale;
+            return {
+                'transformOrigin': 'top',
+                '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
+                '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
+                'transform': 'scale(' + scale + ', ' + scale + ')'
+            };
+        };
+
+        SettingService.prototype.setShowSolutions = function setShowSolutions() {
+            this.showSolutions = true;
+        };
+
+        return SettingService;
+    }();
+});
+define('services/solution-service',['exports', 'aurelia-framework', './board-service', './permutation-service', './data-service', '../services/setting-service'], function (exports, _aureliaFramework, _boardService, _permutationService, _dataService, _settingService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SolutionService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var SolutionService = exports.SolutionService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _permutationService.PermutationService, _dataService.DataService, _settingService.SettingService), _dec(_class = function () {
+        function SolutionService(boardService, permutationService, dataService, settingService) {
+            _classCallCheck(this, SolutionService);
+
+            this.bs = boardService;
+            this.ds = dataService;
+            this.ss = settingService;
+            this.prms = permutationService;
+            this.boardType = this.bs.boardType;
+            this.currentSolution = 0;
+            this.getSolutions();
+        }
+
+        SolutionService.prototype.getSolutions = function getSolutions() {
+            this.solutions = this.ds.getSolutions();
+            if (this.solutions[this.bs.boardType].length > 0) {
+                this.ss.setShowSolutions();
+            }
+        };
+
+        SolutionService.prototype.saveSolution = function saveSolution(pentominos) {
+            var solutionResult = this.isNewSolution(pentominos);
+
+            if (!isNaN(solutionResult)) {
+                this.currentSolution = solutionResult;
+                this.bs.unsetNewSolution();
+            } else {
+                this.ds.saveSolution(solutionResult);
+                this.solutions[this.boardType].push(solutionResult);
+                this.bs.setNewSolution();
+            }
+        };
+
+        SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
+            var isNewSolution = true;
+            var rotations = this.boardType == 'square' ? 4 : 2;
+            var solutionString = this.solution2String(pentominos);
+            var foundSolStr = solutionString;
+            var theLength = this.solutions[this.boardType].length;
+
+            for (var flip = 0; flip < 2; flip++) {
+                for (var rotation = 0; rotation < rotations; rotation++) {
+                    for (var i = 0; i < theLength; i++) {
+                        solutionString = this.solution2String(pentominos);
+                        isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
+                        if (!isNewSolution) return i;
+                    }
+
+                    this.prms.rotateBoard(pentominos);
+                }
+                this.prms.flipBoardYAxis(pentominos);
+            }
+            return foundSolStr;
+        };
+
+        SolutionService.prototype.solution2String = function solution2String(pentominos) {
+            var solutionString = "";
+            var theLength = this.bs.pentominosLength();
+            for (var i = 0; i < theLength; i++) {
+                solutionString += this.pentomino2string(pentominos[i]);
+            }
+            return solutionString;
+        };
+
+        SolutionService.prototype.pentomino2string = function pentomino2string(pentomino) {
+            var parts = [];
+            if (pentomino) {
+                parts.push('#' + pentomino.name);
+                parts.push(pentomino.face);
+                parts.push(pentomino.position.x);
+                parts.push(pentomino.position.y);
+                return parts.join('_');
+            }
+        };
+
+        return SolutionService;
+    }()) || _class);
+});
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/controls\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <controls></controls>\n        <footer></footer>\n    </div>\n</template>"; });
 define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n}\n@media (min-height: 700px) {\n    .dragArea {\n        justify-content: center;\n    }\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS()\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <require from=\"components/controls\"></require>\n    <pentominos></pentominos>\n    <controls></controls>\n</template>"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS()\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <pentominos></pentominos>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
-define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <!-- <button class=\"small r\"\n            title=\"Show next solution\"\n            if.bind=\"settings.solutionsShown\"\n            disabled.bind=\"(currentSolution == solutions[board.boardType].length - 1)\"\n            click.delegate=\"showNextSolution(board.boardType)\"\n            touchstart.delegate=\"showNextSolution(board.boardType)\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    <button class=\"small l\"\n            title=\"Show previous solution\"\n            if.bind=\"settings.solutionsShown\"\n            disabled.bind=\"(currentSolution == 0)\"\n            click.delegate=\"showPreviousSolution(board.boardType)\"\n            touchstart.delegate=\"showPreviousSolution(board.boardType)\">\n            <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n    <button class=\"rounded\"\n            if.bind=\"!settings.solutionsShown\"\n            ng-class=\"{'solved' : (board.solved && !board.newSolution)}\"\n            click.delegate=\"showSolution()\"\n            touchstart.delegate=\"showSolution()\">Show solution\n            {{currentSolution + 1}} / {{solutions[board.boardType].length}}\n        </button>\n    <span class=\"rounded\"\n          if.bind=\"settings.solutionsShown\"\n          ng-class=\"{'solved' : (board.solved && !board.newSolution)}\">\n            Solution {{currentSolution + 1}} / {{solutions[board.boardType].length}}\n        </span> -->\n\n</template>"; });
-define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    position        : relative;\n    /*margin: 40px auto;*/\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
+define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"ss.showSolutions\">\n        <button class.bind=\"small\"\n                title=\"Show previous solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <div class.bind=\"getIndicatorClass()\">\n            ${getIndicatorText()}\n        </div>\n        <button class=\"small\"\n                title=\"Show next solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disableNextButton(sls.currentSolution)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
+define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    display         : flex;\n    flex-direction  : column;\n    position        : relative;\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
 define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <a href=\"http://www.ashware.nl\"\n       target=\"_blank\"\n       class=\"r\">&copy;&nbsp;ashWare</a>\n    <!-- <span class='st_sharethis' displayText='ShareThis'></span> -->\n</template>"; });
-define('text!components/controls.css', ['module'], function(module) { module.exports = "#controls {\n    margin-top: 5px;\n    text-align: center;\n}\n\n#controls button, #controls span {\n    display         : inline-block;\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    text-align      : center;\n    color           : white;\n    font-size       : 14px;\n    margin-top      : 10px;\n    padding         : 0 10px;\n}\n\n#controls span.solved {\n    border: 1px dotted lime;\n}\n\n#controls button {\n    cursor: pointer;\n}\n\n#controls button.small {\n    width      : 40px;\n    height     : 40px;\n    line-height: 40px;\n    margin-top : 5px;\n}\n\n#controls button+icon {\n    margin     : 0 10px;\n    line-height: 30px;\n}\n\n#controls button[disabled='disabled'] {\n    visibility: hidden;\n}\n"; });
-define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <!-- <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"solutions['square'].length > 1\"\n            mouseenter.delegate=\"toggleSubmenuBoards()\"\n            mouseleave.delegate=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;\n            <i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"(key, val) in board.boardTypes track by $index\"\n                    if.bind=\"showThisBoard(key)\"\n                    class.bind=\"{'active' : board.boardType == key}\"\n                    click.delegate=\"getStartPosition(key)\"\n                    touchstart.delegate=\"getStartPosition(key)\">{{val.w}}&nbsp;&times;&nbsp;{{val.h}}</li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"setOpaqueBlocks()\"\n            if.bind=\"settings.opaqueBlocks == false\"\n            touchstart.delegate=\"setOpaqueBlocks()\">Opaque</li>\n\n        <li click.delegate=\"setTransparentBlocks()\"\n            if.bind=\"settings.opaqueBlocks == true\"\n            touchstart.delegate=\"setTransparentBlocks()\">Transparent</li>\n\n        <li click.delegate=\"methods.rotateBoard()\"\n            touchstart.delegate=\"methods.rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"methods.flipBoardYAxis()\"\n            touchstart.delegate=\"methods.flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"methods.mixBoard()\"\n            touchstart.delegate=\"methods.mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"solutions[board.boardType].length > 20\"\n            click.delegate=\"board.autoSolve()\"\n            touchstart.delegate=\"board.autoSolve()\">Spoiler</li>\n    </ul> -->\n\n</template>"; });
+define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n}\n\n.controls .indicator, .controls button {\n    height          : 40px;\n    line-height     : 40px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n}\n\n.controls indicator.solved {\n    border: 1px dotted lime;\n}\n\n.controls button {\n    cursor: pointer;\n}\n\n.controls button.small {\n    width      : 40px;\n    height     : 40px;\n    line-height: 40px;\n}\n\n.controls button icon {\n    line-height: 40px;\n}\n\n.controls button:disabled {\n    cursor: not-allowed;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
+define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss()\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}</h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
+define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <!-- <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"solutions['square'].length > 1\"\n            mouseenter.delegate=\"toggleSubmenuBoards()\"\n            mouseleave.delegate=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;\n            <i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"(key, val) in board.boardTypes track by $index\"\n                    if.bind=\"showThisBoard(key)\"\n                    class.bind=\"{'active' : board.boardType == key}\"\n                    click.delegate=\"getStartPosition(key)\"\n                    touchstart.delegate=\"getStartPosition(key)\">{{val.w}}&nbsp;&times;&nbsp;{{val.h}}</li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"setOpaqueBlocks()\"\n            if.bind=\"settings.opaqueBlocks == false\"\n            touchstart.delegate=\"setOpaqueBlocks()\">Opaque</li>\n\n        <li click.delegate=\"setTransparentBlocks()\"\n            if.bind=\"settings.opaqueBlocks == true\"\n            touchstart.delegate=\"setTransparentBlocks()\">Transparent</li>\n\n        <li click.delegate=\"methods.rotateBoard()\"\n            touchstart.delegate=\"methods.rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"methods.flipBoardYAxis()\"\n            touchstart.delegate=\"methods.flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"methods.mixBoard()\"\n            touchstart.delegate=\"methods.mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"solutions[board.boardType].length > 20\"\n            click.delegate=\"board.autoSolve()\"\n            touchstart.delegate=\"board.autoSolve()\">Spoiler</li>\n    </ul> -->\n\n</template>"; });
+define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
 define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino.faces[pentomino.face]\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"getPartCSS(part)\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
-define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss()\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}</h1>\n</template>"; });
-define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

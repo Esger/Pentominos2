@@ -5,6 +5,7 @@ import {
 import { BoardService } from '../services/board-service';
 
 @inject(BoardService)
+
 export class BoardCustomElement {
 
     constructor(boardService) {
