@@ -52,22 +52,21 @@ export class MenuCustomElement {
 
     showThisBoard(key) {
         let threshold = 3;
-        if (this.solutions) {
+        if (this.sls.solutions) {
             switch (key) {
                 case 'square':
                     return true;
                 case 'rectangle':
-                    return this.solutions['square'].length > threshold;
+                    return this.sls.solutions['square'].length > threshold;
                 case 'beam':
-                    return this.solutions['rectangle'].length > threshold;
+                    return this.sls.solutions['rectangle'].length > threshold;
                 case 'stick':
-                    return this.solutions['beam'].length > threshold;
+                    return this.sls.solutions['beam'].length > threshold;
                 case 'twig':
-                    return this.solutions['stick'].length > threshold;
+                    return this.sls.solutions['stick'].length > threshold;
                 default:
                     return false;
             }
-            console.log(this.board.boardTypes[key]);
         }
         return true;
     };
@@ -94,6 +93,9 @@ export class MenuCustomElement {
 
     getStartPosition(shape) {
         this.ps.getStartPosition(shape);
+        this.ps.registerPieces();
+        this.bs.unsetSolved();
+        this.bs.unsetNewSolution();
         this.settings.submenuBoardsVisible = false;
         this.settings.menuVisible = false;
     }
