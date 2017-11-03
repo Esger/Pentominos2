@@ -18,6 +18,7 @@
     flex-direction : column;
     justify-content: flex-start;
     align-items    : center;
+    overflow       : hidden;
 }
 @media (min-height: 700px) {
     .dragArea {

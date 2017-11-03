@@ -17,7 +17,7 @@ export class SolutionService {
         this.ss = settingService;
         this.prms = permutationService;
         this.boardType = this.bs.boardType;
-        this.currentSolution = 0;
+        this.currentSolution = -1;
         this.getSolutions();
     }
 
@@ -27,7 +27,7 @@ export class SolutionService {
     }
 
     setShowSolutions() {
-        this.currentSolution = 0;
+        this.currentSolution = -1;
         if (this.solutions[this.bs.boardType].length > 0) {
             this.ss.setShowSolutions();
         }

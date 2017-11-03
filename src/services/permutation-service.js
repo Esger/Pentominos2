@@ -92,7 +92,7 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        let theLength = pentominos.length;
+        let theLength = this.bs.pentominosLength();
         let clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
         let clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
         let maxX = clw - 4;
