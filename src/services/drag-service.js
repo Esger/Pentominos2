@@ -40,7 +40,6 @@ export class DragService {
             this.y = clientPos.y - this.startY;
             this.dragStartPos.x = this.x;
             this.dragStartPos.y = this.y;
-            // console.log('start', this.x, this.y);            
         }
         return false;
     }
@@ -48,12 +47,10 @@ export class DragService {
     doDrag(event) {
         let clientPos = this.getClientPos(event);
         if (this.ps.currentPentomino) {
-            // console.log(event);
             this.x = clientPos.x - this.startX;
             this.y = clientPos.y - this.startY;
             this.container.style.left = this.x + 'px';
             this.container.style.top = this.y + 'px';
-            // console.log('drag', this.x, this.y);
         }
     }
 
@@ -73,7 +70,6 @@ export class DragService {
             this.ps.registerPiece(this.ps.currentPentomino, 1);
             this.ps.isSolved();
         }
-        // console.log(this.ps.currentPentomino);
         this.releasePentomino();
     }
 

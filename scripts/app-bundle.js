@@ -1432,7 +1432,6 @@ define('services/drag-service',['exports', 'aurelia-framework', './setting-servi
                 this.ps.registerPiece(this.ps.currentPentomino, 1);
                 this.ps.isSolved();
             }
-
             this.releasePentomino();
         };
 
@@ -1459,7 +1458,7 @@ define('services/drag-service',['exports', 'aurelia-framework', './setting-servi
         return DragService;
     }()) || _class);
 });
-define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-event-aggregator', './data-service', './board-service', './solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _dataService, _boardService, _solutionService) {
+define('services/pentomino-service',['exports', 'aurelia-framework', './data-service', './board-service', './solution-service'], function (exports, _aureliaFramework, _dataService, _boardService, _solutionService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -1475,11 +1474,10 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
 
     var _dec, _class;
 
-    var PentominoService = exports.PentominoService = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator, _dataService.DataService, _boardService.BoardService, _solutionService.SolutionService), _dec(_class = function () {
-        function PentominoService(eventAggregator, dataService, boardService, solutionService) {
+    var PentominoService = exports.PentominoService = (_dec = (0, _aureliaFramework.inject)(_dataService.DataService, _boardService.BoardService, _solutionService.SolutionService), _dec(_class = function () {
+        function PentominoService(dataService, boardService, solutionService) {
             _classCallCheck(this, PentominoService);
 
-            this.ea = eventAggregator;
             this.ds = dataService;
             this.bs = boardService;
             this.sls = solutionService;
@@ -1598,8 +1596,6 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
                         _this.setBoardFields(0);
                         _this.registerPieces();
                         _this.solved = false;
-
-                        console.log(_this.pentominos);
                     });
                 });
             });

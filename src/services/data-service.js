@@ -79,9 +79,7 @@ export class DataService {
                 let boardTypes = this.bs.boardTypes;
                 for (let type in boardTypes) {
                     if (boardTypes.hasOwnProperty(type)) {
-                        // if (!solutions.hasOwnProperty(type)) {
                         solutions[type] = [];
-                        // }
                     }
                 }
             }
@@ -93,7 +91,6 @@ export class DataService {
         let solutions = this.getSolutions(this.bs.boardTypes);
         solutions[this.bs.boardType].push(solutionString);
         localStorage.setItem("pentominos2", JSON.stringify(solutions));
-        // console.table(solutionString);
     }
 
 }
