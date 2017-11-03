@@ -28,18 +28,20 @@ export class DragService {
     }
 
     startDrag(pentomino, partIndex, event) {
-        let clientPos = this.getClientPos(event);
-        this.ps.setCurrentPentomino(pentomino, partIndex);
-        this.ps.registerPiece(pentomino, -1);
-        this.container = event.target.offsetParent.offsetParent;
-        this.container.style.zIndex = 100;
-        this.startX = clientPos.x - this.container.offsetLeft;
-        this.startY = clientPos.y - this.container.offsetTop;
-        this.x = clientPos.x - this.startX;
-        this.y = clientPos.y - this.startY;
-        this.dragStartPos.x = this.x;
-        this.dragStartPos.y = this.y;
-        // console.log('start', this.x, this.y);
+        if (this.container == null) {
+            let clientPos = this.getClientPos(event);
+            this.ps.setCurrentPentomino(pentomino, partIndex);
+            this.ps.registerPiece(pentomino, -1);
+            this.container = event.target.offsetParent.offsetParent;
+            this.container.style.zIndex = 100;
+            this.startX = clientPos.x - this.container.offsetLeft;
+            this.startY = clientPos.y - this.container.offsetTop;
+            this.x = clientPos.x - this.startX;
+            this.y = clientPos.y - this.startY;
+            this.dragStartPos.x = this.x;
+            this.dragStartPos.y = this.y;
+            // console.log('start', this.x, this.y);            
+        }
         return false;
     }
 

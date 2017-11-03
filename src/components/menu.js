@@ -2,28 +2,24 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
 import { BoardService } from '../services/board-service';
-import { SettingService } from '../services/setting-service';
+import { SolutionService } from '../services/solution-service';
 import { PentominoService } from '../services/pentomino-service';
 import { PermutationService } from '../services/permutation-service';
 
-@inject(EventAggregator, BoardService, SettingService, PentominoService, PermutationService)
+@inject(BoardService, SolutionService, PentominoService, PermutationService)
 
 export class MenuCustomElement {
 
-    constructor(eventAggregator, boardService, settingService, pentominoService, permutationService) {
-        this.ea = eventAggregator;
+    constructor(boardService, solutionService, pentominoService, permutationService) {
         this.bs = boardService;
-        this.ss = settingService;
+        this.sls = solutionService;
         this.ps = pentominoService;
         this.prms = permutationService;
         this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {
             menuVisible: false,
-            submenuBoardsVisible: false,
+            submenuBoardsVisible: false
         };
     }
 
@@ -74,25 +70,26 @@ export class MenuCustomElement {
 
     toggleSubmenuBoards() {
         this.settings.submenuBoardsVisible = !this.settings.submenuBoardsVisible;
+        return false;
     };
-    setOpaqueBlocks() {
-        this.settings.opaqueBlocks = true;
-    };
-    setTransparentBlocks() {
-        this.settings.opaqueBlocks = false;
-    };
+
+    getBoardDimensions(boardType) {
+        let text = ('' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h);
+        return text;
+    }
+
+    getActiveBoardClass(boardType) {
+        return (this.bs.boardType == boardType) ? 'active' : '';
+    }
+
     screenIsLargeEnough() {
         let clw = document.querySelectorAll('html')[0].clientWidth;
         let clh = document.querySelectorAll('html')[0].clientHeight;
         return clw + clh > 1100;
     };
 
-    addEventListeners() {
-
-    }
-
-    attached() {
-        this.addEventListeners();
+    getStartPosition(shape) {
+        this.ps.getStartPosition(shape)
     }
 
 }

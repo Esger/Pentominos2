@@ -11,29 +11,21 @@
             touchstart.delegate="hideTheMenu()">
             <i class="fa fa-times"></i></li>
 
-        <li if.bind="solutions['square'].length > 1"
-            mouseenter.delegate="toggleSubmenuBoards()"
-            mouseleave.delegate="toggleSubmenuBoards()"
+        <li if.bind="sls.solutions['square'].length > 1"
+            mouseenter.trigger="toggleSubmenuBoards()"
+            mouseleave.trigger="toggleSubmenuBoards()"
             touchend.delegate="toggleSubmenuBoards()">
-            Board sizes&nbsp;&nbsp;
-            <i class="fa fa-angle-right"></i>
+            Board sizes&nbsp;&nbsp;<i class="fa fa-angle-right"></i>
             <ul if.bind="settings.submenuBoardsVisible"
                 class="subMenu">
                 <li repeat.for="boardType of boardTypes"
-                    if.bind="showThisBoard(key)"
-                    class.bind="{'active' : board.boardType == key}"
-                    click.delegate="getStartPosition(key)"
-                    touchstart.delegate="getStartPosition(key)">{{val.w}}&nbsp;&times;&nbsp;{{val.h}}</li>
+                    if.bind="showThisBoard(boardType)"
+                    class.bind="getActiveBoardClass(boardType)"
+                    click.delegate="getStartPosition(boardType)"
+                    touchstart.delegate="getStartPosition(boardType)"
+                    innerhtml.bind="getBoardDimensions(boardType)"></li>
             </ul>
         </li>
-
-        <li if.bind="ss.opaqueBlocks == false"
-            click.delegate="setOpaqueBlocks()"
-            touchstart.delegate="setOpaqueBlocks()">Opaque</li>
-
-        <li if.bind="ss.opaqueBlocks == true"
-            click.delegate="setTransparentBlocks()"
-            touchstart.delegate="setTransparentBlocks()">Transparent</li>
 
         <li click.delegate="rotateBoard()"
             touchstart.delegate="rotateBoard()">Rotate&nbsp;Blocks</li>
@@ -45,7 +37,7 @@
             click.delegate="mixBoard()"
             touchstart.delegate="mixBoard()">Shuffle</li>
 
-        <li if.bind="solutions[bs.boardType].length > 20"
+        <li if.bind="sls.solutions[bs.boardType].length > 20"
             click.delegate="board.autoSolve()"
             touchstart.delegate="board.autoSolve()">Spoiler</li>
     </ul>

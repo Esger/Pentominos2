@@ -28,8 +28,12 @@ export class ControlsCustomElement {
     }
 
     getIndicatorText(currentSolution, solutionCount) {
-        let text = 'Solution ' + (currentSolution + 1) + '/' + solutionCount;
+        let text = 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' + solutionCount;
         return text;
+    }
+
+    showSolutions(count) {
+        return count > 0;
     }
 
     showSolution() {

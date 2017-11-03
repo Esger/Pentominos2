@@ -12,8 +12,8 @@ export class HeaderCustomElement {
         this.title = 'Pentomino';
     }
 
-    getHeaderSizeCss() {
-        let boardType = this.bs.boardTypes[this.bs.boardType];
+    getHeaderSizeCss(shape) {
+        let boardType = this.bs.boardTypes[shape];
         let css = {
             width: boardType.w * this.bs.partSize + 'px',
         }

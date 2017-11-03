@@ -75,8 +75,8 @@ export class PermutationService {
     }
 
     shiftPieces(pentominos, dx, dy) {
-        for (let i = 0; i < $scope.pentominos.length; i++) {
-            $scope.pentominos[i].position.y += 4;
+        for (let i = 0; i < pentominos.length; i++) {
+            pentominos[i].position.y += 4;
         }
     }
 
@@ -88,7 +88,7 @@ export class PermutationService {
             for (let i = 0; i < 2; i++) this.rotateSquareBoard(pentominos);
             this.shiftPieces(pentominos, 0, 4);
         }
-        // console.log($scope.pentominos[12]);
+        // console.log(pentominos[12]);
     }
 
     mixBoard(pentominos) {
@@ -107,9 +107,7 @@ export class PermutationService {
             do {
                 let xPos = Math.floor(Math.random() * maxX);
                 xPos -= offsetX;
-
                 let yPos = Math.floor(Math.random() * maxY);
-                // yPos -= offsetY;
 
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;

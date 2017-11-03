@@ -167,6 +167,9 @@ export class PentominoService {
 
     getStartPosition(shape) {
         return this.ds.getStartPosition(shape).then((response) => {
+            this.bs.boardType = shape;
+            this.sls.currentSolution = 0;
+            this.sls.setShowSolutions();
             for (let i = 0; i < this.pentominos.length; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
@@ -182,11 +185,8 @@ export class PentominoService {
                     pentomino.dimensions.reverse();
                 }
             }
+            this.registerPieces();
         });
-    }
-
-    addEventListeners() {
-
     }
 
 }

@@ -1,7 +1,7 @@
 <template>
     <require from="components/controls.css"></require>
     <div class="controls"
-         if.bind="ss.showSolutions">
+         if.bind="showSolutions(sls.solutions[bs.boardType].length)">
         <button class.bind="small"
                 title="Show previous solution"
                 if.bind="showButton()"
@@ -10,8 +10,8 @@
                 touchstart.delegate="showPreviousSolution()">
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
-        <div class.bind="getIndicatorClass()">
-            ${getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)}
+        <div class.bind="getIndicatorClass()"
+             innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)">
         </div>
         <button class="small"
                 title="Show next solution"

@@ -12,8 +12,8 @@ export class BoardCustomElement {
         this.bs = boardService;
     }
 
-    getBoardSizeCSS() {
-        let boardType = this.bs.boardTypes[this.bs.boardType];
+    getBoardSizeCSS(shape) {
+        let boardType = this.bs.boardTypes[shape];
         let css = {
             width: boardType.w * this.bs.partSize + 'px',
             height: boardType.h * this.bs.partSize + 'px'

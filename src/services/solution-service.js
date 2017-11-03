@@ -23,6 +23,11 @@ export class SolutionService {
 
     getSolutions() {
         this.solutions = this.ds.getSolutions();
+        this.setShowSolutions();
+    }
+
+    setShowSolutions() {
+        this.currentSolution = 0;
         if (this.solutions[this.bs.boardType].length > 0) {
             this.ss.setShowSolutions();
         }
