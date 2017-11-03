@@ -1,0 +1,45 @@
+.controls {
+    width          : 320px;
+    height         : 40px;
+    display        : flex;
+    justify-content: center;
+}
+
+.controls .indicator, .controls button {
+    height          : 40px;
+    line-height     : 40px;
+    font-family     : inherit;
+    background-color: transparent;
+    border          : none;
+    outline         : none;
+    color           : white;
+    font-size       : 14px;
+    padding         : 0 10px;
+    transition      : all .3s ease;
+}
+
+.controls indicator.solved {
+    border: 1px dotted lime;
+}
+
+.controls button {
+    cursor: pointer;
+}
+
+.controls button.small {
+    width      : 40px;
+    height     : 40px;
+    line-height: 40px;
+}
+
+.controls button icon {
+    line-height: 40px;
+}
+
+.controls button:disabled {
+    cursor: not-allowed;
+}
+
+[class*='fa-step-'] {
+    vertical-align: 0;
+}

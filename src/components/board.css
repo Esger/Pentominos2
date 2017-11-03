@@ -1,0 +1,14 @@
+.board {
+    display         : flex;
+    flex-direction  : column;
+    position        : relative;
+    background-color: lightgray;
+    border          : 5px solid darkgray;
+    transition      : all .3s ease;
+}
+
+.board.solved, .solved {
+    border-color      : lime;
+    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);
+    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);
+}

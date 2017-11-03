@@ -1,0 +1,18 @@
+<template>
+    <require from="reset.css"></require>
+    <require from="app.css"></require>
+    <require from="components/header"></require>
+    <require from="components/board"></require>
+    <require from="components/controls"></require>
+    <require from="components/footer.html"></require>
+    <div class="dragArea"
+         mousemove.delegate="ds.doDrag($event)"
+         touchmove.delegate="ds.doDrag($event)"
+         mouseup.delegate="ds.stopDrag($event)"
+         touchend.delegate="ds.stopDrag($event)">
+        <header></header>
+        <board></board>
+        <controls></controls>
+        <footer></footer>
+    </div>
+</template>

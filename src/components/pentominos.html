@@ -1,0 +1,15 @@
+<template class="pentominosWrapper">
+    <require from="components/pentominos.css"></require>
+    <div repeat.for="pentomino of ps.pentominos"
+         class.bind="getPentominoClasses(pentomino)"
+         css.bind="getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)">
+        <div class="relContainer inheritBgColor">
+            <div repeat.for="part of pentomino.faces[pentomino.face]"
+                 class.bind="getPartClasses(pentomino, $index, pentomino.face)"
+                 css.bind="getPartCSS(part)"
+                 mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
+                 touchstart.delegate="ds.startDrag(pentomino, $index, $event)">
+            </div>
+        </div>
+    </div>
+</template>
