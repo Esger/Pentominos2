@@ -11,12 +11,12 @@
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
         <div class.bind="getIndicatorClass()">
-            ${getIndicatorText()}
+            ${getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)}
         </div>
         <button class="small"
                 title="Show next solution"
                 if.bind="showButton()"
-                disabled.bind="disableNextButton(sls.currentSolution)"
+                disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
                 click.delegate="showNextSolution()"
                 touchstart.delegate="showNextSolution()">
             <icon class="fa fa-step-forward fa-lg"></icon>

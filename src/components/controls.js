@@ -22,13 +22,13 @@ export class ControlsCustomElement {
 
     getIndicatorClass() {
         let classes = ['indicator', 'rounded'];
-        let solvedClass = (this.ss.solved && !this.ss.newSolution) ? 'solved' : '';
+        let solvedClass = (this.bs.solved && !this.bs.newSolution) ? 'solved' : '';
         classes.push(solvedClass);
         return classes.join(' ');
     }
 
-    getIndicatorText() {
-        let text = 'Solution ' + (this.sls.currentSolution + 1) + '/' + this.sls.solutions[this.sls.boardType].length;
+    getIndicatorText(currentSolution, solutionCount) {
+        let text = 'Solution ' + (currentSolution + 1) + '/' + solutionCount;
         return text;
     }
 
@@ -45,30 +45,30 @@ export class ControlsCustomElement {
             this.ps.adjustDimensions(i);
         }
         this.ps.registerPieces();
-        // this.ss.setShowSolutions();
+        this.bs.unsetNewSolution();
     };
 
     showButton() {
         return (this.solutionCount > 0);
     }
 
-    disableNextButton() {
-        return (this.sls.currentSolution + 1 == this.solutionCount);
+    disableNextButton(current, count) {
+        return (current + 1 == count);
     }
 
-    disablePreviousButton() {
-        return (this.sls.currentSolution == 0);
+    disablePreviousButton(current) {
+        return (current == 0);
     }
 
     showPreviousSolution() {
-        if (!this.disablePreviousButton()) {
+        if (!this.disablePreviousButton(this.sls.currentSolution)) {
             this.sls.currentSolution--;
             this.showSolution();
         }
     };
 
     showNextSolution() {
-        if (!this.disableNextButton()) {
+        if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
             this.sls.currentSolution++;
             this.showSolution();
         }

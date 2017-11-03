@@ -39,6 +39,7 @@ export class SolutionService {
         } else {
             this.ds.saveSolution(solutionResult);
             this.solutions[this.boardType].push(solutionResult);
+            this.currentSolution = this.solutions[this.boardType].length - 1;
             this.bs.setNewSolution();
         }
     }
