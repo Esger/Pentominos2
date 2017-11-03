@@ -88,7 +88,6 @@ export class PermutationService {
             for (let i = 0; i < 2; i++) this.rotateSquareBoard(pentominos);
             this.shiftPieces(pentominos, 0, 4);
         }
-        // console.log(pentominos[12]);
     }
 
     mixBoard(pentominos) {

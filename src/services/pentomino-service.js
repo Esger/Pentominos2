@@ -2,18 +2,14 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(EventAggregator, DataService, BoardService, SolutionService)
+@inject(DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(eventAggregator, dataService, boardService, solutionService) {
-        this.ea = eventAggregator;
+    constructor(dataService, boardService, solutionService) {
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
@@ -93,7 +89,6 @@ export class PentominoService {
     }
 
     registerPiece(pentomino, onOff) {
-        // console.log(pentomino.name);
         if (pentomino && pentomino.faces) {
             for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
                 let x = pentomino.faces[pentomino.face][j][0] + pentomino.position.x;
@@ -134,8 +129,6 @@ export class PentominoService {
                     this.setBoardFields(0);
                     this.registerPieces();
                     this.solved = false;
-                    // this.sls.currentSolution = -1;
-                    console.log(this.pentominos);
                 });
             });
         });
