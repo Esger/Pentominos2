@@ -134,7 +134,7 @@ export class PentominoService {
                     this.setBoardFields(0);
                     this.registerPieces();
                     this.solved = false;
-                    this.sls.currentSolution = 0;
+                    // this.sls.currentSolution = -1;
                     console.log(this.pentominos);
                 });
             });
@@ -168,7 +168,7 @@ export class PentominoService {
     getStartPosition(shape) {
         return this.ds.getStartPosition(shape).then((response) => {
             this.bs.boardType = shape;
-            this.sls.currentSolution = 0;
+            this.sls.currentSolution = -1;
             this.sls.setShowSolutions();
             for (let i = 0; i < this.pentominos.length; i++) {
                 let pentomino = this.pentominos[i];

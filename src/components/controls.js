@@ -28,7 +28,8 @@ export class ControlsCustomElement {
     }
 
     getIndicatorText(currentSolution, solutionCount) {
-        let text = 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' + solutionCount;
+        let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+        let text = current + solutionCount;
         return text;
     }
 
@@ -40,7 +41,7 @@ export class ControlsCustomElement {
         let pentominos = this.ps.pentominos;
         let solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
         let splitString = solutionString.substr(1).split('#');
-        for (let i = 0; i < this.pentominoCount; i++) {
+        for (let i = 0; i < splitString.length; i++) {
             let pentomino = this.ps.pentominos[i];
             let props = splitString[i].split('_')
             pentomino.face = parseInt(props[1], 10);
@@ -63,8 +64,13 @@ export class ControlsCustomElement {
         return (current == 0);
     }
 
+    showFirstSolution() {
+        this.sls.currentSolution = 0;
+        this.showSolution();
+    }
+
     showPreviousSolution() {
-        if (!this.disablePreviousButton(this.sls.currentSolution)) {
+        if (this.sls.currentSolution > 0) {
             this.sls.currentSolution--;
             this.showSolution();
         }

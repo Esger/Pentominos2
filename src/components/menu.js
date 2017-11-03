@@ -25,10 +25,14 @@ export class MenuCustomElement {
 
     rotateBoard() {
         this.prms.rotateBoard(this.ps.pentominos);
+        this.ps.registerPieces();
+        this.settings.menuVisible = false;
     }
 
     flipBoardYAxis() {
         this.prms.flipBoardYAxis(this.ps.pentominos);
+        this.ps.registerPieces();
+        this.settings.menuVisible = false;
     }
 
     showTheMenu() {
@@ -89,7 +93,9 @@ export class MenuCustomElement {
     };
 
     getStartPosition(shape) {
-        this.ps.getStartPosition(shape)
+        this.ps.getStartPosition(shape);
+        this.settings.submenuBoardsVisible = false;
+        this.settings.menuVisible = false;
     }
 
 }

@@ -3,11 +3,12 @@
     height         : 40px;
     display        : flex;
     justify-content: center;
+    align-items    : center;
 }
 
 .controls .indicator, .controls button {
-    height          : 40px;
-    line-height     : 40px;
+    height          : 30px;
+    line-height     : 30px;
     font-family     : inherit;
     background-color: transparent;
     border          : none;
@@ -16,28 +17,30 @@
     font-size       : 14px;
     padding         : 0 10px;
     transition      : all .3s ease;
+    cursor          : pointer;
+}
+
+.controls .indicator {
+    margin-left: 5px;
 }
 
 .controls indicator.solved {
     border: 1px dotted lime;
 }
 
-.controls button {
-    cursor: pointer;
-}
-
 .controls button.small {
     width      : 40px;
-    height     : 40px;
-    line-height: 40px;
+    height     : 30px;
+    line-height: 30px;
 }
 
 .controls button icon {
-    line-height: 40px;
+    line-height: 30px;
 }
 
 .controls button:disabled {
-    cursor: not-allowed;
+    cursor : not-allowed;
+    opacity: .2;
 }
 
 [class*='fa-step-'] {

@@ -148,7 +148,8 @@ define('components/controls',['exports', 'aurelia-framework', '../services/board
         };
 
         ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText(currentSolution, solutionCount) {
-            var text = 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' + solutionCount;
+            var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+            var text = current + solutionCount;
             return text;
         };
 
@@ -160,7 +161,7 @@ define('components/controls',['exports', 'aurelia-framework', '../services/board
             var pentominos = this.ps.pentominos;
             var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
             var splitString = solutionString.substr(1).split('#');
-            for (var i = 0; i < this.pentominoCount; i++) {
+            for (var i = 0; i < splitString.length; i++) {
                 var pentomino = this.ps.pentominos[i];
                 var props = splitString[i].split('_');
                 pentomino.face = parseInt(props[1], 10);
@@ -183,8 +184,13 @@ define('components/controls',['exports', 'aurelia-framework', '../services/board
             return current == 0;
         };
 
+        ControlsCustomElement.prototype.showFirstSolution = function showFirstSolution() {
+            this.sls.currentSolution = 0;
+            this.showSolution();
+        };
+
         ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
-            if (!this.disablePreviousButton(this.sls.currentSolution)) {
+            if (this.sls.currentSolution > 0) {
                 this.sls.currentSolution--;
                 this.showSolution();
             }
@@ -268,10 +274,14 @@ define('components/menu',['exports', 'aurelia-framework', '../services/board-ser
 
         MenuCustomElement.prototype.rotateBoard = function rotateBoard() {
             this.prms.rotateBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
         };
 
         MenuCustomElement.prototype.flipBoardYAxis = function flipBoardYAxis() {
             this.prms.flipBoardYAxis(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
         };
 
         MenuCustomElement.prototype.showTheMenu = function showTheMenu() {
@@ -333,6 +343,8 @@ define('components/menu',['exports', 'aurelia-framework', '../services/board-ser
 
         MenuCustomElement.prototype.getStartPosition = function getStartPosition(shape) {
             this.ps.getStartPosition(shape);
+            this.settings.submenuBoardsVisible = false;
+            this.settings.menuVisible = false;
         };
 
         return MenuCustomElement;
@@ -1584,7 +1596,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
                         _this.setBoardFields(0);
                         _this.registerPieces();
                         _this.solved = false;
-                        _this.sls.currentSolution = 0;
+
                         console.log(_this.pentominos);
                     });
                 });
@@ -1621,7 +1633,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-ev
 
             return this.ds.getStartPosition(shape).then(function (response) {
                 _this3.bs.boardType = shape;
-                _this3.sls.currentSolution = 0;
+                _this3.sls.currentSolution = -1;
                 _this3.sls.setShowSolutions();
                 for (var i = 0; i < _this3.pentominos.length; i++) {
                     var pentomino = _this3.pentominos[i];
@@ -1722,7 +1734,7 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
         };
 
         PermutationService.prototype.mixBoard = function mixBoard(pentominos) {
-            var theLength = pentominos.length;
+            var theLength = this.bs.pentominosLength();
             var clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
             var clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
             var maxX = clw - 4;
@@ -1822,7 +1834,7 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
             this.ss = settingService;
             this.prms = permutationService;
             this.boardType = this.bs.boardType;
-            this.currentSolution = 0;
+            this.currentSolution = -1;
             this.getSolutions();
         }
 
@@ -1832,7 +1844,7 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
         };
 
         SolutionService.prototype.setShowSolutions = function setShowSolutions() {
-            this.currentSolution = 0;
+            this.currentSolution = -1;
             if (this.solutions[this.bs.boardType].length > 0) {
                 this.ss.setShowSolutions();
             }
@@ -1898,13 +1910,13 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
     }()) || _class);
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/controls\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <controls></controls>\n        <footer></footer>\n    </div>\n</template>"; });
-define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n}\n@media (min-height: 700px) {\n    .dragArea {\n        justify-content: center;\n    }\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n@media (min-height: 700px) {\n    .dragArea {\n        justify-content: center;\n    }\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS(bs.boardType)\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <pentominos></pentominos>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
-define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"showSolutions(sls.solutions[bs.boardType].length)\">\n        <button class.bind=\"small\"\n                title=\"Show previous solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <div class.bind=\"getIndicatorClass()\"\n             innerhtml.bind=\"getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)\">\n        </div>\n        <button class=\"small\"\n                title=\"Show next solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
+define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"showSolutions(sls.solutions[bs.boardType].length)\">\n        <button class.bind=\"small\"\n                title=\"Show previous solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <div class.bind=\"getIndicatorClass(bs.solved)\"\n             innerhtml.bind=\"getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n             click.delegate=\"showFirstSolution()\"\n             touchstart.delegate=\"showFirstSolution()\">\n        </div>\n        <button class=\"small\"\n                title=\"Show next solution\"\n                if.bind=\"showButton()\"\n                disabled.bind=\"disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    display         : flex;\n    flex-direction  : column;\n    position        : relative;\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
 define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <a href=\"http://www.ashware.nl\"\n       target=\"_blank\"\n       class=\"r\">&copy;&nbsp;ashWare</a>\n    <!-- <span class='st_sharethis' displayText='ShareThis'></span> -->\n</template>"; });
-define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n}\n\n.controls .indicator, .controls button {\n    height          : 40px;\n    line-height     : 40px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n}\n\n.controls indicator.solved {\n    border: 1px dotted lime;\n}\n\n.controls button {\n    cursor: pointer;\n}\n\n.controls button.small {\n    width      : 40px;\n    height     : 40px;\n    line-height: 40px;\n}\n\n.controls button icon {\n    line-height: 40px;\n}\n\n.controls button:disabled {\n    cursor: not-allowed;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
+define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.controls .indicator, .controls button {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.controls .indicator {\n    margin-left: 5px;\n}\n\n.controls indicator.solved {\n    border: 1px dotted lime;\n}\n\n.controls button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.controls button icon {\n    line-height: 30px;\n}\n\n.controls button:disabled {\n    cursor : not-allowed;\n    opacity: .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss(bs.boardType)\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}</h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
 define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"sls.solutions[bs.boardType].length > 20\"\n            click.delegate=\"board.autoSolve()\"\n            touchstart.delegate=\"board.autoSolve()\">Spoiler</li>\n    </ul>\n\n</template>"; });
