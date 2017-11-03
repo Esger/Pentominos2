@@ -10,6 +10,7 @@ export class SettingService {
         this.showSolutions = false;
         this.scale = 1;
         this.partSize = 40;
+        this.opaqueBlocks = false;
     }
 
     getScale() {

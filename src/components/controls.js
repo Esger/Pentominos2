@@ -42,7 +42,6 @@ export class ControlsCustomElement {
             pentomino.face = parseInt(props[1], 10);
             pentomino.position.x = parseInt(props[2], 10);
             pentomino.position.y = parseInt(props[3], 10);
-            this.ps.adjustDimensions(i);
         }
         this.ps.registerPieces();
         this.bs.unsetNewSolution();

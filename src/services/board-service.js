@@ -87,4 +87,20 @@ export class BoardService {
         return (x >= 0) && (x < this.getWidth()) && (y >= 0) && (y < this.getHeight());
     }
 
+    touchesBoard(pentomino) {
+        let isTouching = false;
+        for (let i = 0; i < pentomino.faces[pentomino.face].length; i++) {
+            let part = pentomino.faces[pentomino.face][i]
+            let x = pentomino.position.x + part[0];
+            let y = pentomino.position.y + part[1];
+            if ((x >= 0) && (x <= this.getWidth()) &&
+                (y >= 0) && (y <= this.getHeight())) {
+                isTouching = true;
+                break;
+            }
+        }
+        return isTouching;
+    }
+
+
 }

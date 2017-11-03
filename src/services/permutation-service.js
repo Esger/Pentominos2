@@ -91,4 +91,34 @@ export class PermutationService {
         // console.log($scope.pentominos[12]);
     }
 
+    mixBoard(pentominos) {
+        let theLength = pentominos.length;
+        let clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+        let clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+        let maxX = clw - 4;
+        let maxY = clh - 4;
+        // offset values in positions
+        let offsetX = Math.floor((clw - this.bs.getWidth()) / 2);
+        let offsetY = Math.floor((clh - this.bs.getHeight()) / 2);
+
+        for (let i = 0; i < theLength; i++) {
+            let pentomino = pentominos[i];
+            // find random off board position
+            do {
+                let xPos = Math.floor(Math.random() * maxX);
+                xPos -= offsetX;
+
+                let yPos = Math.floor(Math.random() * maxY);
+                // yPos -= offsetY;
+
+                pentomino.position.x = xPos;
+                pentomino.position.y = yPos;
+            } while (this.bs.touchesBoard(pentomino));
+
+            let face = Math.floor(Math.random() * pentomino.faces.length);
+            pentomino.face = face;
+        }
+    }
+
+
 }

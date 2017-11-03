@@ -108,7 +108,9 @@ export class PentominoService {
     registerPieces() {
         this.setBoardFields(0);
         for (var i = 0; i < this.pentominos.length; i++) {
-            this.registerPiece(this.pentominos[i], 1);
+            let pentomino = this.pentominos[i]
+            this.registerPiece(pentomino, 1);
+            this.adjustDimensions(pentomino);
         }
     }
 
@@ -154,8 +156,7 @@ export class PentominoService {
         });
     }
 
-    adjustDimensions(i) {
-        let pentomino = this.pentominos[i];
+    adjustDimensions(pentomino) {
         if (pentomino && pentomino.initialDimensions) {
             pentomino.dimensions = pentomino.initialDimensions.slice();
         }

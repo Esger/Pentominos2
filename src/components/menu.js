@@ -5,23 +5,46 @@ import {
 import {
     EventAggregator
 } from 'aurelia-event-aggregator';
+import { BoardService } from '../services/board-service';
+import { SettingService } from '../services/setting-service';
+import { PentominoService } from '../services/pentomino-service';
+import { PermutationService } from '../services/permutation-service';
 
-@inject(EventAggregator)
+@inject(EventAggregator, BoardService, SettingService, PentominoService, PermutationService)
+
 export class MenuCustomElement {
 
-    constructor(eventAggregator) {
+    constructor(eventAggregator, boardService, settingService, pentominoService, permutationService) {
         this.ea = eventAggregator;
+        this.bs = boardService;
+        this.ss = settingService;
+        this.ps = pentominoService;
+        this.prms = permutationService;
+        this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {
             menuVisible: false,
             submenuBoardsVisible: false,
-            opaqueBlocks: false
         };
+    }
+
+    rotateBoard() {
+        this.prms.rotateBoard(this.ps.pentominos);
+    }
+
+    flipBoardYAxis() {
+        this.prms.flipBoardYAxis(this.ps.pentominos);
     }
 
     showTheMenu() {
         this.settings.menuVisible = true;
         this.settings.submenuBoardsVisible = false;
     };
+
+    mixBoard() {
+        this.prms.mixBoard(this.ps.pentominos);
+        this.ps.registerPieces();
+        this.settings.menuVisible = false;
+    }
 
     hideTheMenu() {
         this.settings.menuVisible = false;
