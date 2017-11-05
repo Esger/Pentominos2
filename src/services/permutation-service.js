@@ -76,7 +76,8 @@ export class PermutationService {
 
     shiftPieces(pentominos, dx, dy) {
         for (let i = 0; i < pentominos.length; i++) {
-            pentominos[i].position.y += 4;
+            pentominos[i].position.x += dx;
+            pentominos[i].position.y += dy;
         }
     }
 

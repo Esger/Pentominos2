@@ -1,15 +1,19 @@
 import {
+    TaskQueue,
     inject,
     bindable
 } from 'aurelia-framework';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(DataService, BoardService, SolutionService)
+@inject(BindingSignaler, TaskQueue, DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(dataService, boardService, solutionService) {
+    constructor(bindingSignaler, taskQueue, dataService, boardService, solutionService) {
+        this.bnds = bindingSignaler;
+        this.ts = taskQueue;
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
@@ -90,18 +94,22 @@ export class PentominoService {
 
     registerPiece(pentomino, onOff) {
         if (pentomino && pentomino.faces) {
-            for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
-                let x = pentomino.faces[pentomino.face][j][0] + pentomino.position.x;
-                let y = pentomino.faces[pentomino.face][j][1] + pentomino.position.y;
+            let onBoardParts = 0;
+            let partsCount = pentomino.faces[pentomino.face].length;
+            for (let i = 0; i < partsCount; i++) {
+                let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
+                let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
                 if (this.bs.onBoard(x, y)) {
                     this.fields[y][x] += onOff;
+                    onBoardParts += 1;
                 }
+                pentomino.onBoard = (onBoardParts == partsCount);
             }
         }
     }
 
     registerPieces() {
-        this.setBoardFields(0);
+        this.fields = this.setBoardFields(0);
         for (var i = 0; i < this.pentominos.length; i++) {
             let pentomino = this.pentominos[i]
             this.registerPiece(pentomino, 1);
@@ -112,13 +120,14 @@ export class PentominoService {
     setBoardFields(content) {
         let w = this.bs.getWidth();
         let h = this.bs.getHeight();
-        this.fields = [];
+        let fields = [];
         for (let y = 0; y < h; y++) {
-            this.fields.push([]);
+            fields.push([]);
             for (let x = 0; x < w; x++) {
-                this.fields[y].push(content);
+                fields[y].push(content);
             }
         }
+        return fields;
     }
 
     start() {
@@ -126,7 +135,6 @@ export class PentominoService {
             this.pentominos = response;
             this.getPentominoColors().then(() => {
                 this.getStartPosition(this.bs.boardType).then(() => {
-                    this.setBoardFields(0);
                     this.registerPieces();
                     this.solved = false;
                 });

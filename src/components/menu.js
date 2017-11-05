@@ -2,20 +2,24 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
 import { SolutionService } from '../services/solution-service';
 import { PentominoService } from '../services/pentomino-service';
 import { PermutationService } from '../services/permutation-service';
+import { SolverService } from '../services/solver-service';
 
-@inject(BoardService, SolutionService, PentominoService, PermutationService)
+@inject(BindingSignaler, BoardService, SolutionService, PentominoService, PermutationService, SolverService)
 
 export class MenuCustomElement {
 
-    constructor(boardService, solutionService, pentominoService, permutationService) {
+    constructor(bindingSignaler, boardService, solutionService, pentominoService, permutationService, solverService) {
+        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.sls = solutionService;
         this.ps = pentominoService;
         this.prms = permutationService;
+        this.slvs = solverService;
         this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {
             menuVisible: false,
@@ -27,12 +31,14 @@ export class MenuCustomElement {
         this.prms.rotateBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
+        this.bnds.signal('face-signal')
     }
 
     flipBoardYAxis() {
         this.prms.flipBoardYAxis(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
+        this.bnds.signal('face-signal')
     }
 
     showTheMenu() {
@@ -44,6 +50,7 @@ export class MenuCustomElement {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
+        this.bnds.signal('face-signal')
     }
 
     hideTheMenu() {
@@ -51,6 +58,7 @@ export class MenuCustomElement {
     };
 
     showThisBoard(key) {
+        return true;
         let threshold = 3;
         if (this.sls.solutions) {
             switch (key) {
@@ -98,6 +106,11 @@ export class MenuCustomElement {
         this.bs.unsetNewSolution();
         this.settings.submenuBoardsVisible = false;
         this.settings.menuVisible = false;
+    }
+
+    autoSolve() {
+        this.settings.menuVisible = false;
+        setTimeout(() => { this.slvs.autoSolve() });
     }
 
 }

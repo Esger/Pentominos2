@@ -15,23 +15,6 @@ export class PentominosCustomElement {
         this.ds = dragService;
     }
 
-    getPentominoCSS(x, y, color) {
-        let css = {
-            left: x * this.ss.partSize + 'px',
-            top: y * this.ss.partSize + 'px',
-            backgroundColor: color
-        }
-        return css;
-    }
-
-    getPartCSS(part) {
-        let css = {
-            'left': part[0] * this.ss.partSize + 'px',
-            'top': part[1] * this.ss.partSize + 'px'
-        };
-        return css;
-    }
-
     getPentominoClasses(pentomino) {
         let classes = ['pentomino'];
         classes.push('pentomino block_' + pentomino.name);
@@ -63,6 +46,9 @@ export class PentominosCustomElement {
             classes.push('flipV');
         }
         return classes.join(' ');
+    }
+
+    attached() {
     }
 
 }
