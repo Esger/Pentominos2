@@ -94,16 +94,16 @@ export class PentominoService {
 
     registerPiece(pentomino, onOff) {
         if (pentomino && pentomino.faces) {
-            let onBoardParts = 0;
+            // let onBoardParts = 0;
             let partsCount = pentomino.faces[pentomino.face].length;
             for (let i = 0; i < partsCount; i++) {
                 let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
                 let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
                 if (this.bs.onBoard(x, y)) {
                     this.fields[y][x] += onOff;
-                    onBoardParts += 1;
+                    // onBoardParts += 1;
                 }
-                pentomino.onBoard = (onBoardParts == partsCount);
+                // pentomino.onBoard = (onBoardParts == partsCount);
             }
         }
     }

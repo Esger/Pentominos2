@@ -1,6 +1,6 @@
 export class PentoFaceValueConverter {
     toView(array, config) {
-        array = config.pentomino.faces[config.pentomino.face];
+        array = config.faces[config.face];
         return array;
     }
 }

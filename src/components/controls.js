@@ -2,17 +2,19 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
 import { SettingService } from '../services/setting-service';
 import { PentominoService } from '../services/pentomino-service';
 import { SolutionService } from '../services/solution-service';
 
-@inject(BoardService, SettingService, PentominoService, SolutionService)
+@inject(BindingSignaler, BoardService, SettingService, PentominoService, SolutionService)
 
 export class ControlsCustomElement {
 
-    constructor(boardService, settingService, pentominoService, solutionService) {
-        this.bs = boardService; // kan weg?
+    constructor(bindingSignaler, boardService, settingService, pentominoService, solutionService) {
+        this.bnds = bindingSignaler;
+        this.bs = boardService;
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
@@ -48,6 +50,7 @@ export class ControlsCustomElement {
             pentomino.position.x = parseInt(props[2], 10);
             pentomino.position.y = parseInt(props[3], 10);
         }
+        this.bnds.signal('position-signal');
         this.ps.registerPieces();
         this.bs.unsetNewSolution();
     };

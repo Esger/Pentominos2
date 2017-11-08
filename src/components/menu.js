@@ -31,14 +31,14 @@ export class MenuCustomElement {
         this.prms.rotateBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
-        this.bnds.signal('face-signal')
+        this.bnds.signal('position-signal')
     }
 
     flipBoardYAxis() {
         this.prms.flipBoardYAxis(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
-        this.bnds.signal('face-signal')
+        this.bnds.signal('position-signal')
     }
 
     showTheMenu() {
@@ -50,7 +50,7 @@ export class MenuCustomElement {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.settings.menuVisible = false;
-        this.bnds.signal('face-signal')
+        this.bnds.signal('position-signal')
     }
 
     hideTheMenu() {

@@ -59,13 +59,14 @@ export class SolverService {
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
 
-        this.prms.shiftPieces(this.pentominos, 0, -25);
+        this.prms.shiftPieces(this.pentominos, 10, 0);
         this.ps.registerPieces();
         let pentomino = this.pentominos[9];
         for (let i = 0; i < this.startPositionsXblock[this.bs.boardType].length; i++) {
             // this.ts.queueTask(() => {
-            this.movePentomino(pentomino, this.startPositionsXblock[this.bs.boardType][i]);
-            // this.lastPentomino = 9;
+            this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
+            pentomino.onBoard = true;
+            this.bnds.signal('position-signal');
             this.findNextFit();
             console.log(this.positionsTried);
             // });
@@ -74,21 +75,8 @@ export class SolverService {
 
     }
 
-    // waitForClick() {
-    //     if (!this.continue) {
-    //         this.waitForClick();
-    //     } else {
-    //         this.continue = false;
-    //     }
-    // }
-
-    // continue() {
-    //     this.continue = true;
-    // }
-
     findNextFit() {
         // this.ts.queueMicroTask(() => {
-        var lastPentomino;
         let shiftLeft = true;
         if (!this.ps.isSolved()) {
             let firstEmpty = this.findFirstEmpty();
@@ -98,16 +86,12 @@ export class SolverService {
                 for (let i = 0; i < theLength; i++) {
                     let pentomino = this.pentominos[i];
                     if (!pentomino.onBoard) {
-                        lastPentomino = i;
+                        let lastPentomino = i;
                         for (let face = 0; face < pentomino.faces.length; face++) {
                             this.positionsTried++;
-                            pentomino.face = face;
-                            this.ps.adjustDimensions(pentomino);
                             // shiftLeft false if face has [0,0] part
-                            this.movePentomino(pentomino, firstEmpty, shiftLeft);
+                            this.movePentomino(pentomino, face, firstEmpty, shiftLeft);
                             this.bnds.signal('position-signal');
-                            this.bnds.signal('face-signal');
-                            this.bnds.signal('part-signal');
                             pentomino.onBoard = true;
                             this.logBoard(pentomino);
                             if (this.isFitting()) {
@@ -116,16 +100,11 @@ export class SolverService {
                                 // this.logBoard();
                             }
                         }
+                        console.log('last', lastPentomino);
                         this.stashPentomino(lastPentomino);
                     }
                 }
-            } else {
-                this.stashPentomino(lastPentomino);
-                // this.logBoard();
             }
-        } else {
-            this.stashPentomino(lastPentomino);
-            // this.logBoard();
         }
         // });
     }
@@ -226,7 +205,7 @@ export class SolverService {
     stashPentomino(i) {
         // this.ts.queueMicroTask(() => {
         let pentomino = this.pentominos[i];
-        this.movePentomino(pentomino, [0, this.boardHeight + 1]);
+        this.movePentomino(pentomino, 0, [10, 0], false);
         pentomino.onBoard = false;
         // });
         // this.logBoard();
@@ -239,7 +218,7 @@ export class SolverService {
         // });
     }
 
-    movePentomino(pentomino, position, shiftLeft) {
+    movePentomino(pentomino, face, position, shiftLeft) {
         let newPosition;
         // If left top of pentomino is empty ___|
         // move pentomino to the left
@@ -250,6 +229,8 @@ export class SolverService {
             newPosition = position;
         }
         this.ps.registerPiece(pentomino, -1);
+        pentomino.face = face;
+        this.ps.adjustDimensions(pentomino);
         this.setPosition(pentomino, newPosition);
         this.ps.registerPiece(pentomino, 1);
         // console.table($scope.board.fields);

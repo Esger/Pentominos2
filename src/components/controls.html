@@ -2,7 +2,7 @@
     <require from="components/controls.css"></require>
     <div class="controls"
          if.bind="showSolutions(sls.solutions[bs.boardType].length)">
-        <button class.bind="small"
+        <button class="button small"
                 title="Show previous solution"
                 if.bind="showButton()"
                 disabled.bind="disablePreviousButton(sls.currentSolution)"
@@ -15,7 +15,7 @@
              click.delegate="showFirstSolution()"
              touchstart.delegate="showFirstSolution()">
         </div>
-        <button class="small"
+        <button class="button small"
                 title="Show next solution"
                 if.bind="showButton()"
                 disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
