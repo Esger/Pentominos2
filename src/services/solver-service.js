@@ -78,7 +78,7 @@ export class SolverService {
             this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
             pentomino.onBoard = true;
             this.bnds.signal('position-signal');
-            this.findNextFit();
+            this.findNextFit()
             console.log(this.positionsTried);
             // });
         }
@@ -96,11 +96,14 @@ export class SolverService {
                     for (let face = 0; face < pentomino.faces.length; face++) {
                         this.positionsTried++;
                         this.movePentomino(pentomino, face, firstEmpty, true);
-                        this.bnds.signal('position-signal');
                         pentomino.onBoard = true;
                         // this.logBoard(pentomino);
-                        if (this.isFitting() && !this.ps.isSolved()) {
-                            this.findNextFit();
+                        // if (this.isFitting() && !this.ps.isSolved()) {
+                        if (this.isFitting() || this.ps.isSolved()) {
+                            requestAnimationFrame(() => {
+                                this.bnds.signal('position-signal');
+                                this.findNextFit()
+                            });
                         }
                     }
                     // console.log('last', pentomino);

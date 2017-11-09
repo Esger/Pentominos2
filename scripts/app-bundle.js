@@ -2021,6 +2021,8 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         };
 
         SolverService.prototype.findNextFit = function findNextFit() {
+            var _this = this;
+
             var firstEmpty = this.findFirstEmpty();
             var hasHole = this.isHole(firstEmpty);
             if (!hasHole) {
@@ -2030,11 +2032,13 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
                         for (var face = 0; face < pentomino.faces.length; face++) {
                             this.positionsTried++;
                             this.movePentomino(pentomino, face, firstEmpty, true);
-                            this.bnds.signal('position-signal');
                             pentomino.onBoard = true;
 
-                            if (this.isFitting() && !this.ps.isSolved()) {
-                                this.findNextFit();
+                            if (this.isFitting() || this.ps.isSolved()) {
+                                requestAnimationFrame(function () {
+                                    _this.bnds.signal('position-signal');
+                                    _this.findNextFit();
+                                });
                             }
                         }
 
