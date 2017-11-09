@@ -453,6 +453,10 @@ define('components/solving',['exports', 'aurelia-framework', '../services/solver
             this.slvs.continue();
         };
 
+        SolvingCustomElement.prototype.nextPiece = function nextPiece() {
+            this.slvs.nextPiece();
+        };
+
         return SolvingCustomElement;
     }()) || _class);
 });
@@ -1654,6 +1658,11 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             });
         };
 
+        PentominoService.prototype.setFace = function setFace(pentomino, face) {
+            pentomino.face = face;
+            this.adjustDimensions(pentomino);
+        };
+
         PentominoService.prototype.adjustDimensions = function adjustDimensions(pentomino) {
             if (pentomino && pentomino.initialDimensions) {
                 pentomino.dimensions = pentomino.initialDimensions.slice();
@@ -1975,6 +1984,8 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             this.pentominos = this.ps.pentominos;
             this.continue = false;
 
+            this.pentominoCount = this.bs.pentominosLength();
+            this.pentominosOnBoard = 0;
             this.positionsTried = 0;
             this.startPositionsXblock = {
                 'square': [[1, 0], [1, 1], [2, 0], [2, 1], [2, 2]],
@@ -1986,9 +1997,16 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             };
         }
 
+        SolverService.prototype.nextPiece = function nextPiece() {
+            if (this.pentominosOnBoard == 0) {
+                nextXblockPosition();
+            } else {}
+        };
+
         SolverService.prototype.autoSolve = function autoSolve() {
             this.boardWidth = this.bs.getWidth();
             this.boardHeight = this.bs.getHeight();
+            this.pentominoCount = this.bs.pentominosLength();
 
             this.prms.shiftPieces(this.pentominos, 10, 0);
             this.ps.registerPieces();
@@ -2003,30 +2021,24 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         };
 
         SolverService.prototype.findNextFit = function findNextFit() {
-            var shiftLeft = true;
-            if (!this.ps.isSolved()) {
-                var firstEmpty = this.findFirstEmpty();
-                var hasHole = this.isHole(firstEmpty);
-                if (!hasHole) {
-                    var theLength = this.bs.pentominosLength();
-                    for (var i = 0; i < theLength; i++) {
-                        var pentomino = this.pentominos[i];
-                        if (!pentomino.onBoard) {
-                            var lastPentomino = i;
-                            for (var face = 0; face < pentomino.faces.length; face++) {
-                                this.positionsTried++;
+            var firstEmpty = this.findFirstEmpty();
+            var hasHole = this.isHole(firstEmpty);
+            if (!hasHole) {
+                for (var i = 0; i < this.pentominoCount; i++) {
+                    var pentomino = this.pentominos[i];
+                    if (!pentomino.onBoard) {
+                        for (var face = 0; face < pentomino.faces.length; face++) {
+                            this.positionsTried++;
+                            this.movePentomino(pentomino, face, firstEmpty, true);
+                            this.bnds.signal('position-signal');
+                            pentomino.onBoard = true;
 
-                                this.movePentomino(pentomino, face, firstEmpty, shiftLeft);
-                                this.bnds.signal('position-signal');
-                                pentomino.onBoard = true;
-                                this.logBoard(pentomino);
-                                if (this.isFitting()) {
-                                    this.findNextFit();
-                                }
+                            if (this.isFitting() && !this.ps.isSolved()) {
+                                this.findNextFit();
                             }
-                            console.log('last', lastPentomino);
-                            this.stashPentomino(lastPentomino);
                         }
+
+                        this.stashPentomino(pentomino);
                     }
                 }
             }
@@ -2122,8 +2134,7 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             }
         };
 
-        SolverService.prototype.stashPentomino = function stashPentomino(i) {
-            var pentomino = this.pentominos[i];
+        SolverService.prototype.stashPentomino = function stashPentomino(pentomino) {
             this.movePentomino(pentomino, 0, [10, 0], false);
             pentomino.onBoard = false;
         };
@@ -2143,8 +2154,7 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
                 newPosition = position;
             }
             this.ps.registerPiece(pentomino, -1);
-            pentomino.face = face;
-            this.ps.adjustDimensions(pentomino);
+            this.ps.setFace(pentomino, face);
             this.setPosition(pentomino, newPosition);
             this.ps.registerPiece(pentomino, 1);
         };
@@ -4850,5 +4860,5 @@ define('text!components/menu.html', ['module'], function(module) { module.export
 define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
 define('text!components/solving.css', ['module'], function(module) { module.exports = ""; });
-define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <button class=\"small\"\n            title=\"continue\"\n            click.delegate=\"continue()\"\n            touchstart.delegate=\"continue()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n    </button>\n\n</template>"; });
+define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <button class=\"button\"\n            click.delegate=\"nextPiece()\">Next pentomino</button>\n    <button class=\"\"\n            title=\"continue\"\n            click.delegate=\"continue()\"\n            touchstart.delegate=\"continue()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n    </button>\n\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

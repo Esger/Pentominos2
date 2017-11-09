@@ -157,6 +157,11 @@ export class PentominoService {
         });
     }
 
+    setFace(pentomino, face) {
+        pentomino.face = face;
+        this.adjustDimensions(pentomino);
+    }
+
     adjustDimensions(pentomino) {
         if (pentomino && pentomino.initialDimensions) {
             pentomino.dimensions = pentomino.initialDimensions.slice();

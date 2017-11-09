@@ -14,4 +14,8 @@ export class SolvingCustomElement {
     continue() {
         this.slvs.continue();
     }
+
+    nextPiece() {
+        this.slvs.nextPiece();
+    }
 }
