@@ -111,7 +111,7 @@ export class PentominoService {
     registerPieces() {
         this.fields = this.setBoardFields(0);
         for (var i = 0; i < this.pentominos.length; i++) {
-            let pentomino = this.pentominos[i]
+            let pentomino = this.pentominos[i];
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
         }
@@ -176,7 +176,8 @@ export class PentominoService {
             this.bs.boardType = shape;
             this.sls.currentSolution = -1;
             this.sls.setShowSolutions();
-            for (let i = 0; i < this.pentominos.length; i++) {
+            let count = response.length;
+            for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
                 pentomino.position = response[i].position;
@@ -190,6 +191,9 @@ export class PentominoService {
                 if (pentomino.face % 2 == 1) {
                     pentomino.dimensions.reverse();
                 }
+            }
+            while (this.pentominos.length < count) {
+                this.pentominos.pop();
             }
             this.registerPieces();
         });

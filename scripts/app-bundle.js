@@ -137,7 +137,6 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-templatin
             this.ss = settingService;
             this.ps = pentominoService;
             this.sls = solutionService;
-            this.pentominoCount = this.bs.pentominosLength();
             this.solutionCount = this.sls.solutions[this.sls.boardType].length;
         }
 
@@ -308,24 +307,6 @@ define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-re
 
         MenuCustomElement.prototype.showThisBoard = function showThisBoard(key) {
             return true;
-            var threshold = 3;
-            if (this.sls.solutions) {
-                switch (key) {
-                    case 'square':
-                        return true;
-                    case 'rectangle':
-                        return this.sls.solutions['square'].length > threshold;
-                    case 'beam':
-                        return this.sls.solutions['rectangle'].length > threshold;
-                    case 'stick':
-                        return this.sls.solutions['beam'].length > threshold;
-                    case 'twig':
-                        return this.sls.solutions['stick'].length > threshold;
-                    default:
-                        return false;
-                }
-            }
-            return true;
         };
 
         MenuCustomElement.prototype.toggleSubmenuBoards = function toggleSubmenuBoards() {
@@ -397,7 +378,9 @@ define('components/pentominos',['exports', 'aurelia-framework', '../services/pen
         PentominosCustomElement.prototype.getPentominoClasses = function getPentominoClasses(pentomino) {
             var classes = ['pentomino'];
             classes.push('pentomino block_' + pentomino.name);
-            pentomino.active && classes.push('active');
+            if (pentomino.active) {
+                classes.push('active');
+            }
             return classes.join(' ');
         };
 
@@ -677,196 +660,182 @@ define('data/start-beam',[], function () {
     }];
 });
 define('data/start-dozen',[], function () {
-  "use strict";
+    "use strict";
 
-  [{
-    "name": "b",
-    "face": 4,
-    "position": {
-      "x": 6,
-      "y": 0
-    }
-  }, {
-    "name": "c",
-    "face": 0,
-    "position": {
-      "x": 3,
-      "y": 0
-    }
-  }, {
-    "name": "f",
-    "face": 2,
-    "position": {
-      "x": 2,
-      "y": 3
-    }
-  }, {
-    "name": "i",
-    "face": 1,
-    "position": {
-      "x": 2,
-      "y": 0
-    }
-  }, {
-    "name": "l",
-    "face": 1,
-    "position": {
-      "x": 8,
-      "y": 4
-    }
-  }, {
-    "name": "n",
-    "face": 6,
-    "position": {
-      "x": 3,
-      "y": 6
-    }
-  }, {
-    "name": "t",
-    "face": 1,
-    "position": {
-      "x": 5,
-      "y": 4
-    }
-  }, {
-    "name": "v",
-    "face": 3,
-    "position": {
-      "x": 6,
-      "y": 5
-    }
-  }, {
-    "name": "w",
-    "face": 0,
-    "position": {
-      "x": 6,
-      "y": 1
-    }
-  }, {
-    "name": "x",
-    "face": 0,
-    "position": {
-      "x": 3,
-      "y": 1
-    }
-  }, {
-    "name": "y",
-    "face": 2,
-    "position": {
-      "x": 8,
-      "y": 0
-    }
-  }, {
-    "name": "z",
-    "face": 2,
-    "position": {
-      "x": 2,
-      "y": 5
-    }
-  }, {
-    "name": "o",
-    "face": 0,
-    "position": {
-      "x": 5,
-      "y": 99
-    }
-  }];
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 6,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }];
 });
 define('data/start-rectangle',[], function () {
-  "use strict";
+    "use strict";
 
-  [{
-    "name": "b",
-    "face": 4,
-    "position": {
-      "x": 3,
-      "y": 1
-    }
-  }, {
-    "name": "c",
-    "face": 0,
-    "position": {
-      "x": 0,
-      "y": 1
-    }
-  }, {
-    "name": "f",
-    "face": 2,
-    "position": {
-      "x": -1,
-      "y": 4
-    }
-  }, {
-    "name": "i",
-    "face": 1,
-    "position": {
-      "x": -1,
-      "y": 1
-    }
-  }, {
-    "name": "l",
-    "face": 1,
-    "position": {
-      "x": 5,
-      "y": 5
-    }
-  }, {
-    "name": "n",
-    "face": 6,
-    "position": {
-      "x": 0,
-      "y": 7
-    }
-  }, {
-    "name": "t",
-    "face": 1,
-    "position": {
-      "x": 2,
-      "y": 5
-    }
-  }, {
-    "name": "v",
-    "face": 3,
-    "position": {
-      "x": 3,
-      "y": 6
-    }
-  }, {
-    "name": "w",
-    "face": 0,
-    "position": {
-      "x": 3,
-      "y": 2
-    }
-  }, {
-    "name": "x",
-    "face": 0,
-    "position": {
-      "x": 0,
-      "y": 2
-    }
-  }, {
-    "name": "y",
-    "face": 2,
-    "position": {
-      "x": 5,
-      "y": 1
-    }
-  }, {
-    "name": "z",
-    "face": 2,
-    "position": {
-      "x": -1,
-      "y": 6
-    }
-  }, {
-    "name": "o",
-    "face": 0,
-    "position": {
-      "x": 2,
-      "y": 99
-    }
-  }];
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 1
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 4
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": -1,
+            "y": 1
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 5
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 0,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 2
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 2
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 1
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 6
+        }
+    }];
 });
 define('data/start-square',[], function () {
     "use strict";
@@ -1061,100 +1030,93 @@ define('data/start-stick',[], function () {
     }];
 });
 define('data/start-twig',[], function () {
-  "use strict";
+    "use strict";
 
-  [{
-    "name": "b",
-    "face": 4,
-    "position": {
-      "x": 10,
-      "y": 0
-    }
-  }, {
-    "name": "c",
-    "face": 0,
-    "position": {
-      "x": 7,
-      "y": 0
-    }
-  }, {
-    "name": "f",
-    "face": 2,
-    "position": {
-      "x": 6,
-      "y": 3
-    }
-  }, {
-    "name": "i",
-    "face": 1,
-    "position": {
-      "x": 6,
-      "y": 0
-    }
-  }, {
-    "name": "l",
-    "face": 1,
-    "position": {
-      "x": 12,
-      "y": 4
-    }
-  }, {
-    "name": "n",
-    "face": 6,
-    "position": {
-      "x": 7,
-      "y": 6
-    }
-  }, {
-    "name": "t",
-    "face": 1,
-    "position": {
-      "x": 9,
-      "y": 4
-    }
-  }, {
-    "name": "v",
-    "face": 3,
-    "position": {
-      "x": 10,
-      "y": 5
-    }
-  }, {
-    "name": "w",
-    "face": 0,
-    "position": {
-      "x": 10,
-      "y": 1
-    }
-  }, {
-    "name": "x",
-    "face": 0,
-    "position": {
-      "x": 7,
-      "y": 1
-    }
-  }, {
-    "name": "y",
-    "face": 2,
-    "position": {
-      "x": 12,
-      "y": 0
-    }
-  }, {
-    "name": "z",
-    "face": 2,
-    "position": {
-      "x": 6,
-      "y": 5
-    }
-  }, {
-    "name": "o",
-    "face": 0,
-    "position": {
-      "x": 9,
-      "y": 99
-    }
-  }];
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 10,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 12,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 7,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 10,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 10,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 12,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }];
 });
 define('resources/index',["exports"], function (exports) {
   "use strict";
@@ -1247,11 +1209,6 @@ define('services/board-service',['exports', 'aurelia-framework'], function (expo
 
         BoardService.prototype.getHeight = function getHeight() {
             return this.boardTypes[this.boardType].h;
-        };
-
-        BoardService.prototype.pentominosLength = function pentominosLength() {
-            var blockCount = this.boardType == 'square' ? 13 : 12;
-            return blockCount;
         };
 
         BoardService.prototype.boardsCount = function boardsCount() {
@@ -1672,7 +1629,8 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                 _this3.bs.boardType = shape;
                 _this3.sls.currentSolution = -1;
                 _this3.sls.setShowSolutions();
-                for (var i = 0; i < _this3.pentominos.length; i++) {
+                var count = response.length;
+                for (var i = 0; i < count; i++) {
                     var pentomino = _this3.pentominos[i];
                     pentomino.face = response[i].face;
                     pentomino.position = response[i].position;
@@ -1686,6 +1644,9 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                     if (pentomino.face % 2 == 1) {
                         pentomino.dimensions.reverse();
                     }
+                }
+                while (_this3.pentominos.length < count) {
+                    _this3.pentominos.pop();
                 }
                 _this3.registerPieces();
             });
@@ -1721,7 +1682,7 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
         PermutationService.prototype.flipRotate = function flipRotate(pentomino, part) {
             if (part == undefined) {
                 part = pentomino.activePart;
-            };
+            }
             pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
 
             if (part === 0) {
@@ -1772,16 +1733,16 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
         };
 
         PermutationService.prototype.mixBoard = function mixBoard(pentominos) {
-            var theLength = this.bs.pentominosLength();
-            var clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-            var clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-            var maxX = clw - 4;
-            var maxY = clh - 4;
+            var clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+            var clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+            var maxX = clientWidth - 4;
+            var maxY = clientHeight - 4;
 
-            var offsetX = Math.floor((clw - this.bs.getWidth()) / 2);
-            var offsetY = Math.floor((clh - this.bs.getHeight()) / 2);
+            var offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+            var offsetY = Math.floor((clientHeight - this.bs.getHeight()) / 2);
 
-            for (var i = 0; i < theLength; i++) {
+            var count = pentominos.length;
+            for (var i = 0; i < count; i++) {
                 var pentomino = pentominos[i];
 
                 do {
@@ -1907,11 +1868,11 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
             var rotations = this.boardType == 'square' ? 4 : 2;
             var solutionString = this.solution2String(pentominos);
             var foundSolStr = solutionString;
-            var theLength = this.solutions[this.boardType].length;
+            var solutionsCount = this.solutions[this.boardType].length;
 
             for (var flip = 0; flip < 2; flip++) {
                 for (var rotation = 0; rotation < rotations; rotation++) {
-                    for (var i = 0; i < theLength; i++) {
+                    for (var i = 0; i < solutionsCount; i++) {
                         solutionString = this.solution2String(pentominos);
                         isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
                         if (!isNewSolution) return i;
@@ -1926,9 +1887,10 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
 
         SolutionService.prototype.solution2String = function solution2String(pentominos) {
             var solutionString = "";
-            var theLength = this.bs.pentominosLength();
-            for (var i = 0; i < theLength; i++) {
-                solutionString += this.pentomino2string(pentominos[i]);
+            var count = pentominos.length;
+            for (var i = 0; i < count; i++) {
+                var pentomino = pentominos[i];
+                solutionString += this.pentomino2string(pentomino);
             }
             return solutionString;
         };
@@ -1977,7 +1939,6 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             this.pentominos = this.ps.pentominos;
             this.continue = false;
 
-            this.pentominoCount = this.bs.pentominosLength();
             this.pentominosOnBoard = 0;
             this.positionsTried = 0;
             this.startPositionsXblock = {
@@ -1999,12 +1960,12 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         SolverService.prototype.autoSolve = function autoSolve() {
             this.boardWidth = this.bs.getWidth();
             this.boardHeight = this.bs.getHeight();
-            this.pentominoCount = this.bs.pentominosLength();
 
             this.prms.shiftPieces(this.pentominos, 10, 0);
             this.ps.registerPieces();
             var pentomino = this.pentominos[9];
-            for (var i = 0; i < this.startPositionsXblock[this.bs.boardType].length; i++) {
+            var startPositionsCount = this.startPositionsXblock[this.bs.boardType].length;
+            for (var i = 0; i < startPositionsCount; i++) {
                 this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
                 pentomino.onBoard = true;
                 this.bnds.signal('position-signal');
@@ -2016,8 +1977,9 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         SolverService.prototype.findNextFit = function findNextFit() {
             var firstEmpty = this.findFirstEmpty();
             var hasHole = this.isHole(firstEmpty);
+            var pentominoCount = this.pentominos.length;
             if (!hasHole) {
-                for (var i = 0; i < this.pentominoCount; i++) {
+                for (var i = 0; i < pentominoCount; i++) {
                     var pentomino = this.pentominos[i];
                     if (!pentomino.onBoard) {
                         for (var face = 0; face < pentomino.faces.length; face++) {

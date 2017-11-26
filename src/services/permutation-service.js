@@ -40,7 +40,7 @@ export class PermutationService {
 
     // Returns the new face index for a given face, action and blocktype
     flipRotate(pentomino, part) {
-        if (part == undefined) { part = pentomino.activePart };
+        if (part == undefined) { part = pentomino.activePart; }
         pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
         if (part === 0) {
@@ -92,16 +92,16 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        let theLength = this.bs.pentominosLength();
-        let clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-        let clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-        let maxX = clw - 4;
-        let maxY = clh - 4;
+        let clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+        let clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+        let maxX = clientWidth - 4;
+        let maxY = clientHeight - 4;
         // offset values in positions
-        let offsetX = Math.floor((clw - this.bs.getWidth()) / 2);
-        let offsetY = Math.floor((clh - this.bs.getHeight()) / 2);
+        let offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+        let offsetY = Math.floor((clientHeight - this.bs.getHeight()) / 2);
 
-        for (let i = 0; i < theLength; i++) {
+        let count = pentominos.length;
+        for (let i = 0; i < count; i++) {
             let pentomino = pentominos[i];
             // find random off board position
             do {

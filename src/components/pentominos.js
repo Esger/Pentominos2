@@ -18,7 +18,9 @@ export class PentominosCustomElement {
     getPentominoClasses(pentomino) {
         let classes = ['pentomino'];
         classes.push('pentomino block_' + pentomino.name);
-        (pentomino.active) && (classes.push('active'));
+        if (pentomino.active) {
+            classes.push('active');
+        }
         return classes.join(' ');
     }
 

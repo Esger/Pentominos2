@@ -24,7 +24,6 @@ export class SolverService {
         this.pentominos = this.ps.pentominos;
         this.continue = false;
 
-        this.pentominoCount = this.bs.pentominosLength();
         this.pentominosOnBoard = 0;
         this.positionsTried = 0;
         this.startPositionsXblock = {
@@ -68,12 +67,12 @@ export class SolverService {
     autoSolve() {
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
-        this.pentominoCount = this.bs.pentominosLength();
 
         this.prms.shiftPieces(this.pentominos, 10, 0);
         this.ps.registerPieces();
         let pentomino = this.pentominos[9];
-        for (let i = 0; i < this.startPositionsXblock[this.bs.boardType].length; i++) {
+        let startPositionsCount = this.startPositionsXblock[this.bs.boardType].length;
+        for (let i = 0; i < startPositionsCount; i++) {
             // this.ts.queueTask(() => {
             this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
             pentomino.onBoard = true;
@@ -89,8 +88,9 @@ export class SolverService {
     findNextFit() {
         let firstEmpty = this.findFirstEmpty();
         let hasHole = this.isHole(firstEmpty);
+        let pentominoCount = this.pentominos.length;
         if (!hasHole) {
-            for (let i = 0; i < this.pentominoCount; i++) {
+            for (let i = 0; i < pentominoCount; i++) {
                 let pentomino = this.pentominos[i];
                 if (!pentomino.onBoard) {
                     for (let face = 0; face < pentomino.faces.length; face++) {
