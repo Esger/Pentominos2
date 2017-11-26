@@ -1288,44 +1288,17 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.getSolutions = function getSolutions() {
-            var convert = function convert(solutions) {
-                var convertedSolutions = {};
-                for (var boardType in solutions) {
-                    if (solutions.hasOwnProperty(boardType)) {
-                        if (solutions[boardType].length) {
-                            for (var i = 0; i < solutions[boardType].length; i++) {
-                                solutions[boardType][i] = solutions[boardType][i].split('#');
-                                solutions[boardType][i].shift();
-                                for (var j = 0; j < solutions[boardType][i].length; j++) {
-                                    solutions[boardType][i][j] = solutions[boardType][i][j].split('');
-                                    solutions[boardType][i][j] = solutions[boardType][i][j].join('_');
-                                }
-                                solutions[boardType][i] = '#' + solutions[boardType][i].join('#');
-                            }
-                        }
-                    }
-                    convertedSolutions[boardType] = solutions[boardType];
-                }
-                return convertedSolutions;
-            };
 
             var solutions = void 0;
 
             if (localStorage.getItem("pentominos2")) {
                 solutions = JSON.parse(localStorage.getItem("pentominos2"));
             } else {
-                if (localStorage.getItem("pentominos")) {
-                    solutions = JSON.parse(localStorage.getItem("pentominos"));
-                    solutions = convert(solutions);
-                    localStorage.setItem("pentominos2", JSON.stringify(solutions));
-                    localStorage.removeItem("pentominos");
-                } else {
-                    solutions = {};
-                    var boardTypes = this.bs.boardTypes;
-                    for (var type in boardTypes) {
-                        if (boardTypes.hasOwnProperty(type)) {
-                            solutions[type] = [];
-                        }
+                solutions = {};
+                var boardTypes = this.bs.boardTypes;
+                for (var type in boardTypes) {
+                    if (boardTypes.hasOwnProperty(type)) {
+                        solutions[type] = [];
                     }
                 }
             }
