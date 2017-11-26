@@ -1354,7 +1354,7 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templat
         DragService.prototype.startDrag = function startDrag(pentomino, partIndex, event) {
             if (this.container == null) {
                 var clientPos = this.getClientPos(event);
-                this.ps.setCurrentPentomino(pentomino, partIndex);
+                this.ps.setActivePentomino(pentomino, partIndex);
                 this.ps.registerPiece(pentomino, -1);
                 this.container = event.target.offsetParent.offsetParent;
                 this.container.style.zIndex = 100;
@@ -1370,7 +1370,7 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templat
 
         DragService.prototype.doDrag = function doDrag(event) {
             var clientPos = this.getClientPos(event);
-            if (this.ps.currentPentomino) {
+            if (this.ps.getActivePentomino()) {
                 this.x = clientPos.x - this.startX;
                 this.y = clientPos.y - this.startY;
                 this.container.style.left = this.x + 'px';
@@ -1381,16 +1381,17 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templat
         DragService.prototype.stopDrag = function stopDrag(event) {
             this.dragEndPos.x = this.x;
             this.dragEndPos.y = this.y;
-            if (this.ps.currentPentomino) {
+            var pentomino = this.ps.getActivePentomino();
+            if (pentomino) {
                 this.alignToGrid();
                 if (!this.isDragged()) {
-                    if (this.ps.currentPentomino.type < 4 && this.ps.currentPentomino.activePart < 3 || this.ps.currentPentomino.type == 4 && this.ps.currentPentomino.activePart < 1) {
+                    if (pentomino.type < 4 && pentomino.activePart < 3 || pentomino.type == 4 && pentomino.activePart < 1) {
                         this.ps.adjustPosition();
-                        this.prms.flipRotate(this.ps.currentPentomino);
+                        this.prms.flipRotate(pentomino);
                         this.bnds.signal('position-signal');
                     }
                 }
-                this.ps.registerPiece(this.ps.currentPentomino, 1);
+                this.ps.registerPiece(pentomino, 1);
                 this.ps.isSolved();
             }
             this.releasePentomino();
@@ -1401,13 +1402,13 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templat
                 this.container.style.zIndex = '';
                 this.container = null;
             }
-            this.ps.resetCurrentPentomino();
+            this.ps.resetActivePentomino();
         };
 
         DragService.prototype.alignToGrid = function alignToGrid() {
             var newX = Math.round(this.x / this.ss.partSize);
             var newY = Math.round(this.y / this.ss.partSize);
-            this.ps.alignCurrentPentomino(newX, newY);
+            this.ps.setActivePentominoPosition(newX, newY);
             this.container.style.left = newX * this.ss.partSize + 'px';
             this.container.style.top = newY * this.ss.partSize + 'px';
         };
@@ -1446,7 +1447,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             this.sls = solutionService;
             this.pentominos = [];
             this.fields = [];
-            this.currentPentomino = null;
+            this.activePentomino = null;
             this.start();
         }
 
@@ -1479,25 +1480,29 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             return true;
         };
 
-        PentominoService.prototype.setCurrentPentomino = function setCurrentPentomino(pentomino, index) {
-            this.currentPentomino = pentomino;
-            this.currentPentomino.activePart = index;
+        PentominoService.prototype.getActivePentomino = function getActivePentomino() {
+            return this.activePentomino;
         };
 
-        PentominoService.prototype.resetCurrentPentomino = function resetCurrentPentomino() {
-            if (this.currentPentomino) {
-                this.currentPentomino.activePart = null;
-                this.currentPentomino = null;
+        PentominoService.prototype.setActivePentomino = function setActivePentomino(pentomino, index) {
+            this.activePentomino = pentomino;
+            this.activePentomino.activePart = index;
+        };
+
+        PentominoService.prototype.resetActivePentomino = function resetActivePentomino() {
+            if (this.activePentomino) {
+                this.activePentomino.activePart = null;
             }
+            this.activePentomino = null;
         };
 
-        PentominoService.prototype.alignCurrentPentomino = function alignCurrentPentomino(newX, newY) {
-            this.currentPentomino.position.x = newX;
-            this.currentPentomino.position.y = newY;
+        PentominoService.prototype.setActivePentominoPosition = function setActivePentominoPosition(newX, newY) {
+            this.activePentomino.position.x = newX;
+            this.activePentomino.position.y = newY;
         };
 
         PentominoService.prototype.adjustPosition = function adjustPosition() {
-            var pentomino = this.currentPentomino;
+            var pentomino = this.activePentomino;
             var partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
             var partAbsPosition = [pentomino.position.x + partRelPosition[0], pentomino.position.y + partRelPosition[1]];
             var partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;

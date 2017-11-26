@@ -19,7 +19,7 @@ export class PentominoService {
         this.sls = solutionService;
         this.pentominos = [];
         this.fields = [];
-        this.currentPentomino = null;
+        this.activePentomino = null;
         this.start();
     }
 
@@ -52,25 +52,29 @@ export class PentominoService {
         return true;
     }
 
-    setCurrentPentomino(pentomino, index) {
-        this.currentPentomino = pentomino;
-        this.currentPentomino.activePart = index;
+    getActivePentomino() {
+        return this.activePentomino;
     }
 
-    resetCurrentPentomino() {
-        if (this.currentPentomino) {
-            this.currentPentomino.activePart = null;
-            this.currentPentomino = null;
+    setActivePentomino(pentomino, index) {
+        this.activePentomino = pentomino;
+        this.activePentomino.activePart = index;
+    }
+
+    resetActivePentomino() {
+        if (this.activePentomino) {
+            this.activePentomino.activePart = null;
         }
+        this.activePentomino = null;
     }
 
-    alignCurrentPentomino(newX, newY) {
-        this.currentPentomino.position.x = newX;
-        this.currentPentomino.position.y = newY;
+    setActivePentominoPosition(newX, newY) {
+        this.activePentomino.position.x = newX;
+        this.activePentomino.position.y = newY;
     }
 
-    adjustPosition() {
-        let pentomino = this.currentPentomino;
+    adjustPosition() {  // Thanks Ben Nierop, for the idea
+        let pentomino = this.activePentomino;
         let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
         let partAbsPosition = [
             pentomino.position.x + partRelPosition[0],
