@@ -12,19 +12,20 @@ import { SolutionService } from './solution-service';
 export class PentominoService {
 
     constructor(bindingSignaler, taskQueue, dataService, boardService, solutionService) {
+
         this.bnds = bindingSignaler;
         this.ts = taskQueue;
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
+
         this.pentominos = [];
+        this.offBoardPentominos = [];
         this.fields = [];
         this.activePentomino = null;
+        this.currentPentomino = null;
+        this.lastTriedIndex = -1;
         this.start();
-    }
-
-    pentominoCount() {
-        return this.pentominos.length;
     }
 
     isSolved() {
@@ -73,6 +74,78 @@ export class PentominoService {
         this.activePentomino.position.y = newY;
     }
 
+    // getCurrentPentomino() {
+    //     return this.currentPentomino;
+    // }
+
+    // setCurrentPentomino(pentomino) {
+    //     this.currentPentomino = pentomino;
+    // }
+
+    // resetCurrentPentomino() {
+    //     this.currentPentomino = null;
+    // }
+
+    setAllOnboard() {
+        this.pentominos = this.pentominos.concat(this.offBoardPentominos);
+        this.pentominos.sort((a, b) => {
+            return a.index - b.index;
+        });
+        this.registerPieces();
+    }
+
+    setOnboard(pentomino, setLastTried) {
+        this.pentominos.push(pentomino);
+        let index = this.offBoardPentominos.indexOf(pentomino);
+        this.offBoardPentominos.splice(index, 1);
+        if (setLastTried) {
+            this.lastTriedIndex = index;
+        }
+        this.bnds.signal('position-signal');
+    }
+
+    setAllOffboard() {
+        this.offBoardPentominos = this.pentominos.slice();
+        this.pentominos = [];
+        this.registerPieces();
+    }
+
+    setOffboard(pentomino, setNextLastTried) {
+        this.offBoardPentominos.push(pentomino);
+        this.offBoardPentominos.splice(this.lastTriedIndex, 0, pentomino);
+        this.pentominos.pop();
+        this.registerPiece(pentomino, 1);
+        if (setNextLastTried) {
+            this.lastTriedIndex += 1;
+        }
+    }
+
+    allOffBoard() {
+        let emptyBoard = this.pentominos.length == 0;
+        return emptyBoard;
+    }
+
+    getCurrentOffboardIndex() {
+        return this.lastTriedIndex;
+    }
+
+    getOffboardCount() {
+        return this.offBoardPentominos.length;
+    }
+
+    getNextOffboardPentomino() {
+        let index = this.lastTriedIndex + 1;
+        if (this.offBoardPentominos.length > index) {
+            return this.offBoardPentominos[index];
+        } else {
+            return null;
+        }
+    }
+
+    getOnboardPentominos() {
+        return this.pentominos;
+    }
+
     adjustPosition() {  // Thanks Ben Nierop, for the idea
         let pentomino = this.activePentomino;
         let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
@@ -97,7 +170,7 @@ export class PentominoService {
     }
 
     registerPiece(pentomino, onOff) {
-        if (pentomino && pentomino.faces) {
+        if (pentomino) {
             // let onBoardParts = 0;
             let partsCount = pentomino.faces[pentomino.face].length;
             for (let i = 0; i < partsCount; i++) {
@@ -109,6 +182,7 @@ export class PentominoService {
                 }
                 // pentomino.onBoard = (onBoardParts == partsCount);
             }
+            this.bnds.signal('position-signal');
         }
     }
 
@@ -119,6 +193,7 @@ export class PentominoService {
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
         }
+        this.bnds.signal('position-signal');
     }
 
     setBoardFields(content) {

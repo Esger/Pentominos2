@@ -1445,15 +1445,15 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             this.ds = dataService;
             this.bs = boardService;
             this.sls = solutionService;
+
             this.pentominos = [];
+            this.offBoardPentominos = [];
             this.fields = [];
             this.activePentomino = null;
+            this.currentPentomino = null;
+            this.lastTriedIndex = -1;
             this.start();
         }
-
-        PentominoService.prototype.pentominoCount = function pentominoCount() {
-            return this.pentominos.length;
-        };
 
         PentominoService.prototype.isSolved = function isSolved() {
             var boardIsFull = this.boardIsFull();
@@ -1501,6 +1501,66 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             this.activePentomino.position.y = newY;
         };
 
+        PentominoService.prototype.setAllOnboard = function setAllOnboard() {
+            this.pentominos = this.pentominos.concat(this.offBoardPentominos);
+            this.pentominos.sort(function (a, b) {
+                return a.index - b.index;
+            });
+            this.registerPieces();
+        };
+
+        PentominoService.prototype.setOnboard = function setOnboard(pentomino, setLastTried) {
+            this.pentominos.push(pentomino);
+            var index = this.offBoardPentominos.indexOf(pentomino);
+            this.offBoardPentominos.splice(index, 1);
+            if (setLastTried) {
+                this.lastTriedIndex = index;
+            }
+            this.bnds.signal('position-signal');
+        };
+
+        PentominoService.prototype.setAllOffboard = function setAllOffboard() {
+            this.offBoardPentominos = this.pentominos.slice();
+            this.pentominos = [];
+            this.registerPieces();
+        };
+
+        PentominoService.prototype.setOffboard = function setOffboard(pentomino, setNextLastTried) {
+            this.offBoardPentominos.push(pentomino);
+            this.offBoardPentominos.splice(this.lastTriedIndex, 0, pentomino);
+            this.pentominos.pop();
+            this.registerPiece(pentomino, 1);
+            if (setNextLastTried) {
+                this.lastTriedIndex += 1;
+            }
+        };
+
+        PentominoService.prototype.allOffBoard = function allOffBoard() {
+            var emptyBoard = this.pentominos.length == 0;
+            return emptyBoard;
+        };
+
+        PentominoService.prototype.getCurrentOffboardIndex = function getCurrentOffboardIndex() {
+            return this.lastTriedIndex;
+        };
+
+        PentominoService.prototype.getOffboardCount = function getOffboardCount() {
+            return this.offBoardPentominos.length;
+        };
+
+        PentominoService.prototype.getNextOffboardPentomino = function getNextOffboardPentomino() {
+            var index = this.lastTriedIndex + 1;
+            if (this.offBoardPentominos.length > index) {
+                return this.offBoardPentominos[index];
+            } else {
+                return null;
+            }
+        };
+
+        PentominoService.prototype.getOnboardPentominos = function getOnboardPentominos() {
+            return this.pentominos;
+        };
+
         PentominoService.prototype.adjustPosition = function adjustPosition() {
             var pentomino = this.activePentomino;
             var partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
@@ -1522,7 +1582,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
         };
 
         PentominoService.prototype.registerPiece = function registerPiece(pentomino, onOff) {
-            if (pentomino && pentomino.faces) {
+            if (pentomino) {
                 var partsCount = pentomino.faces[pentomino.face].length;
                 for (var i = 0; i < partsCount; i++) {
                     var x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
@@ -1531,6 +1591,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                         this.fields[y][x] += onOff;
                     }
                 }
+                this.bnds.signal('position-signal');
             }
         };
 
@@ -1541,6 +1602,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                 this.registerPiece(pentomino, 1);
                 this.adjustDimensions(pentomino);
             }
+            this.bnds.signal('position-signal');
         };
 
         PentominoService.prototype.setBoardFields = function setBoardFields(content) {
@@ -1927,52 +1989,79 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
                 'stick': [],
                 'twig': [[1, 0], [6, 0]]
             };
+            this.startPosXBlock = 0;
         }
-
-        SolverService.prototype.nextPiece = function nextPiece() {
-            if (this.pentominosOnBoard == 0) {
-                nextXblockPosition();
-            } else {}
-        };
 
         SolverService.prototype.autoSolve = function autoSolve() {
             this.boardWidth = this.bs.getWidth();
             this.boardHeight = this.bs.getHeight();
+            this.startPosXBlock = 0;
 
-            this.prms.shiftPieces(this.pentominos, 10, 0);
-            this.ps.registerPieces();
-            var pentomino = this.pentominos[9];
-            var startPositionsCount = this.startPositionsXblock[this.bs.boardType].length;
-            for (var i = 0; i < startPositionsCount; i++) {
-                this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
-                pentomino.onBoard = true;
-                this.bnds.signal('position-signal');
-                this.findNextFit();
-                console.log(this.positionsTried);
+            this.ps.setAllOffboard();
+
+            this.findNextFit();
+
+            this.ps.setAllOnboard();
+        };
+
+        SolverService.prototype.getXBlockPosition = function getXBlockPosition() {
+            if (this.startPosXBlock < this.startPositionsXblock[this.bs.boardType].length) {
+                var position = this.startPositionsXblock[this.bs.boardType][this.startPosXBlock].slice();
+                this.startPosXBlock += 1;
+                return position;
+            } else {
+                return false;
             }
         };
 
+        SolverService.prototype.getNextOffBoardPentomino = function getNextOffBoardPentomino(currentIndex) {
+            var nextIndex = currentIndex + 1;
+            var pentomino = this.ps.offBoardPentominos[nextIndex];
+            return pentomino;
+        };
+
         SolverService.prototype.findNextFit = function findNextFit() {
-            var firstEmpty = this.findFirstEmpty();
-            var hasHole = this.isHole(firstEmpty);
-            var pentominoCount = this.pentominos.length;
-            if (!hasHole) {
-                for (var i = 0; i < pentominoCount; i++) {
-                    var pentomino = this.pentominos[i];
-                    if (!pentomino.onBoard) {
-                        for (var face = 0; face < pentomino.faces.length; face++) {
-                            this.positionsTried++;
-                            this.movePentomino(pentomino, face, firstEmpty, true);
-                            this.bnds.signal('position-signal');
-                            pentomino.onBoard = true;
-
-                            if (this.isFitting() && !this.ps.isSolved()) {
-                                this.findNextFit();
+            this.positionsTried = 0;
+            if (this.ps.allOffBoard()) {
+                var xPosition = this.getXBlockPosition();
+                if (xPosition) {
+                    var xPentomino = this.pentominos.find(function (pento) {
+                        return pento.name === 'x';
+                    });
+                    this.ps.setOnboard(xPentomino, false);
+                    this.movePentomino(xPentomino, 0, xPosition, false);
+                    this.findNextFit();
+                    this.ps.setOffboard(xPentomino, false);
+                } else {
+                    console.log('all xBlockPositions tried');
+                }
+            } else {
+                var firstEmptyPosition = this.findFirstEmptyPosition();
+                if (firstEmptyPosition) {
+                    if (!this.isHole(firstEmptyPosition)) {
+                        var currentIndex = this.ps.getCurrentOffboardIndex();
+                        var offBoardCount = this.ps.getOffboardCount();
+                        while (currentIndex < offBoardCount - 1) {
+                            var pentomino = this.getNextOffBoardPentomino(currentIndex);
+                            if (pentomino) {
+                                this.ps.setOnboard(pentomino, true);
+                                for (var face = 0; face < pentomino.faces.length; face++) {
+                                    this.movePentomino(pentomino, face, firstEmptyPosition, true);
+                                    this.logBoard(pentomino);
+                                    if (this.isFitting() && this.positionsTried < 10) {
+                                        this.findNextFit();
+                                        this.logBoard(pentomino);
+                                    }
+                                }
+                                this.ps.setOffboard(pentomino, true);
+                                this.logBoard(pentomino);
                             }
+                            currentIndex += 1;
                         }
-
-                        this.stashPentomino(pentomino);
                     }
+                } else {
+                    var pentominos = this.ps.getOnboardPentominos();
+                    this.sls.saveSolution(pentominos);
                 }
             }
         };
@@ -1983,7 +2072,7 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             console.log('pentomino:', pentomino, 'positions:', this.positionsTried);
         };
 
-        SolverService.prototype.findFirstEmpty = function findFirstEmpty() {
+        SolverService.prototype.findFirstEmptyPosition = function findFirstEmptyPosition() {
             for (var y = 0; y < this.boardHeight; y++) {
                 for (var x = 0; x < this.boardWidth; x++) {
                     if (this.ps.fields[y][x] === 0) return [x, y];

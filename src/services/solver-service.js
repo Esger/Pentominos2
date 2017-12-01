@@ -54,58 +54,80 @@ export class SolverService {
                 [6, 0]
             ],
         };
-    }
-
-    nextPiece() {
-        if (this.pentominosOnBoard == 0) {
-            nextXblockPosition();
-        } else {
-
-        }
+        this.startPosXBlock = 0;
     }
 
     autoSolve() {
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
+        this.startPosXBlock = 0;
 
-        this.prms.shiftPieces(this.pentominos, 10, 0);
-        this.ps.registerPieces();
-        let pentomino = this.pentominos[9];
-        let startPositionsCount = this.startPositionsXblock[this.bs.boardType].length;
-        for (let i = 0; i < startPositionsCount; i++) {
-            // this.ts.queueTask(() => {
-            this.movePentomino(pentomino, 0, this.startPositionsXblock[this.bs.boardType][i]);
-            pentomino.onBoard = true;
-            this.bnds.signal('position-signal');
-            this.findNextFit();
-            console.log(this.positionsTried);
-            // });
+        this.ps.setAllOffboard(); // #todo only the pieces that are not on the board !!!
+
+        this.findNextFit();
+
+        this.ps.setAllOnboard();
+    }
+
+    getXBlockPosition() {
+        if (this.startPosXBlock < this.startPositionsXblock[this.bs.boardType].length) {
+            let position = this.startPositionsXblock[this.bs.boardType][this.startPosXBlock].slice();
+            this.startPosXBlock += 1;
+            return position;
+        } else {
+            return false;
         }
-        // console.table(this.fields);
+    }
 
+    getNextOffBoardPentomino(currentIndex) {
+        let nextIndex = currentIndex + 1;
+        let pentomino = this.ps.offBoardPentominos[nextIndex];
+        return pentomino;
     }
 
     findNextFit() {
-        let firstEmpty = this.findFirstEmpty();
-        let hasHole = this.isHole(firstEmpty);
-        let pentominoCount = this.pentominos.length;
-        if (!hasHole) {
-            for (let i = 0; i < pentominoCount; i++) {
-                let pentomino = this.pentominos[i];
-                if (!pentomino.onBoard) {
-                    for (let face = 0; face < pentomino.faces.length; face++) {
-                        this.positionsTried++;
-                        this.movePentomino(pentomino, face, firstEmpty, true);
-                        this.bnds.signal('position-signal');
-                        pentomino.onBoard = true;
-                        // this.logBoard(pentomino);
-                        if (this.isFitting() && !this.ps.isSolved()) {
-                            this.findNextFit();
+        this.positionsTried = 0;
+        if (this.ps.allOffBoard()) {
+            // put the x on board
+            let xPosition = this.getXBlockPosition();
+            if (xPosition) {
+                let xPentomino = this.pentominos.find((pento) => { return pento.name === 'x'; });
+                this.ps.setOnboard(xPentomino, false);
+                this.movePentomino(xPentomino, 0, xPosition, false);
+                this.findNextFit();
+                this.ps.setOffboard(xPentomino, false);
+            } else {
+                console.log('all xBlockPositions tried');
+            }
+        } else {
+            let firstEmptyPosition = this.findFirstEmptyPosition();
+            if (firstEmptyPosition) {
+                // start trying other pentominos
+                if (!this.isHole(firstEmptyPosition)) {
+                    let currentIndex = this.ps.getCurrentOffboardIndex();
+                    let offBoardCount = this.ps.getOffboardCount();
+                    while (currentIndex < offBoardCount - 1) {
+                        let pentomino = this.getNextOffBoardPentomino(currentIndex);
+                        if (pentomino) {
+                            this.ps.setOnboard(pentomino, true);
+                            for (let face = 0; face < pentomino.faces.length; face++) {
+                                this.movePentomino(pentomino, face, firstEmptyPosition, true);
+                                this.logBoard(pentomino);
+                                if (this.isFitting() && this.positionsTried < 10) {
+                                    this.findNextFit();
+                                    this.logBoard(pentomino);
+                                } // else next face or pentomino
+                            }
+                            this.ps.setOffboard(pentomino, true);
+                            this.logBoard(pentomino);
                         }
+                        currentIndex += 1;
                     }
-                    // console.log('last', pentomino);
-                    this.stashPentomino(pentomino);
-                }
+                } // else there was a hole not fitting a block
+            } else {
+                // solution found -> save it
+                let pentominos = this.ps.getOnboardPentominos();
+                this.sls.saveSolution(pentominos);
             }
         }
     }
@@ -116,7 +138,7 @@ export class SolverService {
         console.log('pentomino:', pentomino, 'positions:', this.positionsTried);
     }
 
-    findFirstEmpty() {
+    findFirstEmptyPosition() {
         for (let y = 0; y < this.boardHeight; y++) {
             for (let x = 0; x < this.boardWidth; x++) {
                 if (this.ps.fields[y][x] === 0) return [x, y];
