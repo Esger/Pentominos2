@@ -109,7 +109,7 @@ export class MenuCustomElement {
 
     autoSolve() {
         this.settings.menuVisible = false;
-        setTimeout(() => { this.slvs.autoSolve(); });
+        setTimeout(() => { this.slvs.startSolving(); });
     }
 
 }

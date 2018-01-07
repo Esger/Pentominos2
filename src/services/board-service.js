@@ -84,12 +84,13 @@ export class BoardService {
 
     touchesBoard(pentomino) {
         let isTouching = false;
-        for (let i = 0; i < pentomino.faces[pentomino.face].length; i++) {
-            let part = pentomino.faces[pentomino.face][i];
-            let x = pentomino.position.x + part[0];
-            let y = pentomino.position.y + part[1];
-            if ((x >= 0) && (x <= this.getWidth()) &&
-                (y >= 0) && (y <= this.getHeight())) {
+        const count = pentomino.faces[pentomino.face].length;
+        for (let i = 0; i < count; i++) {
+            const part = pentomino.faces[pentomino.face][i];
+            const x = pentomino.position.x + part[0];
+            const y = pentomino.position.y + part[1];
+            const partIsOnBoard = this.onBoard(x, y);
+            if (partIsOnBoard) {
                 isTouching = true;
                 break;
             }

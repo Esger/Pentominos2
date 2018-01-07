@@ -20,11 +20,8 @@ export class PentominoService {
         this.sls = solutionService;
 
         this.pentominos = [];
-        this.offBoardPentominos = [];
         this.fields = [];
         this.activePentomino = null;
-        this.currentPentomino = null;
-        this.lastTriedIndex = -1;
         this.start();
     }
 
@@ -74,76 +71,51 @@ export class PentominoService {
         this.activePentomino.position.y = newY;
     }
 
-    // getCurrentPentomino() {
-    //     return this.currentPentomino;
-    // }
-
-    // setCurrentPentomino(pentomino) {
-    //     this.currentPentomino = pentomino;
-    // }
-
-    // resetCurrentPentomino() {
-    //     this.currentPentomino = null;
-    // }
-
-    setAllOnboard() {
-        this.pentominos = this.pentominos.concat(this.offBoardPentominos);
-        this.pentominos.sort((a, b) => {
-            return a.index - b.index;
-        });
-        this.registerPieces();
-    }
-
-    setOnboard(pentomino, setLastTried) {
-        this.pentominos.push(pentomino);
-        let index = this.offBoardPentominos.indexOf(pentomino);
-        this.offBoardPentominos.splice(index, 1);
-        if (setLastTried) {
-            this.lastTriedIndex = index;
-        }
-        this.bnds.signal('position-signal');
-    }
-
-    setAllOffboard() {
-        this.offBoardPentominos = this.pentominos.slice();
-        this.pentominos = [];
-        this.registerPieces();
-    }
-
-    setOffboard(pentomino, setNextLastTried) {
-        this.offBoardPentominos.push(pentomino);
-        this.offBoardPentominos.splice(this.lastTriedIndex, 0, pentomino);
-        this.pentominos.pop();
-        this.registerPiece(pentomino, 1);
-        if (setNextLastTried) {
-            this.lastTriedIndex += 1;
-        }
-    }
-
     allOffBoard() {
         let emptyBoard = this.pentominos.length == 0;
         return emptyBoard;
-    }
-
-    getCurrentOffboardIndex() {
-        return this.lastTriedIndex;
     }
 
     getOffboardCount() {
         return this.offBoardPentominos.length;
     }
 
-    getNextOffboardPentomino() {
-        let index = this.lastTriedIndex + 1;
-        if (this.offBoardPentominos.length > index) {
-            return this.offBoardPentominos[index];
-        } else {
-            return null;
-        }
-    }
-
     getOnboardPentominos() {
         return this.pentominos;
+    }
+
+    setPosition(pentomino, position) {
+        // this.ts.queueMicroTask(() => {
+        pentomino.position.x = position[0];
+        pentomino.position.y = position[1];
+        // });
+    }
+
+    findFirstPartRight(pentomino) {
+        let offsetRight = pentomino.dimensions[0];
+        let part = pentomino.faces[pentomino.face][0];
+        for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
+            part = pentomino.faces[pentomino.face][j];
+            offsetRight = ((part[1] === 0) && (part[0] < offsetRight)) ? part[0] : offsetRight;
+        }
+        return offsetRight;
+    }
+
+    movePentomino(pentomino, face, position, shiftLeft) {
+        let newPosition;
+        this.registerPiece(pentomino, -1);
+        this.setFace(pentomino, face);
+        // If left top of pentomino is empty ___|
+        // move pentomino to the left
+        if (shiftLeft && position[0] > 0) {
+            let xShift = this.findFirstPartRight(pentomino);
+            newPosition = [position[0] - xShift, position[1]];
+        } else {
+            newPosition = position;
+        }
+        this.setPosition(pentomino, newPosition);
+        this.registerPiece(pentomino, 1);
+        // console.table($scope.board.fields);
     }
 
     adjustPosition() {  // Thanks Ben Nierop, for the idea
@@ -171,16 +143,16 @@ export class PentominoService {
 
     registerPiece(pentomino, onOff) {
         if (pentomino) {
-            // let onBoardParts = 0;
+            let onBoardParts = 0;
             let partsCount = pentomino.faces[pentomino.face].length;
             for (let i = 0; i < partsCount; i++) {
                 let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
                 let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
                 if (this.bs.onBoard(x, y)) {
                     this.fields[y][x] += onOff;
-                    // onBoardParts += 1;
+                    onBoardParts += 1;
                 }
-                // pentomino.onBoard = (onBoardParts == partsCount);
+                pentomino.onBoard = (onBoardParts == partsCount);
             }
             this.bnds.signal('position-signal');
         }

@@ -98,11 +98,12 @@ export class PermutationService {
         let maxY = clientHeight - 4;
         // offset values in positions
         let offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
-        let offsetY = Math.floor((clientHeight - this.bs.getHeight()) / 2);
 
-        let count = pentominos.length;
+        const count = pentominos.length;
         for (let i = 0; i < count; i++) {
-            let pentomino = pentominos[i];
+            const pentomino = pentominos[i];
+            const face = Math.floor(Math.random() * pentomino.faces.length);
+            pentomino.face = face;
             // find random off board position
             do {
                 let xPos = Math.floor(Math.random() * maxX);
@@ -112,9 +113,6 @@ export class PermutationService {
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;
             } while (this.bs.touchesBoard(pentomino));
-
-            let face = Math.floor(Math.random() * pentomino.faces.length);
-            pentomino.face = face;
         }
     }
 
