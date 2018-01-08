@@ -40,7 +40,7 @@ export class PermutationService {
 
     // Returns the new face index for a given face, action and blocktype
     flipRotate(pentomino, part) {
-        if (part == undefined) { part = pentomino.activePart };
+        if (part == undefined) { part = pentomino.activePart; }
         pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
         if (part === 0) {
@@ -92,17 +92,18 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        let theLength = this.bs.pentominosLength();
-        let clw = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-        let clh = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-        let maxX = clw - 4;
-        let maxY = clh - 4;
+        let clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+        let clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+        let maxX = clientWidth - 4;
+        let maxY = clientHeight - 4;
         // offset values in positions
-        let offsetX = Math.floor((clw - this.bs.getWidth()) / 2);
-        let offsetY = Math.floor((clh - this.bs.getHeight()) / 2);
+        let offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
 
-        for (let i = 0; i < theLength; i++) {
-            let pentomino = pentominos[i];
+        const count = pentominos.length;
+        for (let i = 0; i < count; i++) {
+            const pentomino = pentominos[i];
+            const face = Math.floor(Math.random() * pentomino.faces.length);
+            pentomino.face = face;
             // find random off board position
             do {
                 let xPos = Math.floor(Math.random() * maxX);
@@ -112,9 +113,7 @@ export class PermutationService {
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;
             } while (this.bs.touchesBoard(pentomino));
-
-            let face = Math.floor(Math.random() * pentomino.faces.length);
-            pentomino.face = face;
+            pentomino.onBoard = false;
         }
     }
 

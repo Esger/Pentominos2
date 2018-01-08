@@ -42,45 +42,17 @@ export class DataService {
     }
 
     getSolutions() {
-        // Convert old solutions
-        let convert = function (solutions) {
-            let convertedSolutions = {};
-            for (let boardType in solutions) {
-                if (solutions.hasOwnProperty(boardType)) {
-                    if (solutions[boardType].length) {
-                        for (let i = 0; i < solutions[boardType].length; i++) {
-                            solutions[boardType][i] = solutions[boardType][i].split('#');
-                            solutions[boardType][i].shift();
-                            for (let j = 0; j < solutions[boardType][i].length; j++) {
-                                solutions[boardType][i][j] = solutions[boardType][i][j].split('');
-                                solutions[boardType][i][j] = solutions[boardType][i][j].join('_')
-                            }
-                            solutions[boardType][i] = '#' + solutions[boardType][i].join('#');
-                        }
-                    }
-                }
-                convertedSolutions[boardType] = solutions[boardType];
-            }
-            return convertedSolutions;
-        };
 
         let solutions;
 
         if (localStorage.getItem("pentominos2")) {
             solutions = JSON.parse(localStorage.getItem("pentominos2"));
         } else {
-            if (localStorage.getItem("pentominos")) {
-                solutions = JSON.parse(localStorage.getItem("pentominos"));
-                solutions = convert(solutions);
-                localStorage.setItem("pentominos2", JSON.stringify(solutions));
-                localStorage.removeItem("pentominos");
-            } else {
-                solutions = {};
-                let boardTypes = this.bs.boardTypes;
-                for (let type in boardTypes) {
-                    if (boardTypes.hasOwnProperty(type)) {
-                        solutions[type] = [];
-                    }
+            solutions = {};
+            let boardTypes = this.bs.boardTypes;
+            for (let type in boardTypes) {
+                if (boardTypes.hasOwnProperty(type)) {
+                    solutions[type] = [];
                 }
             }
         }

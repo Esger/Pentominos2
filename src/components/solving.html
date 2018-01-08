@@ -1,6 +1,8 @@
 <template>
     <require from="components/solving.css"></require>
-    <button class="small"
+    <button class="button"
+            click.delegate="nextPiece()">Next pentomino</button>
+    <button class=""
             title="continue"
             click.delegate="continue()"
             touchstart.delegate="continue()">

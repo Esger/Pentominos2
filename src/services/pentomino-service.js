@@ -12,19 +12,18 @@ import { SolutionService } from './solution-service';
 export class PentominoService {
 
     constructor(bindingSignaler, taskQueue, dataService, boardService, solutionService) {
+
         this.bnds = bindingSignaler;
         this.ts = taskQueue;
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
-        this.pentominos = [];
-        this.fields = [];
-        this.currentPentomino = null;
-        this.start();
-    }
 
-    pentominoCount() {
-        return this.pentominos.length;
+        this.pentominos = [];
+        this.offBoardPentominos = [];
+        this.fields = [];
+        this.activePentomino = null;
+        this.start();
     }
 
     isSolved() {
@@ -52,25 +51,109 @@ export class PentominoService {
         return true;
     }
 
-    setCurrentPentomino(pentomino, index) {
-        this.currentPentomino = pentomino;
-        this.currentPentomino.activePart = index;
+    getActivePentomino() {
+        return this.activePentomino;
     }
 
-    resetCurrentPentomino() {
-        if (this.currentPentomino) {
-            this.currentPentomino.activePart = null;
-            this.currentPentomino = null;
+    setActivePentomino(pentomino, index) {
+        this.activePentomino = pentomino;
+        this.activePentomino.activePart = index;
+    }
+
+    resetActivePentomino() {
+        if (this.activePentomino) {
+            this.activePentomino.activePart = null;
         }
+        this.activePentomino = null;
     }
 
-    alignCurrentPentomino(newX, newY) {
-        this.currentPentomino.position.x = newX;
-        this.currentPentomino.position.y = newY;
+    setActivePentominoPosition(newX, newY) {
+        this.activePentomino.position.x = newX;
+        this.activePentomino.position.y = newY;
     }
 
-    adjustPosition() {
-        let pentomino = this.currentPentomino;
+    findPentominoByName(set, name) {
+        return set.find((pento) => { return pento.name === name; });
+    }
+
+    allOffBoard() {
+        let emptyBoard = this.pentominos.length == 0;
+        return emptyBoard;
+    }
+
+    getOffboardCount() {
+        return this.offBoardPentominos.length;
+    }
+
+    getPentomino(name) {
+        let pentomino = this.findPentominoByName(this.pentominos.concat(this.offBoardPentominos), name);
+        return pentomino;
+    }
+
+    setAllOnboard() {
+        this.pentominos = this.pentominos.concat(this.offBoardPentominos);
+        this.pentominos.sort((a, b) => {
+            return a.index - b.index;
+        });
+        this.registerPieces();
+    }
+
+    setOnboard(pentomino) {
+        this.pentominos.push(pentomino);
+        let index = this.offBoardPentominos.indexOf(pentomino);
+        this.offBoardPentominos.splice(index, 1);
+    }
+
+    nextOnboard(offBoards) {
+        let pentomino = offBoards.shift();
+        this.pentominos.push(pentomino);
+        this.registerPiece(pentomino, 1);
+        this.bnds.signal('position-signal');
+        return pentomino;
+    }
+
+    setAllOffboard() {
+        this.offBoardPentominos = this.pentominos.slice();
+        this.pentominos = [];
+        this.registerPieces();
+    }
+
+    setPosition(pentomino, position) {
+        // this.ts.queueMicroTask(() => {
+        pentomino.position.x = position[0];
+        pentomino.position.y = position[1];
+        // });
+    }
+
+    findFirstPartRight(pentomino) {
+        let offsetRight = pentomino.dimensions[0];
+        let part = pentomino.faces[pentomino.face][0];
+        for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
+            part = pentomino.faces[pentomino.face][j];
+            offsetRight = ((part[1] === 0) && (part[0] < offsetRight)) ? part[0] : offsetRight;
+        }
+        return offsetRight;
+    }
+
+    movePentomino(pentomino, face, position, shiftLeft) {
+        let newPosition;
+        this.registerPiece(pentomino, -1);
+        this.setFace(pentomino, face);
+        // If left top of pentomino is empty ___|
+        // move pentomino to the left
+        if (shiftLeft && position[0] > 0) {
+            let xShift = this.findFirstPartRight(pentomino);
+            newPosition = [position[0] - xShift, position[1]];
+        } else {
+            newPosition = position;
+        }
+        this.setPosition(pentomino, newPosition);
+        this.registerPiece(pentomino, 1);
+        // console.table($scope.board.fields);
+    }
+
+    adjustPosition() {  // Thanks Ben Nierop, for the idea
+        let pentomino = this.activePentomino;
         let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
         let partAbsPosition = [
             pentomino.position.x + partRelPosition[0],
@@ -93,28 +176,30 @@ export class PentominoService {
     }
 
     registerPiece(pentomino, onOff) {
-        if (pentomino && pentomino.faces) {
-            // let onBoardParts = 0;
+        if (pentomino) {
+            let onBoardParts = 0;
             let partsCount = pentomino.faces[pentomino.face].length;
             for (let i = 0; i < partsCount; i++) {
                 let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
                 let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
                 if (this.bs.onBoard(x, y)) {
                     this.fields[y][x] += onOff;
-                    // onBoardParts += 1;
+                    onBoardParts += 1;
                 }
-                // pentomino.onBoard = (onBoardParts == partsCount);
+                pentomino.onBoard = (onBoardParts == partsCount);
             }
+            this.bnds.signal('position-signal');
         }
     }
 
     registerPieces() {
         this.fields = this.setBoardFields(0);
         for (var i = 0; i < this.pentominos.length; i++) {
-            let pentomino = this.pentominos[i]
+            let pentomino = this.pentominos[i];
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
         }
+        this.bnds.signal('position-signal');
     }
 
     setBoardFields(content) {
@@ -157,6 +242,11 @@ export class PentominoService {
         });
     }
 
+    setFace(pentomino, face) {
+        pentomino.face = face;
+        this.adjustDimensions(pentomino);
+    }
+
     adjustDimensions(pentomino) {
         if (pentomino && pentomino.initialDimensions) {
             pentomino.dimensions = pentomino.initialDimensions.slice();
@@ -171,7 +261,8 @@ export class PentominoService {
             this.bs.boardType = shape;
             this.sls.currentSolution = -1;
             this.sls.setShowSolutions();
-            for (let i = 0; i < this.pentominos.length; i++) {
+            let count = response.length;
+            for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
                 pentomino.position = response[i].position;
@@ -185,6 +276,9 @@ export class PentominoService {
                 if (pentomino.face % 2 == 1) {
                     pentomino.dimensions.reverse();
                 }
+            }
+            while (this.pentominos.length < count) {
+                this.pentominos.pop();
             }
             this.registerPieces();
         });

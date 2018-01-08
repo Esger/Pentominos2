@@ -18,7 +18,6 @@ export class ControlsCustomElement {
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
-        this.pentominoCount = this.bs.pentominosLength();
         this.solutionCount = this.sls.solutions[this.sls.boardType].length;
     }
 
@@ -45,7 +44,7 @@ export class ControlsCustomElement {
         let splitString = solutionString.substr(1).split('#');
         for (let i = 0; i < splitString.length; i++) {
             let pentomino = this.ps.pentominos[i];
-            let props = splitString[i].split('_')
+            let props = splitString[i].split('_');
             pentomino.face = parseInt(props[1], 10);
             pentomino.position.x = parseInt(props[2], 10);
             pentomino.position.y = parseInt(props[3], 10);
@@ -53,7 +52,7 @@ export class ControlsCustomElement {
         this.bnds.signal('position-signal');
         this.ps.registerPieces();
         this.bs.unsetNewSolution();
-    };
+    }
 
     showButton() {
         return (this.solutionCount > 0);
@@ -77,13 +76,13 @@ export class ControlsCustomElement {
             this.sls.currentSolution--;
             this.showSolution();
         }
-    };
+    }
 
     showNextSolution() {
         if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
             this.sls.currentSolution++;
             this.showSolution();
         }
-    };
+    }
 
 }
