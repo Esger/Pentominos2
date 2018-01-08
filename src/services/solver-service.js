@@ -21,8 +21,6 @@ export class SolverService {
         this.ps = pentominoService;
         this.sls = solutionService;
         this.prms = permutationService;
-        this.pentominos = this.ps.pentominos;
-        this.offBoardPentominos = [];
         this.continue = false;
 
         this.pentominosOnBoard = 0;
@@ -56,6 +54,8 @@ export class SolverService {
             ],
         };
         this.startPosXBlock = 0;
+        this.oPentomino = this.ps.getPentomino('o');
+        this.xPentomino = this.ps.getPentomino('x');
     }
 
     getXBlockPosition() {
@@ -68,41 +68,9 @@ export class SolverService {
         }
     }
 
-    getPentomino(name) {
-        return this.pentominos.find((pento) => { return pento.name === name; });
-    }
-
-    setAllOnboard() {
-        this.pentominos = this.pentominos.concat(this.offBoardPentominos);
-        this.pentominos.sort((a, b) => {
-            return a.index - b.index;
-        });
-        this.ps.registerPieces();
-    }
-
-    setOnboard(pentomino) {
-        this.pentominos.push(pentomino);
-        let index = this.offBoardPentominos.indexOf(pentomino);
-        this.offBoardPentominos.splice(index, 1);
-    }
-
-    nextOnboard(offBoards) {
-        let pentomino = offBoards.shift();
-        this.pentominos.push(pentomino);
-        this.ps.registerPiece(pentomino, 1);
-        this.bnds.signal('position-signal');
-        return pentomino;
-    }
-
-    setAllOffboard() {
-        this.offBoardPentominos = this.pentominos.slice();
-        this.pentominos = [];
-        this.ps.registerPieces();
-    }
-
     discard(misFits) {
-        let pentomino = this.pentominos.pop();
-        this.misFitPentominos.push(pentomino);
+        let pentomino = this.ps.pentominos.pop();
+        misFits.push(pentomino);
         this.ps.registerPiece(pentomino, -1);
     }
 
@@ -118,10 +86,10 @@ export class SolverService {
                             console.log('trying ', pentomino.name);
                             const count = pentomino.faces.length;
                             for (let face = 0; face < count; face++) {
-                                this.movePentomino(pentomino, face, firstEmptyPosition, true);
+                                this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
                                 this.logBoard(pentomino);
                                 if (this.isFitting() && this.positionsTried < 10) {
-                                    resolve(['next', misFits.concat(offBoards)]); // #todo nog sorteren?
+                                    autoSolve(['next', misFits.concat(offBoards)]); // #todo nog sorteren?
                                 } // else next face
                             }
                             this.discard(misFits);
@@ -143,7 +111,7 @@ export class SolverService {
                 switch (result[0]) {
                     case 'next': this.autoSolve(result[1]);
                         break;
-                    case 'save': this.sls.saveSolution(this.pentominos);
+                    case 'save': this.sls.saveSolution(this.ps.pentominos);
                         break;
                     default: // 'prev':
                         break;
@@ -152,11 +120,10 @@ export class SolverService {
         };
         if (this.ps.allOffBoard()) {
             // put the x on board
-            let xPentomino = this.getPentomino('x');
-            this.setOnboard(xPentomino, false);
-            xPosition = this.getXBlockPosition();
+            this.ps.setOnboard(this.xPentomino, false);
+            let xPosition = this.getXBlockPosition();
             while (xPosition) {  //for all x positions
-                this.ps.movePentomino(xPentomino, 0, xPosition, false);
+                this.ps.movePentomino(this.xPentomino, 0, xPosition, false);
                 nextAction(offBoards);
                 xPosition = this.getXBlockPosition();
             }
@@ -171,11 +138,11 @@ export class SolverService {
         this.boardHeight = this.bs.getHeight();
         this.startPosXBlock = 0;
         this.positionsTried = 0;
-        this.setAllOffboard(); // #todo only the pieces that are not on the board !!!
+        this.ps.setAllOffboard(); // #todo only the pieces that are not on the board !!!
 
-        this.autoSolve(this.offBoardPentominos);
+        this.autoSolve(this.ps.offBoardPentominos);
 
-        this.setAllOnboard();
+        this.ps.setAllOnboard();
     }
 
     logBoard(pentomino) {
@@ -207,14 +174,6 @@ export class SolverService {
     // find out if open region at x,y is large enough for a pentomino by recursion counting
     // xy has to be the most up left open spot
     isHole(xy) {
-        let self = this;
-        let holeSize = 0;
-        let minHoleSize = (this.pentominos[12].onBoard || this.boardType === 'rectangle') ? 5 : 4;
-        let label = 'a';
-        let board = this.copyBoardFields();
-        // let x = xy[0];
-        let y = xy[1];
-
         function countDown(xy) {
             let y = xy[1];
             while ((y < self.boardHeight) && (board[y][xy[0]] === 0) && (holeSize < minHoleSize)) {
@@ -248,8 +207,21 @@ export class SolverService {
                 x--;
             }
         }
-        countRight(xy);
+        let self = this;
+        let holeSize = 0;
+        let minHoleSize = (this.oPentomino.onBoard || this.boardType === 'rectangle') ? 5 : 4;
+        let label = 'a';
+        let board = this.copyBoardFields();
+        // let x = xy[0];
+        let y = xy[1];
+
+        holeSize = countRight(xy);
         return (holeSize < minHoleSize);
+    }
+
+    noneStickingOut(sum) {
+        let compensation = this.oPentomino.onBoard ? -4 : 0;
+        return ((sum - compensation) % 5 === 0);
     }
 
     // Return true if no overlapping pieces and all pieces are completely on the board
@@ -264,11 +236,7 @@ export class SolverService {
                 }
             }
         }
-        if (this.pentominos[12].onBoard === true) {
-            return ((sum - 4) % 5 === 0);
-        } else {
-            return (sum % 5 === 0);
-        }
+        return this.noneStickingOut(sum);
     }
 
 }

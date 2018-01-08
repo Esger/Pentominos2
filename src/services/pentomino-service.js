@@ -20,6 +20,7 @@ export class PentominoService {
         this.sls = solutionService;
 
         this.pentominos = [];
+        this.offBoardPentominos = [];
         this.fields = [];
         this.activePentomino = null;
         this.start();
@@ -71,6 +72,10 @@ export class PentominoService {
         this.activePentomino.position.y = newY;
     }
 
+    findPentominoByName(set, name) {
+        return set.find((pento) => { return pento.name === name; });
+    }
+
     allOffBoard() {
         let emptyBoard = this.pentominos.length == 0;
         return emptyBoard;
@@ -80,8 +85,37 @@ export class PentominoService {
         return this.offBoardPentominos.length;
     }
 
-    getOnboardPentominos() {
-        return this.pentominos;
+    getPentomino(name) {
+        let pentomino = this.findPentominoByName(this.pentominos.concat(this.offBoardPentominos), name);
+        return pentomino;
+    }
+
+    setAllOnboard() {
+        this.pentominos = this.pentominos.concat(this.offBoardPentominos);
+        this.pentominos.sort((a, b) => {
+            return a.index - b.index;
+        });
+        this.registerPieces();
+    }
+
+    setOnboard(pentomino) {
+        this.pentominos.push(pentomino);
+        let index = this.offBoardPentominos.indexOf(pentomino);
+        this.offBoardPentominos.splice(index, 1);
+    }
+
+    nextOnboard(offBoards) {
+        let pentomino = offBoards.shift();
+        this.pentominos.push(pentomino);
+        this.registerPiece(pentomino, 1);
+        this.bnds.signal('position-signal');
+        return pentomino;
+    }
+
+    setAllOffboard() {
+        this.offBoardPentominos = this.pentominos.slice();
+        this.pentominos = [];
+        this.registerPieces();
     }
 
     setPosition(pentomino, position) {

@@ -113,6 +113,7 @@ export class PermutationService {
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;
             } while (this.bs.touchesBoard(pentomino));
+            pentomino.onBoard = false;
         }
     }
 
