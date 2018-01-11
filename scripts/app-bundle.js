@@ -1512,17 +1512,19 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             return emptyBoard;
         };
 
-        PentominoService.prototype.getOffboardCount = function getOffboardCount() {
-            return this.offBoardPentominos.length;
-        };
-
         PentominoService.prototype.getPentomino = function getPentomino(name) {
             var pentomino = this.findPentominoByName(this.pentominos.concat(this.offBoardPentominos), name);
             return pentomino;
         };
 
-        PentominoService.prototype.setAllOnboard = function setAllOnboard() {
-            this.pentominos = this.pentominos.concat(this.offBoardPentominos);
+        PentominoService.prototype.oPentominoOnboard = function oPentominoOnboard() {
+            return this.pentominos.filter(function (pento) {
+                return pento.name === 'o';
+            }).length > 0;
+        };
+
+        PentominoService.prototype.setAllOnboard = function setAllOnboard(offBoards) {
+            this.pentominos = this.pentominos.concat(offBoards);
             this.pentominos.sort(function (a, b) {
                 return a.index - b.index;
             });
@@ -1537,6 +1539,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
 
         PentominoService.prototype.nextOnboard = function nextOnboard(offBoards) {
             var pentomino = offBoards.shift();
+            pentomino.onBoard = true;
             this.pentominos.push(pentomino);
             this.registerPiece(pentomino, 1);
             this.bnds.signal('position-signal');
@@ -1544,9 +1547,14 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
         };
 
         PentominoService.prototype.setAllOffboard = function setAllOffboard() {
-            this.offBoardPentominos = this.pentominos.slice();
-            this.pentominos = [];
+            this.offBoardPentominos = this.pentominos.filter(function (pento) {
+                return pento.onBoard === false;
+            });
+            this.pentominos = this.pentominos.filter(function (pento) {
+                return pento.onBoard === true;
+            });
             this.registerPieces();
+            return this.offBoardPentominos;
         };
 
         PentominoService.prototype.setPosition = function setPosition(pentomino, position) {
@@ -2009,7 +2017,6 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
                 'twig': [[1, 0], [6, 0]]
             };
             this.startPosXBlock = 0;
-            this.oPentomino = this.ps.getPentomino('o');
             this.xPentomino = this.ps.getPentomino('x');
         }
 
@@ -2025,72 +2032,58 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
 
         SolverService.prototype.discard = function discard(misFits) {
             var pentomino = this.ps.pentominos.pop();
+            pentomino.onBoard = false;
             misFits.push(pentomino);
             this.ps.registerPiece(pentomino, -1);
         };
 
         SolverService.prototype.findNextFit = function findNextFit(offBoards) {
-            var _this = this;
+            var misFits = [];
+            var firstEmptyPosition = this.findFirstEmptyPosition();
+            if (firstEmptyPosition) {
+                if (!this.isHole(firstEmptyPosition)) {
+                    while (offBoards.length) {
+                        var pentomino = this.ps.nextOnboard(offBoards);
+                        if (pentomino) {
+                            console.log('trying ', pentomino.name);
+                            var count = pentomino.faces.length;
+                            for (var face = 0; face < count; face++) {
+                                this.positionsTried++;
+                                this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
 
-            return new Promise(function (resolve, reject) {
-                var misFits = [];
-                var firstEmptyPosition = _this.findFirstEmptyPosition();
-                if (firstEmptyPosition) {
-                    if (!_this.isHole(firstEmptyPosition)) {
-                        while (_this.ps.getOffboardCount()) {
-                            var pentomino = _this.ps.nextOnboard(offBoards);
-                            if (pentomino) {
-                                console.log('trying ', pentomino.name);
-                                var count = pentomino.faces.length;
-                                for (var face = 0; face < count; face++) {
-                                    _this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
-                                    _this.logBoard(pentomino);
-                                    if (_this.isFitting() && _this.positionsTried < 10) {
-                                        autoSolve(['next', misFits.concat(offBoards)]);
-                                    }
+                                this.logBoard(pentomino);
+                                if (this.isFitting() && this.positionsTried < 10000) {
+                                    this.autoSolve(misFits.concat(offBoards));
+                                    this.logBoard();
                                 }
-                                _this.discard(misFits);
-                                _this.logBoard(pentomino);
                             }
+                            this.discard(misFits);
+                            this.logBoard();
                         }
                     }
-                    _this.discard(misFits);
-                    resolve(['prev']);
-                } else {
-                    resolve(['save']);
                 }
-            });
+
+                this.logBoard();
+            } else {
+                this.sls.saveSolution(this.ps.pentominos);
+            }
+            return misFits;
         };
 
         SolverService.prototype.autoSolve = function autoSolve(offBoards) {
-            var _this2 = this;
-
-            var nextAction = function nextAction(offBoards) {
-                _this2.findNextFit(offBoards).then(function (result) {
-                    switch (result[0]) {
-                        case 'next':
-                            _this2.autoSolve(result[1]);
-                            break;
-                        case 'save':
-                            _this2.sls.saveSolution(_this2.ps.pentominos);
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            };
             if (this.ps.allOffBoard()) {
                 this.ps.setOnboard(this.xPentomino, false);
                 var xPosition = this.getXBlockPosition();
                 while (xPosition) {
                     this.ps.movePentomino(this.xPentomino, 0, xPosition, false);
-                    nextAction(offBoards);
+                    offBoards = this.findNextFit(offBoards);
                     xPosition = this.getXBlockPosition();
                 }
                 console.log('all xBlockPositions tried');
             } else {
-                nextAction(offBoards);
+                offBoards = this.findNextFit(offBoards);
             }
+            return offBoards;
         };
 
         SolverService.prototype.startSolving = function startSolving() {
@@ -2098,17 +2091,32 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             this.boardHeight = this.bs.getHeight();
             this.startPosXBlock = 0;
             this.positionsTried = 0;
-            this.ps.setAllOffboard();
+            var offBoardPentominos = this.ps.setAllOffboard();
 
-            this.autoSolve(this.ps.offBoardPentominos);
+            offBoardPentominos = this.autoSolve(offBoardPentominos);
 
-            this.ps.setAllOnboard();
+            if (offBoardPentominos.length > 0) {
+                console.log('No solutions found!');
+            }
+
+            this.ps.setAllOnboard(offBoardPentominos);
         };
 
-        SolverService.prototype.logBoard = function logBoard(pentomino) {
+        SolverService.prototype.logBoard = function logBoard() {
+            var fields = this.ps.setBoardFields('');
+            var blockCount = this.ps.pentominos.length;
+            for (var i = 0; i < blockCount; i++) {
+                var pentomino = this.ps.pentominos[i];
+                var face = pentomino.faces[pentomino.face];
+                var partCount = face.length;
+                for (var j = 0; j < partCount; j++) {
+                    var x = face[j][0] + pentomino.position.x;
+                    var y = face[j][1] + pentomino.position.y;
+                    fields[y][x] += pentomino.name;
+                }
+            }
             console.clear();
-            console.table(this.ps.fields);
-            console.log('pentomino:', pentomino, 'positions:', this.positionsTried);
+            console.table(fields);
         };
 
         SolverService.prototype.findFirstEmptyPosition = function findFirstEmptyPosition() {
@@ -2132,53 +2140,58 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         };
 
         SolverService.prototype.isHole = function isHole(xy) {
-            function countDown(xy) {
+            var self = this;
+            var holeSize = 0;
+            var oPentoOnboard = this.ps.oPentominoOnboard();
+            var minHoleSize = oPentoOnboard || this.boardType === 'rectangle' ? 5 : 4;
+            var label = 'a';
+            var board = this.copyBoardFields();
+
+            var y = xy[1];
+
+            var countDown = function countDown(xy) {
                 var y = xy[1];
-                while (y < self.boardHeight && board[y][xy[0]] === 0 && holeSize < minHoleSize) {
-                    board[y][xy[0]] = label;
+                var x = xy[0];
+                while (y < self.boardHeight && board[y][x] === 0 && holeSize < minHoleSize) {
+                    board[y][x] = label;
                     holeSize++;
 
                     countLeft([xy[0] - 1, y]);
                     countRight([xy[0] + 1, y]);
                     y++;
                 }
-            }
+            };
 
-            function countRight(xy) {
+            var countRight = function countRight(xy) {
                 var x = xy[0];
-                while (x < self.boardWidth && board[xy[1]][x] === 0 && holeSize < minHoleSize) {
-                    board[xy[1]][x] = label;
+                var y = xy[1];
+                while (x < self.boardWidth && board[y][x] === 0 && holeSize < minHoleSize) {
+                    board[y][x] = label;
                     holeSize++;
 
-                    countDown([x, xy[1] + 1]);
+                    countDown([x, y + 1]);
                     x++;
                 }
-            }
+            };
 
-            function countLeft(xy) {
+            var countLeft = function countLeft(xy) {
                 var x = xy[0];
-                while (x >= 0 && board[xy[1]][x] === 0 && holeSize < minHoleSize) {
-                    board[xy[1]][x] = label;
+                var y = xy[1];
+                while (x >= 0 && board[y][x] === 0 && holeSize < minHoleSize) {
+                    board[y][x] = label;
                     holeSize++;
 
-                    countDown([x, xy[1] + 1]);
+                    countDown([x, y + 1]);
                     x--;
                 }
-            }
-            var self = this;
-            var holeSize = 0;
-            var minHoleSize = this.oPentomino.onBoard || this.boardType === 'rectangle' ? 5 : 4;
-            var label = 'a';
-            var board = this.copyBoardFields();
+            };
 
-            var y = xy[1];
-
-            holeSize = countRight(xy);
+            countRight(xy);
             return holeSize < minHoleSize;
         };
 
         SolverService.prototype.noneStickingOut = function noneStickingOut(sum) {
-            var compensation = this.oPentomino.onBoard ? -4 : 0;
+            var compensation = this.ps.oPentominoOnboard() ? -4 : 0;
             return (sum - compensation) % 5 === 0;
         };
 
@@ -4883,7 +4896,7 @@ define('text!components/header.html', ['module'], function(module) { module.expo
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
 define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"sls.solutions[bs.boardType].length >= 0\"\n            click.delegate=\"autoSolve()\"\n            touchstart.delegate=\"autoSolve()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
-define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                ${pentomino.face}\n                <!-- ${pentomino.position.x+part[0]},${pentomino.position.y+part[1]} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
+define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.face} -->\n                <!-- ${pentomino.position.x+part[0]},${pentomino.position.y+part[1]} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
 define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <button class=\"button\"\n            click.delegate=\"nextPiece()\">Next pentomino</button>\n    <button class=\"\"\n            title=\"continue\"\n            click.delegate=\"continue()\"\n            touchstart.delegate=\"continue()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n    </button>\n\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
