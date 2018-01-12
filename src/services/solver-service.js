@@ -74,34 +74,31 @@ export class SolverService {
         this.ps.registerPiece(pentomino, -1);
     }
 
-    // #todo
     findNextFit(offBoards) {
         let misFits = [];
         const firstEmptyPosition = this.findFirstEmptyPosition();
         if (firstEmptyPosition) { // start trying other pentominos
-            if (!this.isHole(firstEmptyPosition)) { // there was a hole not fitting a block
+            if (this.holeFitsXPieces(firstEmptyPosition)/* && this.positionsTried < 10000 */) {
                 while (offBoards.length) {
                     const pentomino = this.ps.nextOnboard(offBoards);
                     if (pentomino) {
-                        console.log('trying ', pentomino.name);
+                        console.clear();
+                        console.log('trying ', this.positionsTried, pentomino.name);
                         const count = pentomino.faces.length;
                         for (let face = 0; face < count; face++) {
                             this.positionsTried++;
                             this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
                             // make aurelia update the dom somehow
-                            this.logBoard(pentomino);
-                            if (this.isFitting() && this.positionsTried < 10000) {
-                                this.autoSolve(misFits.concat(offBoards)); // #todo nog sorteren?
-                                // this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
-                                this.logBoard();
-                            } // else next face
+                            this.logBoard();
+                            if (this.isFitting()) {
+                                this.findNextFit(this.ps.sortPentominos(misFits.concat(offBoards)));
+                            }
                         }
                         this.discard(misFits);
                         this.logBoard();
                     } // else next pentomino
                 }
             }
-            // this.discard(misFits);
             this.logBoard();
         } else {
             this.sls.saveSolution(this.ps.pentominos);
@@ -143,6 +140,7 @@ export class SolverService {
     }
 
     logBoard() {
+        return false;
         let fields = this.ps.setBoardFields('');
         const blockCount = this.ps.pentominos.length;
         for (let i = 0; i < blockCount; i++) {
@@ -152,7 +150,9 @@ export class SolverService {
             for (let j = 0; j < partCount; j++) {
                 const x = face[j][0] + pentomino.position.x;
                 const y = face[j][1] + pentomino.position.y;
-                fields[y][x] += pentomino.name;
+                if (y < this.boardHeight && x < this.boardWidth) {
+                    fields[y][x] += pentomino.name;
+                }
             }
         }
         console.clear();
@@ -181,11 +181,11 @@ export class SolverService {
 
     // find out if open region at x,y is large enough for a pentomino by recursion counting
     // xy has to be the most up left open spot
-    isHole(xy) {
+    holeFitsXPieces(xy) {
         var self = this;
         var holeSize = 0;
         var oPentoOnboard = this.ps.oPentominoOnboard();
-        var minHoleSize = (oPentoOnboard || this.boardType === 'rectangle') ? 5 : 4;
+        // var minHoleSize = (oPentoOnboard || this.boardType === 'rectangle') ? 5 : 4;
         var label = 'a';
         var board = this.copyBoardFields();
         // let x = xy[0];
@@ -194,24 +194,38 @@ export class SolverService {
         var countDown = (xy) => {
             let y = xy[1];
             const x = xy[0];
-            while ((y < self.boardHeight) && (board[y][x] === 0) && (holeSize < minHoleSize)) {
+            while ((y < self.boardHeight) && (board[y][x] === 0)) {
                 board[y][x] = label;
                 holeSize++;
                 // console.table(board);
-                countLeft([xy[0] - 1, y]);
-                countRight([xy[0] + 1, y]);
+                countLeft([x - 1, y]);
+                countRight([x + 1, y]);
                 y++;
+            }
+        };
+
+        var countUp = (xy) => {
+            let y = xy[1];
+            const x = xy[0];
+            while ((y >= 0) && (board[y][x] === 0)) {
+                board[y][x] = label;
+                holeSize++;
+                // console.table(board);
+                countRight([x + 1, y]);
+                countLeft([x - 1, y]);
+                y--;
             }
         };
 
         var countRight = (xy) => {
             let x = xy[0];
             const y = xy[1];
-            while ((x < self.boardWidth) && (board[y][x] === 0) && (holeSize < minHoleSize)) {
+            while ((x < self.boardWidth) && (board[y][x] === 0)) {
                 board[y][x] = label;
                 holeSize++;
                 // console.table(board);
                 countDown([x, y + 1]);
+                countUp([x, y - 1]);
                 x++;
             }
         };
@@ -219,21 +233,27 @@ export class SolverService {
         var countLeft = (xy) => {
             let x = xy[0];
             const y = xy[1];
-            while ((x >= 0) && (board[y][x] === 0) && (holeSize < minHoleSize)) {
+            while ((x >= 0) && (board[y][x] === 0)) {
                 board[y][x] = label;
                 holeSize++;
                 // console.table(board);
                 countDown([x, y + 1]);
+                countUp([x, y - 1]);
                 x--;
             }
         };
 
         countRight(xy);
-        return (holeSize < minHoleSize);
+        return this.holeFits(holeSize);
+    }
+
+    holeFits(sum) {
+        let compensation = (this.ps.oPentominoOnboard() || this.boardType === 'rectangle') ? 0 : 4;
+        return ((sum - compensation) % 5 === 0);
     }
 
     noneStickingOut(sum) {
-        let compensation = this.ps.oPentominoOnboard() ? -4 : 0;
+        let compensation = (this.ps.oPentominoOnboard() || this.boardType === 'rectangle') ? 4 : 0;
         return ((sum - compensation) % 5 === 0);
     }
 

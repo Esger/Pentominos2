@@ -1525,10 +1525,15 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
 
         PentominoService.prototype.setAllOnboard = function setAllOnboard(offBoards) {
             this.pentominos = this.pentominos.concat(offBoards);
-            this.pentominos.sort(function (a, b) {
+            this.pentominos = this.sortPentominos(this.pentominos);
+            this.registerPieces();
+        };
+
+        PentominoService.prototype.sortPentominos = function sortPentominos(pentos) {
+            pentos.sort(function (a, b) {
                 return a.index - b.index;
             });
-            this.registerPieces();
+            return pentos;
         };
 
         PentominoService.prototype.setOnboard = function setOnboard(pentomino) {
@@ -2041,28 +2046,27 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             var misFits = [];
             var firstEmptyPosition = this.findFirstEmptyPosition();
             if (firstEmptyPosition) {
-                if (!this.isHole(firstEmptyPosition)) {
-                    while (offBoards.length) {
-                        var pentomino = this.ps.nextOnboard(offBoards);
-                        if (pentomino) {
-                            console.log('trying ', pentomino.name);
-                            var count = pentomino.faces.length;
-                            for (var face = 0; face < count; face++) {
-                                this.positionsTried++;
-                                this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
+                if (this.holeFitsXPieces(firstEmptyPosition)) {
+                        while (offBoards.length) {
+                            var pentomino = this.ps.nextOnboard(offBoards);
+                            if (pentomino) {
+                                console.clear();
+                                console.log('trying ', this.positionsTried, pentomino.name);
+                                var count = pentomino.faces.length;
+                                for (var face = 0; face < count; face++) {
+                                    this.positionsTried++;
+                                    this.ps.movePentomino(pentomino, face, firstEmptyPosition, true);
 
-                                this.logBoard(pentomino);
-                                if (this.isFitting() && this.positionsTried < 10000) {
-                                    this.autoSolve(misFits.concat(offBoards));
                                     this.logBoard();
+                                    if (this.isFitting()) {
+                                        this.findNextFit(this.ps.sortPentominos(misFits.concat(offBoards)));
+                                    }
                                 }
+                                this.discard(misFits);
+                                this.logBoard();
                             }
-                            this.discard(misFits);
-                            this.logBoard();
                         }
                     }
-                }
-
                 this.logBoard();
             } else {
                 this.sls.saveSolution(this.ps.pentominos);
@@ -2103,6 +2107,7 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
         };
 
         SolverService.prototype.logBoard = function logBoard() {
+            return false;
             var fields = this.ps.setBoardFields('');
             var blockCount = this.ps.pentominos.length;
             for (var i = 0; i < blockCount; i++) {
@@ -2112,7 +2117,9 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
                 for (var j = 0; j < partCount; j++) {
                     var x = face[j][0] + pentomino.position.x;
                     var y = face[j][1] + pentomino.position.y;
-                    fields[y][x] += pentomino.name;
+                    if (y < this.boardHeight && x < this.boardWidth) {
+                        fields[y][x] += pentomino.name;
+                    }
                 }
             }
             console.clear();
@@ -2139,11 +2146,11 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             return fields;
         };
 
-        SolverService.prototype.isHole = function isHole(xy) {
+        SolverService.prototype.holeFitsXPieces = function holeFitsXPieces(xy) {
             var self = this;
             var holeSize = 0;
             var oPentoOnboard = this.ps.oPentominoOnboard();
-            var minHoleSize = oPentoOnboard || this.boardType === 'rectangle' ? 5 : 4;
+
             var label = 'a';
             var board = this.copyBoardFields();
 
@@ -2152,24 +2159,38 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             var countDown = function countDown(xy) {
                 var y = xy[1];
                 var x = xy[0];
-                while (y < self.boardHeight && board[y][x] === 0 && holeSize < minHoleSize) {
+                while (y < self.boardHeight && board[y][x] === 0) {
                     board[y][x] = label;
                     holeSize++;
 
-                    countLeft([xy[0] - 1, y]);
-                    countRight([xy[0] + 1, y]);
+                    countLeft([x - 1, y]);
+                    countRight([x + 1, y]);
                     y++;
+                }
+            };
+
+            var countUp = function countUp(xy) {
+                var y = xy[1];
+                var x = xy[0];
+                while (y >= 0 && board[y][x] === 0) {
+                    board[y][x] = label;
+                    holeSize++;
+
+                    countRight([x + 1, y]);
+                    countLeft([x - 1, y]);
+                    y--;
                 }
             };
 
             var countRight = function countRight(xy) {
                 var x = xy[0];
                 var y = xy[1];
-                while (x < self.boardWidth && board[y][x] === 0 && holeSize < minHoleSize) {
+                while (x < self.boardWidth && board[y][x] === 0) {
                     board[y][x] = label;
                     holeSize++;
 
                     countDown([x, y + 1]);
+                    countUp([x, y - 1]);
                     x++;
                 }
             };
@@ -2177,21 +2198,27 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             var countLeft = function countLeft(xy) {
                 var x = xy[0];
                 var y = xy[1];
-                while (x >= 0 && board[y][x] === 0 && holeSize < minHoleSize) {
+                while (x >= 0 && board[y][x] === 0) {
                     board[y][x] = label;
                     holeSize++;
 
                     countDown([x, y + 1]);
+                    countUp([x, y - 1]);
                     x--;
                 }
             };
 
             countRight(xy);
-            return holeSize < minHoleSize;
+            return this.holeFits(holeSize);
+        };
+
+        SolverService.prototype.holeFits = function holeFits(sum) {
+            var compensation = this.ps.oPentominoOnboard() || this.boardType === 'rectangle' ? 0 : 4;
+            return (sum - compensation) % 5 === 0;
         };
 
         SolverService.prototype.noneStickingOut = function noneStickingOut(sum) {
-            var compensation = this.ps.oPentominoOnboard() ? -4 : 0;
+            var compensation = this.ps.oPentominoOnboard() || this.boardType === 'rectangle' ? 4 : 0;
             return (sum - compensation) % 5 === 0;
         };
 

@@ -94,10 +94,15 @@ export class PentominoService {
 
     setAllOnboard(offBoards) {
         this.pentominos = this.pentominos.concat(offBoards);
-        this.pentominos.sort((a, b) => {
+        this.pentominos = this.sortPentominos(this.pentominos);
+        this.registerPieces();
+    }
+
+    sortPentominos(pentos) {
+        pentos.sort((a, b) => {
             return a.index - b.index;
         });
-        this.registerPieces();
+        return pentos;
     }
 
     setOnboard(pentomino) {
