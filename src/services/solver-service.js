@@ -140,7 +140,6 @@ export class SolverService {
     }
 
     logBoard() {
-        return false;
         let fields = this.ps.setBoardFields('');
         const blockCount = this.ps.pentominos.length;
         for (let i = 0; i < blockCount; i++) {
