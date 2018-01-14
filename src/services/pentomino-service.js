@@ -1,5 +1,4 @@
 import {
-    TaskQueue,
     inject,
     bindable
 } from 'aurelia-framework';
@@ -8,13 +7,12 @@ import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(BindingSignaler, TaskQueue, DataService, BoardService, SolutionService)
+@inject(BindingSignaler, DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(bindingSignaler, taskQueue, dataService, boardService, solutionService) {
+    constructor(bindingSignaler, dataService, boardService, solutionService) {
 
         this.bnds = bindingSignaler;
-        this.ts = taskQueue;
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
@@ -92,8 +90,8 @@ export class PentominoService {
         }).length > 0;
     }
 
-    setAllOnboard(offBoards) {
-        this.pentominos = this.pentominos.concat(offBoards);
+    setAllOnboard(onBoards, offBoards) {
+        this.pentominos = onBoards.concat(offBoards);
         this.pentominos = this.sortPentominos(this.pentominos);
         this.registerPieces();
     }
@@ -120,7 +118,7 @@ export class PentominoService {
         return pentomino;
     }
 
-    setAllOffboard() {
+    setOffboardPentominos() {
         this.offBoardPentominos = this.pentominos.filter((pento) => {
             return pento.onBoard === false;
         });
@@ -132,10 +130,8 @@ export class PentominoService {
     }
 
     setPosition(pentomino, position) {
-        // this.ts.queueMicroTask(() => {
         pentomino.position.x = position[0];
         pentomino.position.y = position[1];
-        // });
     }
 
     findFirstPartRight(pentomino) {

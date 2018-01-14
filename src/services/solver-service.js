@@ -1,5 +1,4 @@
 import {
-    TaskQueue,
     inject,
     bindable
 } from 'aurelia-framework';
@@ -11,12 +10,11 @@ import { SolutionService } from './solution-service';
 import { PermutationService } from './permutation-service';
 
 
-@inject(BindingSignaler, TaskQueue, DataService, BoardService, PentominoService, SolutionService, PermutationService)
+@inject(BindingSignaler, DataService, BoardService, PentominoService, SolutionService, PermutationService)
 export class SolverService {
 
-    constructor(bindingSignaler, taskQueue, dataService, boardService, pentominoService, solutionService, permutationService) {
+    constructor(bindingSignaler, dataService, boardService, pentominoService, solutionService, permutationService) {
         this.bnds = bindingSignaler;
-        this.ts = taskQueue;
         this.ds = dataService;
         this.bs = boardService;
         this.ps = pentominoService;
@@ -57,11 +55,6 @@ export class SolverService {
         this.startPosXBlock = 0;
         this.xPentomino = this.ps.getPentomino('x');
         this.slvrWrkr = new Worker('./src/services/solver-worker.js');
-        this.slvrWrkr.onmessage = (e) => {
-            let pentominos = e.data;
-            console.log('Message received from worker: ', pentominos);
-            this.ps.setAllOnboard(pentominos);
-        };
     }
 
 
@@ -140,17 +133,24 @@ export class SolverService {
         this.boardHeight = this.bs.getHeight();
         this.startPosXBlock = 0;
         this.positionsTried = 0;
-        let offBoardPentominos = this.ps.setAllOffboard();
+        let workerData = {
+            offBoards: this.ps.setOffboardPentominos(),
+            onBoards: this.ps.pentominos
+        };
 
-        this.slvrWrkr.postMessage(offBoardPentominos);
+        this.slvrWrkr.postMessage(workerData);
+
+        this.slvrWrkr.onmessage = (e) => {
+            let pentominos = e.data;
+            console.log('Message received from worker: ', pentominos);
+            this.ps.setAllOnboard(e.data.onBoards, e.data.offBoards);
+        };
 
         // offBoardPentominos = this.autoSolve(offBoardPentominos);
 
-        if (offBoardPentominos.length > 0) {
-            console.log('No solutions found!');
-        }
-
-        // this.ps.setAllOnboard(offBoardPentominos);
+        // if (offBoardPentominos.length > 0) {
+        //     console.log('No solutions found!');
+        // }
     }
 
     logBoard() {
