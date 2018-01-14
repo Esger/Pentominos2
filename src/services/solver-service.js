@@ -74,6 +74,10 @@ export class SolverService {
         this.ps.registerPiece(pentomino, -1);
     }
 
+    signalViewUpdate() {
+        this.bnds.signal('position-signal');
+    }
+
     findNextFit(offBoards) {
         let misFits = [];
         const firstEmptyPosition = this.findFirstEmptyPosition();
