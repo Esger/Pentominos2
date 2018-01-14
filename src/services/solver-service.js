@@ -8,7 +8,8 @@ import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { PentominoService } from './pentomino-service';
 import { SolutionService } from './solution-service';
-import { PermutationService } from '../services/permutation-service';
+import { PermutationService } from './permutation-service';
+
 
 @inject(BindingSignaler, TaskQueue, DataService, BoardService, PentominoService, SolutionService, PermutationService)
 export class SolverService {
@@ -55,7 +56,14 @@ export class SolverService {
         };
         this.startPosXBlock = 0;
         this.xPentomino = this.ps.getPentomino('x');
+        this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+        this.slvrWrkr.onmessage = (e) => {
+            let pentominos = e.data;
+            console.log('Message received from worker: ', pentominos);
+            this.ps.setAllOnboard(pentominos);
+        };
     }
+
 
     getXBlockPosition() {
         if (this.startPosXBlock < this.startPositionsXblock[this.bs.boardType].length) {
@@ -134,13 +142,15 @@ export class SolverService {
         this.positionsTried = 0;
         let offBoardPentominos = this.ps.setAllOffboard();
 
-        offBoardPentominos = this.autoSolve(offBoardPentominos);
+        this.slvrWrkr.postMessage(offBoardPentominos);
+
+        // offBoardPentominos = this.autoSolve(offBoardPentominos);
 
         if (offBoardPentominos.length > 0) {
             console.log('No solutions found!');
         }
 
-        this.ps.setAllOnboard(offBoardPentominos);
+        // this.ps.setAllOnboard(offBoardPentominos);
     }
 
     logBoard() {

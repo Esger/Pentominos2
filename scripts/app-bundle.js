@@ -338,6 +338,13 @@ define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-re
             this.settings.menuVisible = false;
         };
 
+        MenuCustomElement.prototype.workersSupported = function workersSupported() {
+            if (window.Worker) {
+                return true;
+            }
+            return false;
+        };
+
         MenuCustomElement.prototype.autoSolve = function autoSolve() {
             var _this = this;
 
@@ -1982,7 +1989,7 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
         return SolutionService;
     }()) || _class);
 });
-define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './data-service', './board-service', './pentomino-service', './solution-service', '../services/permutation-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _dataService, _boardService, _pentominoService, _solutionService, _permutationService) {
+define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './data-service', './board-service', './pentomino-service', './solution-service', './permutation-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _dataService, _boardService, _pentominoService, _solutionService, _permutationService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
@@ -2000,6 +2007,8 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
 
     var SolverService = exports.SolverService = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _aureliaFramework.TaskQueue, _dataService.DataService, _boardService.BoardService, _pentominoService.PentominoService, _solutionService.SolutionService, _permutationService.PermutationService), _dec(_class = function () {
         function SolverService(bindingSignaler, taskQueue, dataService, boardService, pentominoService, solutionService, permutationService) {
+            var _this = this;
+
             _classCallCheck(this, SolverService);
 
             this.bnds = bindingSignaler;
@@ -2023,6 +2032,12 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             };
             this.startPosXBlock = 0;
             this.xPentomino = this.ps.getPentomino('x');
+            this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+            this.slvrWrkr.onmessage = function (e) {
+                var pentominos = e.data;
+                console.log('Message received from worker: ', pentominos);
+                _this.ps.setAllOnboard(pentominos);
+            };
         }
 
         SolverService.prototype.getXBlockPosition = function getXBlockPosition() {
@@ -2101,13 +2116,11 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
             this.positionsTried = 0;
             var offBoardPentominos = this.ps.setAllOffboard();
 
-            offBoardPentominos = this.autoSolve(offBoardPentominos);
+            this.slvrWrkr.postMessage(offBoardPentominos);
 
             if (offBoardPentominos.length > 0) {
                 console.log('No solutions found!');
             }
-
-            this.ps.setAllOnboard(offBoardPentominos);
         };
 
         SolverService.prototype.logBoard = function logBoard() {
@@ -2241,6 +2254,19 @@ define('services/solver-service',['exports', 'aurelia-framework', 'aurelia-templ
 
         return SolverService;
     }()) || _class);
+});
+define('services/solver-worker',[], function () {
+    'use strict';
+
+    onmessage = function onmessage(e) {
+        console.log('Message received from main script');
+        var offboards = e.data;
+        var pentomino = e.data[0];
+        pentomino.position.x -= 3;
+        pentomino.face = 1;
+        console.log('Posting message back to main script');
+        postMessage(offboards);
+    };
 });
 define('resources/value-converters/part-pos-value-converter',['exports'], function (exports) {
     'use strict';
@@ -4924,7 +4950,7 @@ define('text!components/footer.html', ['module'], function(module) { module.expo
 define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n.button:disabled {\n    cursor : not-allowed;\n    opacity: .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss(bs.boardType)\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}</h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
-define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"sls.solutions[bs.boardType].length >= 0\"\n            click.delegate=\"autoSolve()\"\n            touchstart.delegate=\"autoSolve()\">Spoiler</li>\n    </ul>\n\n</template>"; });
+define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"autoSolve()\"\n            touchstart.delegate=\"autoSolve()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
 define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.face} -->\n                <!-- ${pentomino.position.x+part[0]},${pentomino.position.y+part[1]} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });

@@ -37,7 +37,7 @@
             click.delegate="mixBoard()"
             touchstart.delegate="mixBoard()">Shuffle</li>
 
-        <li if.bind="sls.solutions[bs.boardType].length >= 0"
+        <li if.bind="(sls.solutions[bs.boardType].length >= 0) && workersSupported()"
             click.delegate="autoSolve()"
             touchstart.delegate="autoSolve()">Spoiler</li>
     </ul>

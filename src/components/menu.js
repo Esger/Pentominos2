@@ -107,6 +107,13 @@ export class MenuCustomElement {
         this.settings.menuVisible = false;
     }
 
+    workersSupported() {
+        if (window.Worker) {
+            return true;
+        }
+        return false;
+    }
+
     autoSolve() {
         this.settings.menuVisible = false;
         setTimeout(() => { this.slvs.startSolving(); });
