@@ -447,6 +447,10 @@ define('components/solving',['exports', 'aurelia-framework', '../services/solver
             this.slvs.nextPiece();
         };
 
+        SolvingCustomElement.prototype.stop = function stop() {
+            this.slvs.stop();
+        };
+
         return SolvingCustomElement;
     }()) || _class);
 });
@@ -1968,6 +1972,7 @@ define('services/solver-service',['exports', 'aurelia-framework', './data-servic
             this.startPosXBlock = 0;
             this.positionsTried = 0;
             var workerData = {
+                message: 'solve',
                 boardType: this.bs.boardType,
                 boardWidth: this.bs.getWidth(),
                 boardHeight: this.bs.getWidth(),
@@ -1979,15 +1984,15 @@ define('services/solver-service',['exports', 'aurelia-framework', './data-servic
             this.slvrWrkr.postMessage(workerData);
 
             this.slvrWrkr.onmessage = function (e) {
-                var pentominos = e.data.onBoards;
+                var pentominos = _this.ps.sortPentominos(e.data.onBoards);
                 var offBoards = e.data.offBoards;
                 var message = e.data.message;
                 switch (message) {
                     case 'draw':
                         _this.ps.setPentominos(pentominos);
+
                         break;
                     case 'solution':
-                        _this.ps.setPentominos(pentominos);
                         _this.sls.saveSolution(pentominos);
                         break;
                     case 'none':
@@ -1999,6 +2004,13 @@ define('services/solver-service',['exports', 'aurelia-framework', './data-servic
                         break;
                 }
             };
+        };
+
+        SolverService.prototype.stop = function stop() {
+            var workerData = {
+                message: 'stop'
+            };
+            this.slvrWrkr.postMessage(workerData);
         };
 
         return SolverService;
@@ -2025,6 +2037,7 @@ define('services/solver-worker',[], function () {
     };
     var startPosXBlock = 0;
     var positionsTried = 0;
+    var proceed = true;
 
     var adjustDimensions = function adjustDimensions(pentomino) {
         if (pentomino && pentomino.initialDimensions) {
@@ -2041,6 +2054,7 @@ define('services/solver-worker',[], function () {
             var xPosition = getXBlockPosition();
             while (xPosition) {
                 movePentomino(xPentomino(), 0, xPosition, false);
+                positionsTried++;
                 offBoards = findNextFit(offBoards);
                 xPosition = getXBlockPosition();
             }
@@ -2049,8 +2063,8 @@ define('services/solver-worker',[], function () {
         }
     };
 
-    var allOffBoard = function allOffBoard(pentos) {
-        var emptyBoard = pentos == 0;
+    var allOffBoard = function allOffBoard() {
+        var emptyBoard = pentominos.length == 0;
         return emptyBoard;
     };
 
@@ -2070,6 +2084,7 @@ define('services/solver-worker',[], function () {
         pentomino.onBoard = false;
         misFits.push(pentomino);
         registerPiece(pentomino, -1);
+        return misFits;
     };
 
     var findFirstEmptyPosition = function findFirstEmptyPosition() {
@@ -2099,18 +2114,17 @@ define('services/solver-worker',[], function () {
                     while (offBoards.length) {
                         var pentomino = nextOnboard(offBoards);
                         if (pentomino) {
-                            console.clear();
-                            console.log('trying ', positionsTried, pentomino.name);
                             var count = pentomino.faces.length;
                             for (var face = 0; face < count; face++) {
                                 positionsTried++;
                                 movePentomino(pentomino, face, firstEmptyPosition, true);
-                                if (isFitting()) {
+
+                                if (isFitting() && proceed) {
                                     sendFeedBack('draw');
                                     findNextFit(sortPentominos(misFits.concat(offBoards)));
                                 }
                             }
-                            discard(misFits);
+                            misfits = discard(misFits);
                             sendFeedBack('draw');
                         }
                     }
@@ -2312,8 +2326,7 @@ define('services/solver-worker',[], function () {
 
     var sendFeedBack = function sendFeedBack(message) {
         var workerData = {
-            message: message || 'no message given',
-            offBoards: offBoardPentominos || [],
+            message: message || 'solution',
             onBoards: pentominos || []
         };
         postMessage(workerData);
@@ -2357,8 +2370,19 @@ define('services/solver-worker',[], function () {
 
     onmessage = function onmessage(e) {
         console.log('Starting solver worker');
-        initVariables(e.data);
-        autoSolve(offBoardPentominos, pentominos);
+        var message = e.data.message;
+        switch (message) {
+            case 'solve':
+                proceed = true;
+                initVariables(e.data);
+                autoSolve(offBoardPentominos, pentominos);
+                break;
+            case 'stop':
+                proceed = false;
+                break;
+            default:
+                break;
+        }
         console.log('Solver worker finished');
     };
 });
@@ -5048,7 +5072,7 @@ define('text!components/menu.html', ['module'], function(module) { module.export
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
 define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
-define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <button class=\"button\"\n            click.delegate=\"nextPiece()\">Next pentomino</button>\n    <button class=\"\"\n            title=\"continue\"\n            click.delegate=\"continue()\"\n            touchstart.delegate=\"continue()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n    </button>\n\n</template>"; });
+define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <button class=\"button\"\n            click.delegate=\"nextPiece()\">Next pentomino</button>\n    <button class=\"\"\n            title=\"stop\"\n            click.delegate=\"stop()\"\n            touchstart.delegate=\"stop()\">\n            <icon class=\"fa fa-stop fa-lg\"></icon>\n    </button>\n\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
 define('text!components/solving.css', ['module'], function(module) { module.exports = ""; });
 //# sourceMappingURL=app-bundle.js.map

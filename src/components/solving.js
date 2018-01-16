@@ -18,4 +18,8 @@ export class SolvingCustomElement {
     nextPiece() {
         this.slvs.nextPiece();
     }
+
+    stop() {
+        this.slvs.stop();
+    }
 }

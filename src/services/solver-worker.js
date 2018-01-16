@@ -34,6 +34,7 @@ var startPositionsXblock = {
 var xPentomino = () => getPentomino('x');
 var startPosXBlock = 0;
 var positionsTried = 0;
+var proceed = true;
 
 var adjustDimensions = function (pentomino) {
     if (pentomino && pentomino.initialDimensions) {
@@ -51,6 +52,7 @@ var autoSolve = function (offBoards, onBoards) {
         let xPosition = getXBlockPosition();
         while (xPosition) {  //for all x positions
             movePentomino(xPentomino(), 0, xPosition, false);
+            positionsTried++;
             offBoards = findNextFit(offBoards);
             xPosition = getXBlockPosition();
         }
@@ -59,8 +61,8 @@ var autoSolve = function (offBoards, onBoards) {
     }
 };
 
-var allOffBoard = function (pentos) {
-    let emptyBoard = pentos == 0;
+var allOffBoard = function () {
+    let emptyBoard = pentominos.length == 0;
     return emptyBoard;
 };
 
@@ -80,6 +82,7 @@ var discard = function (misFits) {
     pentomino.onBoard = false;
     misFits.push(pentomino);
     registerPiece(pentomino, -1);
+    return misFits;
 };
 
 var findFirstEmptyPosition = function () {
@@ -110,18 +113,19 @@ var findNextFit = function (offBoards) {
             while (offBoards.length) {
                 const pentomino = nextOnboard(offBoards);
                 if (pentomino) {
-                    console.clear();
-                    console.log('trying ', positionsTried, pentomino.name);
+                    // console.clear();
+                    // console.log('trying ', positionsTried, pentomino.name);
                     const count = pentomino.faces.length;
                     for (let face = 0; face < count; face++) {
                         positionsTried++;
                         movePentomino(pentomino, face, firstEmptyPosition, true);
-                        if (isFitting()) {
+                        // sendFeedBack('draw');
+                        if (isFitting() && proceed) {
                             sendFeedBack('draw');
                             findNextFit(sortPentominos(misFits.concat(offBoards)));
                         }
                     }
-                    discard(misFits);
+                    misfits = discard(misFits);
                     sendFeedBack('draw');
                 } // else next pentomino
             }
@@ -326,8 +330,7 @@ var registerPiece = function (pentomino, onOff) {
 var sendFeedBack = function (message) {
     // logBoard();
     let workerData = {
-        message: message || 'no message given',
-        offBoards: offBoardPentominos || [],
+        message: message || 'solution',
         onBoards: pentominos || []
     };
     postMessage(workerData);
@@ -371,7 +374,18 @@ var sortPentominos = function (pentos) {
 
 onmessage = function (e) {
     console.log('Starting solver worker');
-    initVariables(e.data);
-    autoSolve(offBoardPentominos, pentominos);
+    let message = e.data.message;
+    switch (message) {
+        case 'solve':
+            proceed = true;
+            initVariables(e.data);
+            autoSolve(offBoardPentominos, pentominos);
+            break;
+        case 'stop':
+            proceed = false;
+            break;
+        default:
+            break;
+    }
     console.log('Solver worker finished');
 };

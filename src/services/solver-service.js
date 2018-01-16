@@ -25,6 +25,7 @@ export class SolverService {
         this.startPosXBlock = 0;
         this.positionsTried = 0;
         let workerData = {
+            message: 'solve',
             boardType: this.bs.boardType,
             boardWidth: this.bs.getWidth(),
             boardHeight: this.bs.getWidth(),
@@ -36,15 +37,15 @@ export class SolverService {
         this.slvrWrkr.postMessage(workerData);
 
         this.slvrWrkr.onmessage = (e) => {
-            let pentominos = e.data.onBoards;
+            let pentominos = this.ps.sortPentominos(e.data.onBoards);
             let offBoards = e.data.offBoards;
             let message = e.data.message;
             switch (message) {
                 case 'draw':
                     this.ps.setPentominos(pentominos);
+                    // this.ps.signalViewUpdate();
                     break;
                 case 'solution':
-                    this.ps.setPentominos(pentominos);
                     this.sls.saveSolution(pentominos);
                     break;
                 case 'none':
@@ -56,5 +57,12 @@ export class SolverService {
                     break;
             }
         };
+    }
+
+    stop() {
+        let workerData = {
+            message: 'stop'
+        };
+        this.slvrWrkr.postMessage(workerData);
     }
 }
