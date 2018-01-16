@@ -15,11 +15,12 @@ export class SolverService {
         this.bs = boardService;
         this.ps = pentominoService;
         this.sls = solutionService;
-
-        this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+        this.backupPentominos = this.ps.pentominos.slice();
+        this.slvrWrkr = null;
     }
 
     startSolving() {
+        this.slvrWrkr = new Worker('./src/services/solver-worker.js');
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
         this.startPosXBlock = 0;
@@ -43,7 +44,6 @@ export class SolverService {
             switch (message) {
                 case 'draw':
                     this.ps.setPentominos(pentominos);
-                    // this.ps.signalViewUpdate();
                     break;
                 case 'solution':
                     this.sls.saveSolution(pentominos);
@@ -60,9 +60,7 @@ export class SolverService {
     }
 
     stop() {
-        let workerData = {
-            message: 'stop'
-        };
-        this.slvrWrkr.postMessage(workerData);
+        this.slvrWrkr.terminate();
+        this.ps.setPentominos(this.backupPentominos);
     }
 }
