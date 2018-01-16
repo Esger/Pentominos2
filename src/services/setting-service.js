@@ -25,7 +25,7 @@ export class SettingService {
             '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
             'transform': 'scale(' + scale + ', ' + scale + ')'
         };
-    };
+    }
 
     setShowSolutions() {
         this.showSolutions = true;

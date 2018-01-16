@@ -35,6 +35,10 @@ menu ul li {
     cursor          : pointer;
 }
 
+menu ul li li {
+    text-align: center;
+}
+
 menu ul li:hover {
     background-color: gainsboro;
 }

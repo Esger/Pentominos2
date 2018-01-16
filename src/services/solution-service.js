@@ -54,14 +54,14 @@ export class SolutionService {
         let rotations = (this.boardType == 'square') ? 4 : 2;
         let solutionString = this.solution2String(pentominos);
         let foundSolStr = solutionString;
-        let theLength = this.solutions[this.boardType].length;
+        let solutionsCount = this.solutions[this.boardType].length;
 
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
             // Rotate
             for (let rotation = 0; rotation < rotations; rotation++) {
                 // Existing solutions
-                for (let i = 0; i < theLength; i++) {
+                for (let i = 0; i < solutionsCount; i++) {
                     solutionString = this.solution2String(pentominos);
                     isNewSolution = isNewSolution && (this.solutions[this.bs.boardType][i] !== solutionString);
                     if (!isNewSolution) return i;
@@ -76,9 +76,10 @@ export class SolutionService {
 
     solution2String(pentominos) {
         let solutionString = "";
-        let theLength = this.bs.pentominosLength();
-        for (let i = 0; i < theLength; i++) {
-            solutionString += this.pentomino2string(pentominos[i]);
+        let count = pentominos.length;
+        for (let i = 0; i < count; i++) {
+            let pentomino = pentominos[i];
+            solutionString += this.pentomino2string(pentomino);
         }
         return solutionString;
     }

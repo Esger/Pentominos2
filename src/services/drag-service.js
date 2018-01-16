@@ -2,15 +2,17 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { SettingService } from './setting-service';
 import { PentominoService } from './pentomino-service';
 import { PermutationService } from './permutation-service';
 
-@inject(SettingService, PentominoService, PermutationService)
+@inject(BindingSignaler, SettingService, PentominoService, PermutationService)
 
 export class DragService {
 
-    constructor(settingService, pentominoService, permutationService) {
+    constructor(bindingSignaler, settingService, pentominoService, permutationService) {
+        this.bnds = bindingSignaler;
         this.ss = settingService;
         this.ps = pentominoService;
         this.prms = permutationService;
@@ -30,7 +32,7 @@ export class DragService {
     startDrag(pentomino, partIndex, event) {
         if (this.container == null) {
             let clientPos = this.getClientPos(event);
-            this.ps.setCurrentPentomino(pentomino, partIndex);
+            this.ps.setActivePentomino(pentomino, partIndex);
             this.ps.registerPiece(pentomino, -1);
             this.container = event.target.offsetParent.offsetParent;
             this.container.style.zIndex = 100;
@@ -46,7 +48,7 @@ export class DragService {
 
     doDrag(event) {
         let clientPos = this.getClientPos(event);
-        if (this.ps.currentPentomino) {
+        if (this.ps.getActivePentomino()) {
             this.x = clientPos.x - this.startX;
             this.y = clientPos.y - this.startY;
             this.container.style.left = this.x + 'px';
@@ -57,17 +59,19 @@ export class DragService {
     stopDrag(event) {
         this.dragEndPos.x = this.x;
         this.dragEndPos.y = this.y;
-        if (this.ps.currentPentomino) {
+        let pentomino = this.ps.getActivePentomino();
+        if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                if (((this.ps.currentPentomino.type < 4) &&
-                    (this.ps.currentPentomino.activePart < 3)) ||
-                    ((this.ps.currentPentomino.type == 4) && (this.ps.currentPentomino.activePart < 1))) {
+                if (((pentomino.type < 4) &&
+                    (pentomino.activePart < 3)) ||
+                    ((pentomino.type == 4) && (pentomino.activePart < 1))) {
                     this.ps.adjustPosition();
-                    this.prms.flipRotate(this.ps.currentPentomino);
+                    this.prms.flipRotate(pentomino);
+                    this.bnds.signal('position-signal');
                 }
             }
-            this.ps.registerPiece(this.ps.currentPentomino, 1);
+            this.ps.registerPiece(pentomino, 1);
             this.ps.isSolved();
         }
         this.releasePentomino();
@@ -78,13 +82,13 @@ export class DragService {
             this.container.style.zIndex = '';
             this.container = null;
         }
-        this.ps.resetCurrentPentomino();
+        this.ps.resetActivePentomino();
     }
 
     alignToGrid() {
         let newX = Math.round(this.x / this.ss.partSize);
         let newY = Math.round(this.y / this.ss.partSize);
-        this.ps.alignCurrentPentomino(newX, newY);
+        this.ps.setActivePentominoPosition(newX, newY);
         this.container.style.left = newX * this.ss.partSize + 'px';
         this.container.style.top = newY * this.ss.partSize + 'px';
     }

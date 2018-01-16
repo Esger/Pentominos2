@@ -17,7 +17,7 @@ export class BoardCustomElement {
         let css = {
             width: boardType.w * this.bs.partSize + 'px',
             height: boardType.h * this.bs.partSize + 'px'
-        }
+        };
         return css;
     }
 
