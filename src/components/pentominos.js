@@ -50,6 +50,23 @@ export class PentominosCustomElement {
         return classes.join(' ');
     }
 
+    // getPentominoCSS(x, y, color) {
+    //     let css = {
+    //         left: x * this.ss.partSize + 'px',
+    //         top: y * this.ss.partSize + 'px',
+    //         backgroundColor: color
+    //     };
+    //     return css;
+    // }
+
+    // getPartCSS(part) {
+    //     let css = {
+    //         'left': part[0] * this.ss.partSize + 'px',
+    //         'top': part[1] * this.ss.partSize + 'px'
+    //     };
+    //     return css;
+    // }
+
     attached() {
     }
 
