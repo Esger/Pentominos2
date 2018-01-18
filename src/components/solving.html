@@ -8,7 +8,7 @@
                 <icon class="fa fa-fast-forward fa-lg"></icon>
         </button>
         <button class="button"
-                show.bind="slvs.slvrWrkr"
+                show.bind="slvrWrkr != null"
                 title="stop solutions worker"
                 click.delegate="stop()"
                 touchstart.delegate="stop()">
