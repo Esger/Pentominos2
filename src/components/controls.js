@@ -54,10 +54,6 @@ export class ControlsCustomElement {
         this.bs.unsetNewSolution();
     }
 
-    showButton() {
-        return (this.solutionCount > 0);
-    }
-
     disableNextButton(current, count) {
         return (current + 1 == count);
     }
