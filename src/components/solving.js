@@ -5,21 +5,26 @@ import {
 import {
     EventAggregator
 } from 'aurelia-event-aggregator';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
 import { PentominoService } from '../services/pentomino-service';
+import { PermutationService } from '../services/permutation-service';
 import { SolutionService } from '../services/solution-service';
 
-@inject(EventAggregator, BoardService, PentominoService, SolutionService)
+@inject(BindingSignaler, EventAggregator, BoardService, PentominoService, PermutationService, SolutionService)
 export class SolvingCustomElement {
 
-    constructor(eventAggregator, boardService, pentominoService, solutionService) {
+    constructor(bindingSignaler, eventAggregator, boardService, pentominoService, permutationService, solutionService) {
         this.ea = eventAggregator;
+        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ps = pentominoService;
         this.sls = solutionService;
+        this.prms = permutationService;
         this.solvingPanelVisible = false;
         this.backupPentominos = this.ps.pentominos.slice();
         this.slvrWrkr = null;
+        this.canStop = false;
         this.ea.subscribe('showSolvingPanel', response => {
             this.solvingPanelVisible = response;
         });
@@ -28,6 +33,7 @@ export class SolvingCustomElement {
 
     autoSolve() {
         this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+        this.canStop = true;
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
         this.startPosXBlock = 0;
@@ -58,6 +64,7 @@ export class SolvingCustomElement {
                     break;
                 case 'finish':
                     this.ps.setPentominos(pentominos);
+                    this.canStop = false;
                     console.log('No more solutions found!');
                     break;
                 default:
@@ -68,15 +75,14 @@ export class SolvingCustomElement {
         };
     }
 
-    // continue() {
-    //     this.slvs.continue();
-    // }
-
-    // nextPiece() {
-    //     this.slvs.nextPiece();
-    // }
+    mixBoard() {
+        this.prms.mixBoard(this.ps.pentominos);
+        this.ps.registerPieces();
+        this.bnds.signal('position-signal');
+    }
 
     stop() {
+        this.canStop = false;
         this.slvrWrkr.terminate();
         this.ps.setPentominos(this.backupPentominos);
     }

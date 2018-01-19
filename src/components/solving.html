@@ -2,13 +2,19 @@
     <require from="components/solving.css"></require>
     <div show.bind="solvingPanelVisible">
         <button class="button"
+                title="shuffle"
+                click.delegate="mixBoard()"
+                touchstart.delegate="mixBoard()">
+                        <icon class="fa fa-random fa-lg"></icon>
+                </button>
+        <button class="button"
                 title="find all solutions"
                 click.delegate="autoSolve()"
                 touchstart.delegate="autoSolve()">
                 <icon class="fa fa-fast-forward fa-lg"></icon>
         </button>
         <button class="button"
-                show.bind="slvrWrkr != null"
+                disabled.bind="!canStop"
                 title="stop solutions worker"
                 click.delegate="stop()"
                 touchstart.delegate="stop()">
