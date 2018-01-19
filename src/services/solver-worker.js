@@ -337,6 +337,7 @@ let sendFeedBack = function (message) {
     // logBoard();
     let workerData = {
         message: message || 'solution',
+        positions: positionsTried,
         onBoards: []
     };
     switch (message) {

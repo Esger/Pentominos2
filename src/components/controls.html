@@ -9,11 +9,12 @@
                 touchstart.delegate="showPreviousSolution()">
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
-        <div class.bind="getIndicatorClass(bs.solved)"
-             innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)"
-             click.delegate="showFirstSolution()"
-             touchstart.delegate="showFirstSolution()">
-        </div>
+        <button class.bind="getIndicatorClass(bs.solved)"
+                disabled.bind="disabledButtons"
+                innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)"
+                click.delegate="showFirstSolution()"
+                touchstart.delegate="showFirstSolution()">
+        </button>
         <button class="button small"
                 title="Show next solution"
                 disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"

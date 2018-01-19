@@ -25,6 +25,7 @@ export class SolvingCustomElement {
         this.backupPentominos = this.ps.pentominos.slice();
         this.slvrWrkr = null;
         this.canStop = false;
+        this.positionsTried = 0;
         this.ea.subscribe('showSolvingPanel', response => {
             this.solvingPanelVisible = response;
         });
@@ -48,12 +49,14 @@ export class SolvingCustomElement {
             onBoards: this.ps.pentominos
         };
 
+        this.ea.publish('solving', true);
         this.slvrWrkr.postMessage(workerData);
 
         this.slvrWrkr.onmessage = (e) => {
             let pentominos = this.ps.sortPentominos(e.data.onBoards);
             let offBoards = e.data.offBoards;
             let message = e.data.message;
+            this.positionsTried = e.data.positions;
             switch (message) {
                 case 'draw':
                     this.ps.setPentominos(pentominos);
@@ -65,6 +68,7 @@ export class SolvingCustomElement {
                 case 'finish':
                     this.ps.setPentominos(pentominos);
                     this.canStop = false;
+                    this.ea.publish('solving', false);
                     console.log('No more solutions found!');
                     break;
                 default:
@@ -83,6 +87,7 @@ export class SolvingCustomElement {
 
     stop() {
         this.canStop = false;
+        this.ea.publish('solving', false);
         this.slvrWrkr.terminate();
         this.ps.setPentominos(this.backupPentominos);
     }

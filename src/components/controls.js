@@ -2,23 +2,31 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import {
+    EventAggregator
+} from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
 import { SettingService } from '../services/setting-service';
 import { PentominoService } from '../services/pentomino-service';
 import { SolutionService } from '../services/solution-service';
 
-@inject(BindingSignaler, BoardService, SettingService, PentominoService, SolutionService)
+@inject(BindingSignaler, BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
 
 export class ControlsCustomElement {
 
-    constructor(bindingSignaler, boardService, settingService, pentominoService, solutionService) {
+    constructor(bindingSignaler, boardService, eventAggregator, settingService, pentominoService, solutionService) {
+        this.ea = eventAggregator;
         this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
         this.solutionCount = this.sls.solutions[this.sls.boardType].length;
+        this.disabledButtons = false;
+        this.ea.subscribe('solving', response => {
+            this.disabledButtons = response;
+        });
     }
 
     getIndicatorClass() {
@@ -55,11 +63,11 @@ export class ControlsCustomElement {
     }
 
     disableNextButton(current, count) {
-        return (current + 1 == count);
+        return (current + 1 == count) || this.disabledButtons;
     }
 
     disablePreviousButton(current) {
-        return (current == 0);
+        return (current == 0) || this.disabledButtons;
     }
 
     showFirstSolution() {
