@@ -70,13 +70,127 @@ define('main',['exports', './environment'], function (exports, _environment) {
     });
   }
 });
-define('components/board',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
+define('services/board-service',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-    exports.BoardCustomElement = undefined;
+    exports.BoardService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var BoardService = exports.BoardService = function () {
+        function BoardService() {
+            _classCallCheck(this, BoardService);
+
+            this.partSize = 40;
+            this.boardType = 'square';
+            this.boardTypes = {
+                'square': {
+                    w: 8,
+                    h: 8,
+                    surface: 64
+                },
+                'rectangle': {
+                    w: 6,
+                    h: 10,
+                    surface: 60
+                },
+                'dozen': {
+                    w: 12,
+                    h: 5,
+                    surface: 60
+                },
+                'beam': {
+                    w: 15,
+                    h: 4,
+                    surface: 60
+                },
+                'stick': {
+                    w: 16,
+                    h: 4,
+                    surface: 64
+                },
+                'twig': {
+                    w: 3,
+                    h: 20,
+                    surface: 60
+                }
+            };
+            this.solved = false;
+            this.newSolution = false;
+        }
+
+        BoardService.prototype.setSolved = function setSolved() {
+            this.solved = true;
+        };
+
+        BoardService.prototype.unsetSolved = function unsetSolved() {
+            this.solved = false;
+        };
+
+        BoardService.prototype.setNewSolution = function setNewSolution() {
+            this.newSolution = true;
+        };
+
+        BoardService.prototype.unsetNewSolution = function unsetNewSolution() {
+            this.newSolution = false;
+        };
+
+        BoardService.prototype.setBoardType = function setBoardType(shape) {
+            this.boardType = shape;
+        };
+
+        BoardService.prototype.getWidth = function getWidth() {
+            return this.boardTypes[this.boardType].w;
+        };
+
+        BoardService.prototype.getHeight = function getHeight() {
+            return this.boardTypes[this.boardType].h;
+        };
+
+        BoardService.prototype.boardsCount = function boardsCount() {
+            var count = 0;
+            for (var k in this.boardTypes) {
+                if (this.boardTypes.hasOwnProperty(k)) count++;
+            }return count;
+        };
+
+        BoardService.prototype.onBoard = function onBoard(x, y) {
+            return x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight();
+        };
+
+        BoardService.prototype.touchesBoard = function touchesBoard(pentomino) {
+            var isTouching = false;
+            var count = pentomino.faces[pentomino.face].length;
+            for (var i = 0; i < count; i++) {
+                var part = pentomino.faces[pentomino.face][i];
+                var x = pentomino.position.x + part[0];
+                var y = pentomino.position.y + part[1];
+                var partIsOnBoard = this.onBoard(x, y);
+                if (partIsOnBoard) {
+                    isTouching = true;
+                    break;
+                }
+            }
+            return isTouching;
+        };
+
+        return BoardService;
+    }();
+});
+define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-client', './board-service'], function (exports, _aureliaFramework, _aureliaHttpClient, _boardService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.DataService = undefined;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -86,39 +200,72 @@ define('components/board',['exports', 'aurelia-framework', '../services/board-se
 
     var _dec, _class;
 
-    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function BoardCustomElement(boardService) {
-            _classCallCheck(this, BoardCustomElement);
+    var DataService = exports.DataService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function DataService(boardService) {
+            _classCallCheck(this, DataService);
 
             this.bs = boardService;
+            this.client = new _aureliaHttpClient.HttpClient();
         }
 
-        BoardCustomElement.prototype.getBoardSizeCSS = function getBoardSizeCSS(shape) {
-            var boardType = this.bs.boardTypes[shape];
-            var css = {
-                width: boardType.w * this.bs.partSize + 'px',
-                height: boardType.h * this.bs.partSize + 'px'
-            };
-            return css;
+        DataService.prototype.getPentominos = function getPentominos() {
+            var fileName = './src/data/pentominos.json';
+            return this.client.get(fileName).then(function (data) {
+                var response = JSON.parse(data.response);
+                return response;
+            });
         };
 
-        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses(newSolution) {
-            var classes = ['board'];
-            var solvedClass = newSolution ? 'solved' : '';
-            classes.push(solvedClass);
-            return classes.join(' ');
+        DataService.prototype.getColors = function getColors() {
+            var fileName = './src/data/colors.json';
+            return this.client.get(fileName).then(function (data) {
+                var response = JSON.parse(data.response);
+                return response;
+            });
         };
 
-        return BoardCustomElement;
+        DataService.prototype.getStartPosition = function getStartPosition(boardShape) {
+            var fileName = './src/data/start-' + boardShape + '.json';
+            return this.client.get(fileName).then(function (data) {
+                var response = JSON.parse(data.response);
+                return response;
+            });
+        };
+
+        DataService.prototype.getSolutions = function getSolutions() {
+
+            var solutions = void 0;
+
+            if (localStorage.getItem("pentominos2")) {
+                solutions = JSON.parse(localStorage.getItem("pentominos2"));
+            } else {
+                solutions = {};
+                var boardTypes = this.bs.boardTypes;
+                for (var type in boardTypes) {
+                    if (boardTypes.hasOwnProperty(type)) {
+                        solutions[type] = [];
+                    }
+                }
+            }
+            return solutions;
+        };
+
+        DataService.prototype.saveSolution = function saveSolution(solutionString) {
+            var solutions = this.getSolutions(this.bs.boardTypes);
+            solutions[this.bs.boardType].push(solutionString);
+            localStorage.setItem("pentominos2", JSON.stringify(solutions));
+        };
+
+        return DataService;
     }()) || _class);
 });
-define('components/controls',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', '../services/setting-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _settingService, _pentominoService, _solutionService) {
+define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './setting-service', './pentomino-service', './permutation-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _settingService, _pentominoService, _permutationService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-    exports.ControlsCustomElement = undefined;
+    exports.DragService = undefined;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -128,390 +275,998 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-templatin
 
     var _dec, _class;
 
-    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _settingService.SettingService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
-        function ControlsCustomElement(bindingSignaler, boardService, settingService, pentominoService, solutionService) {
-            _classCallCheck(this, ControlsCustomElement);
+    var DragService = exports.DragService = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _settingService.SettingService, _pentominoService.PentominoService, _permutationService.PermutationService), _dec(_class = function () {
+        function DragService(bindingSignaler, settingService, pentominoService, permutationService) {
+            _classCallCheck(this, DragService);
 
             this.bnds = bindingSignaler;
-            this.bs = boardService;
             this.ss = settingService;
-            this.ps = pentominoService;
-            this.sls = solutionService;
-            this.solutionCount = this.sls.solutions[this.sls.boardType].length;
-        }
-
-        ControlsCustomElement.prototype.getIndicatorClass = function getIndicatorClass() {
-            var classes = ['indicator', 'rounded'];
-            var solvedClass = this.bs.solved && !this.bs.newSolution ? 'solved' : '';
-            classes.push(solvedClass);
-            return classes.join(' ');
-        };
-
-        ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText(currentSolution, solutionCount) {
-            var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
-            var text = current + solutionCount;
-            return text;
-        };
-
-        ControlsCustomElement.prototype.showSolutions = function showSolutions(count) {
-            return count > 0;
-        };
-
-        ControlsCustomElement.prototype.showSolution = function showSolution() {
-            var pentominos = this.ps.pentominos;
-            var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
-            var splitString = solutionString.substr(1).split('#');
-            for (var i = 0; i < splitString.length; i++) {
-                var pentomino = this.ps.pentominos[i];
-                var props = splitString[i].split('_');
-                pentomino.face = parseInt(props[1], 10);
-                pentomino.position.x = parseInt(props[2], 10);
-                pentomino.position.y = parseInt(props[3], 10);
-            }
-            this.bnds.signal('position-signal');
-            this.ps.registerPieces();
-            this.bs.unsetNewSolution();
-        };
-
-        ControlsCustomElement.prototype.disableNextButton = function disableNextButton(current, count) {
-            return current + 1 == count;
-        };
-
-        ControlsCustomElement.prototype.disablePreviousButton = function disablePreviousButton(current) {
-            return current == 0;
-        };
-
-        ControlsCustomElement.prototype.showFirstSolution = function showFirstSolution() {
-            this.sls.currentSolution = 0;
-            this.showSolution();
-        };
-
-        ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
-            if (this.sls.currentSolution > 0) {
-                this.sls.currentSolution--;
-                this.showSolution();
-            }
-        };
-
-        ControlsCustomElement.prototype.showNextSolution = function showNextSolution() {
-            if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
-                this.sls.currentSolution++;
-                this.showSolution();
-            }
-        };
-
-        return ControlsCustomElement;
-    }()) || _class);
-});
-define('components/header',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.HeaderCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function HeaderCustomElement(boardService) {
-            _classCallCheck(this, HeaderCustomElement);
-
-            this.bs = boardService;
-            this.title = 'Pentomino';
-        }
-
-        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss(shape) {
-            var boardType = this.bs.boardTypes[shape];
-            var css = {
-                width: boardType.w * this.bs.partSize + 'px'
-            };
-            return css;
-        };
-
-        return HeaderCustomElement;
-    }()) || _class);
-});
-define('components/menu',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'aurelia-templating-resources', '../services/board-service', '../services/solution-service', '../services/pentomino-service', '../services/permutation-service', '../services/solver-service', '../services/setting-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _aureliaTemplatingResources, _boardService, _solutionService, _pentominoService, _permutationService, _solverService, _settingService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.MenuCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var MenuCustomElement = exports.MenuCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _solutionService.SolutionService, _pentominoService.PentominoService, _permutationService.PermutationService, _solverService.SolverService, _settingService.SettingService), _dec(_class = function () {
-        function MenuCustomElement(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, solverService, settingService) {
-            _classCallCheck(this, MenuCustomElement);
-
-            this.bnds = bindingSignaler;
-            this.bs = boardService;
-            this.ea = eventAggregator;
-            this.sls = solutionService;
             this.ps = pentominoService;
             this.prms = permutationService;
-            this.slvs = solverService;
-            this.ss = settingService;
-            this.boardTypes = Object.keys(this.bs.boardTypes);
-            this.settings = {
-                menuVisible: false,
-                submenuBoardsVisible: false
-            };
+            this.dragStartPos = {};
+            this.dragEndPos = {};
         }
 
-        MenuCustomElement.prototype.rotateBoard = function rotateBoard() {
-            this.prms.rotateBoard(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
+        DragService.prototype.getClientPos = function getClientPos(event) {
+            var clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            var clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            return {
+                x: clientX / this.ss.scale,
+                y: clientY / this.ss.scale
+            };
         };
 
-        MenuCustomElement.prototype.flipBoardYAxis = function flipBoardYAxis() {
-            this.prms.flipBoardYAxis(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
+        DragService.prototype.startDrag = function startDrag(pentomino, partIndex, event) {
+            if (this.container == null) {
+                var clientPos = this.getClientPos(event);
+                this.ps.setActivePentomino(pentomino, partIndex);
+                this.ps.registerPiece(pentomino, -1);
+                this.container = event.target.offsetParent.offsetParent;
+                this.container.style.zIndex = 100;
+                this.startX = clientPos.x - this.container.offsetLeft;
+                this.startY = clientPos.y - this.container.offsetTop;
+                this.x = clientPos.x - this.startX;
+                this.y = clientPos.y - this.startY;
+                this.dragStartPos.x = this.x;
+                this.dragStartPos.y = this.y;
+            }
+            return false;
         };
 
-        MenuCustomElement.prototype.showTheMenu = function showTheMenu() {
-            this.settings.menuVisible = true;
-            this.settings.submenuBoardsVisible = false;
+        DragService.prototype.doDrag = function doDrag(event) {
+            var clientPos = this.getClientPos(event);
+            if (this.ps.getActivePentomino()) {
+                this.x = clientPos.x - this.startX;
+                this.y = clientPos.y - this.startY;
+                this.container.style.left = this.x + 'px';
+                this.container.style.top = this.y + 'px';
+            }
         };
 
-        MenuCustomElement.prototype.mixBoard = function mixBoard() {
-            this.prms.mixBoard(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
+        DragService.prototype.stopDrag = function stopDrag(event) {
+            this.dragEndPos.x = this.x;
+            this.dragEndPos.y = this.y;
+            var pentomino = this.ps.getActivePentomino();
+            if (pentomino) {
+                this.alignToGrid();
+                if (!this.isDragged()) {
+                    if (pentomino.type < 4 && pentomino.activePart < 3 || pentomino.type == 4 && pentomino.activePart < 1) {
+                        this.ps.adjustPosition();
+                        this.prms.flipRotate(pentomino);
+                        this.bnds.signal('position-signal');
+                    }
+                }
+                this.ps.registerPiece(pentomino, 1);
+                this.ps.isSolved();
+            }
+            this.releasePentomino();
         };
 
-        MenuCustomElement.prototype.hideTheMenu = function hideTheMenu() {
-            this.settings.menuVisible = false;
+        DragService.prototype.releasePentomino = function releasePentomino() {
+            if (this.container) {
+                this.container.style.zIndex = '';
+                this.container = null;
+            }
+            this.ps.resetActivePentomino();
         };
 
-        MenuCustomElement.prototype.showThisBoard = function showThisBoard(key) {
+        DragService.prototype.alignToGrid = function alignToGrid() {
+            var newX = Math.round(this.x / this.ss.partSize);
+            var newY = Math.round(this.y / this.ss.partSize);
+            this.ps.setActivePentominoPosition(newX, newY);
+            this.container.style.left = newX * this.ss.partSize + 'px';
+            this.container.style.top = newY * this.ss.partSize + 'px';
+        };
+
+        DragService.prototype.isDragged = function isDragged() {
+            return Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19 || Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19;
+        };
+
+        return DragService;
+    }()) || _class);
+});
+define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './data-service', './board-service', './solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _dataService, _boardService, _solutionService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.PentominoService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var PentominoService = exports.PentominoService = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _dataService.DataService, _boardService.BoardService, _solutionService.SolutionService), _dec(_class = function () {
+        function PentominoService(bindingSignaler, dataService, boardService, solutionService) {
+            _classCallCheck(this, PentominoService);
+
+            this.bnds = bindingSignaler;
+            this.ds = dataService;
+            this.bs = boardService;
+            this.sls = solutionService;
+
+            this.pentominos = [];
+            this.offBoardPentominos = [];
+            this.fields = [];
+            this.activePentomino = null;
+            this.oBlock = null;
+            this.start();
+        }
+
+        PentominoService.prototype.isSolved = function isSolved() {
+            var boardIsFull = this.boardIsFull();
+            if (boardIsFull) {
+                this.bs.setSolved();
+                this.sls.saveSolution(this.pentominos);
+            } else {
+                this.bs.unsetNewSolution();
+                this.bs.unsetSolved();
+            }
+        };
+
+        PentominoService.prototype.boardIsFull = function boardIsFull() {
+            var h = this.bs.getHeight();
+            var w = this.bs.getWidth();
+
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < w; x++) {
+                    if (this.fields[y][x] !== 1) {
+                        return false;
+                    }
+                }
+            }
             return true;
         };
 
-        MenuCustomElement.prototype.toggleSubmenuBoards = function toggleSubmenuBoards() {
-            this.settings.submenuBoardsVisible = !this.settings.submenuBoardsVisible;
-            return false;
+        PentominoService.prototype.getActivePentomino = function getActivePentomino() {
+            return this.activePentomino;
         };
 
-        MenuCustomElement.prototype.getBoardDimensions = function getBoardDimensions(boardType) {
-            var text = '' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h;
-            return text;
+        PentominoService.prototype.getFields = function getFields() {
+            return this.fields;
         };
 
-        MenuCustomElement.prototype.getActiveBoardClass = function getActiveBoardClass(boardType) {
-            return this.bs.boardType == boardType ? 'active' : '';
+        PentominoService.prototype.setActivePentomino = function setActivePentomino(pentomino, index) {
+            this.activePentomino = pentomino;
+            this.activePentomino.activePart = index;
         };
 
-        MenuCustomElement.prototype.screenIsLargeEnough = function screenIsLargeEnough() {
-            var clw = document.querySelectorAll('html')[0].clientWidth;
-            var clh = document.querySelectorAll('html')[0].clientHeight;
-            return clw + clh > 1100;
-        };
-
-        MenuCustomElement.prototype.getStartPosition = function getStartPosition(shape) {
-            this.ps.getStartPosition(shape);
-            this.ps.registerPieces();
-            this.bs.unsetSolved();
-            this.bs.unsetNewSolution();
-            this.settings.submenuBoardsVisible = false;
-            this.settings.menuVisible = false;
-        };
-
-        MenuCustomElement.prototype.workersSupported = function workersSupported() {
-            if (window.Worker) {
-                return true;
+        PentominoService.prototype.resetActivePentomino = function resetActivePentomino() {
+            if (this.activePentomino) {
+                this.activePentomino.activePart = null;
             }
-            return false;
+            this.activePentomino = null;
         };
 
-        MenuCustomElement.prototype.showSolvingPanel = function showSolvingPanel() {
-            this.ea.publish('showSolvingPanel', true);
-            this.settings.menuVisible = false;
+        PentominoService.prototype.setActivePentominoPosition = function setActivePentominoPosition(newX, newY) {
+            this.activePentomino.position.x = newX;
+            this.activePentomino.position.y = newY;
         };
 
-        return MenuCustomElement;
-    }()) || _class);
-});
-define('components/pentominos',['exports', 'aurelia-framework', '../services/pentomino-service', '../services/setting-service', '../services/drag-service'], function (exports, _aureliaFramework, _pentominoService, _settingService, _dragService) {
-    'use strict';
+        PentominoService.prototype.setAllOnboard = function setAllOnboard(onBoards, offBoards) {
+            this.pentominos = onBoards.concat(offBoards);
+            this.pentominos = this.sortPentominos(this.pentominos);
+            this.registerPieces();
+        };
 
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.PentominosCustomElement = undefined;
+        PentominoService.prototype.signalViewUpdate = function signalViewUpdate() {
+            this.bnds.signal('position-signal');
+        };
 
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
+        PentominoService.prototype.sortPentominos = function sortPentominos(pentos) {
+            pentos.sort(function (a, b) {
+                return a.index - b.index;
+            });
+            return pentos;
+        };
 
-    var _dec, _class;
+        PentominoService.prototype.setPentominosOffboard = function setPentominosOffboard() {
+            this.registerPieces();
+            this.offBoardPentominos = this.pentominos.filter(function (pento) {
+                return pento.onBoard === false;
+            });
+            this.pentominos = this.pentominos.filter(function (pento) {
+                return pento.onBoard === true;
+            });
+            this.registerPieces();
+            return this.offBoardPentominos;
+        };
 
-    var PentominosCustomElement = exports.PentominosCustomElement = (_dec = (0, _aureliaFramework.inject)(_pentominoService.PentominoService, _settingService.SettingService, _dragService.DragService), _dec(_class = function () {
-        function PentominosCustomElement(pentominoService, settingService, dragService) {
-            _classCallCheck(this, PentominosCustomElement);
-
-            this.ps = pentominoService;
-            this.ss = settingService;
-            this.ds = dragService;
-        }
-
-        PentominosCustomElement.prototype.getPentominoClasses = function getPentominoClasses(pentomino) {
-            var classes = ['pentomino'];
-            classes.push('pentomino block_' + pentomino.name);
-            if (pentomino.active) {
-                classes.push('active');
+        PentominoService.prototype.adjustPosition = function adjustPosition() {
+            var pentomino = this.activePentomino;
+            var partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
+            var partAbsPosition = [pentomino.position.x + partRelPosition[0], pentomino.position.y + partRelPosition[1]];
+            var partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
+            var partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
+            switch (pentomino.activePart) {
+                case 0:
+                    pentomino.position.x = partAbsPosition[0] - partToBottom;
+                    pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
+                    break;
+                case 1:
+                    pentomino.position.x = partAbsPosition[0] - partToRight;
+                    break;
+                case 2:
+                    pentomino.position.y = partAbsPosition[1] - partToBottom;
+                    break;
             }
-            return classes.join(' ');
         };
 
-        PentominosCustomElement.prototype.getPartClasses = function getPartClasses(pentomino, partIndex, face) {
-            var classes = ['fa', 'part'];
-
-            var flipH = !(pentomino.index === 1 && pentomino.dimensions[0] > pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 0);
-            var flipV = !(pentomino.index === 1 && pentomino.dimensions[0] < pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 1);
-            if (partIndex === 0 && pentomino.type < 5) {
-                classes.push('fa-refresh');
-                classes.push('rotate');
+        PentominoService.prototype.registerPiece = function registerPiece(pentomino, onOff) {
+            if (pentomino) {
+                var onBoardParts = 0;
+                var partsCount = pentomino.faces[pentomino.face].length;
+                for (var i = 0; i < partsCount; i++) {
+                    var x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
+                    var y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
+                    if (this.bs.onBoard(x, y)) {
+                        this.fields[y][x] += onOff;
+                        onBoardParts += 1;
+                    }
+                    pentomino.onBoard = onBoardParts == partsCount;
+                }
             }
-            if (partIndex === 1 && pentomino.type < 4 && flipH) {
-                classes.push('fa-arrows-h');
-                classes.push('flipH');
+        };
+
+        PentominoService.prototype.registerPieces = function registerPieces() {
+            this.fields = this.setBoardFields(0);
+            for (var i = 0; i < this.pentominos.length; i++) {
+                var pentomino = this.pentominos[i];
+                this.registerPiece(pentomino, 1);
+                this.adjustDimensions(pentomino);
             }
-            if (partIndex === 2 && pentomino.type < 4 && flipV) {
-                classes.push('fa-arrows-v');
-                classes.push('flipV');
+            this.signalViewUpdate();
+        };
+
+        PentominoService.prototype.setBoardFields = function setBoardFields(content) {
+            var w = this.bs.getWidth();
+            var h = this.bs.getHeight();
+            var fields = [];
+            for (var y = 0; y < h; y++) {
+                fields.push([]);
+                for (var x = 0; x < w; x++) {
+                    fields[y].push(content);
+                }
             }
-            return classes.join(' ');
+            return fields;
         };
 
-        PentominosCustomElement.prototype.getPentominoCSS = function getPentominoCSS(x, y, color) {
-            var css = {
-                left: x * this.ss.partSize + 'px',
-                top: y * this.ss.partSize + 'px',
-                backgroundColor: color
-            };
-            return css;
+        PentominoService.prototype.setPentominos = function setPentominos(pentos) {
+            this.pentominos = pentos;
         };
 
-        PentominosCustomElement.prototype.getPartCSS = function getPartCSS(part) {
-            var css = {
-                'left': part[0] * this.ss.partSize + 'px',
-                'top': part[1] * this.ss.partSize + 'px'
-            };
-            return css;
+        PentominoService.prototype.setOffBoardPentominos = function setOffBoardPentominos(pentos) {
+            this.offBoardPentominos = pentos;
         };
 
-        PentominosCustomElement.prototype.attached = function attached() {};
-
-        return PentominosCustomElement;
-    }()) || _class);
-});
-define('components/solving',['exports', 'aurelia-framework', 'aurelia-event-aggregator', '../services/board-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _boardService, _pentominoService, _solutionService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SolvingCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var SolvingCustomElement = exports.SolvingCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator, _boardService.BoardService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
-        function SolvingCustomElement(eventAggregator, boardService, pentominoService, solutionService) {
+        PentominoService.prototype.start = function start() {
             var _this = this;
 
-            _classCallCheck(this, SolvingCustomElement);
-
-            this.ea = eventAggregator;
-            this.bs = boardService;
-            this.ps = pentominoService;
-            this.sls = solutionService;
-            this.solvingPanelVisible = false;
-            this.backupPentominos = this.ps.pentominos.slice();
-            this.slvrWrkr = null;
-            this.ea.subscribe('showSolvingPanel', function (response) {
-                _this.solvingPanelVisible = response;
+            this.getPentominoData().then(function (response) {
+                _this.pentominos = response;
+                _this.getPentominoColors().then(function () {
+                    _this.getStartPosition(_this.bs.boardType).then(function () {
+                        _this.registerPieces();
+                        _this.solved = false;
+                    });
+                });
             });
-        }
+        };
 
-        SolvingCustomElement.prototype.autoSolve = function autoSolve() {
+        PentominoService.prototype.getPentominoData = function getPentominoData() {
+            return this.ds.getPentominos().then(function (response) {
+                return response;
+            });
+        };
+
+        PentominoService.prototype.getPentominoColors = function getPentominoColors() {
             var _this2 = this;
 
-            this.slvrWrkr = new Worker('./src/services/solver-worker.js');
-            this.boardWidth = this.bs.getWidth();
-            this.boardHeight = this.bs.getHeight();
-            this.startPosXBlock = 0;
-            this.positionsTried = 0;
-            var workerData = {
-                message: 'solve',
-                boardType: this.bs.boardType,
-                boardWidth: this.bs.getWidth(),
-                boardHeight: this.bs.getWidth(),
-                offBoards: this.ps.setPentominosOffboard(),
-                fields: this.ps.getFields(),
-                onBoards: this.ps.pentominos
-            };
-
-            this.slvrWrkr.postMessage(workerData);
-
-            this.slvrWrkr.onmessage = function (e) {
-                var pentominos = _this2.ps.sortPentominos(e.data.onBoards);
-                var offBoards = e.data.offBoards;
-                var message = e.data.message;
-                switch (message) {
-                    case 'draw':
-                        _this2.ps.setPentominos(pentominos);
-                        break;
-                    case 'solution':
-                        _this2.ps.setPentominos(pentominos);
-                        _this2.sls.saveSolution(pentominos);
-                        break;
-                    case 'finish':
-                        _this2.ps.setPentominos(pentominos);
-                        console.log('No more solutions found!');
-                        break;
-                    default:
-                        _this2.ps.setPentominos(pentominos);
-                        _this2.ps.setAllOnboard(pentominos, offBoards);
-                        break;
+            return this.ds.getColors().then(function (response) {
+                for (var i = 0; i < _this2.pentominos.length; i++) {
+                    _this2.pentominos[i].color = response[i].color;
                 }
+            });
+        };
+
+        PentominoService.prototype.adjustDimensions = function adjustDimensions(pentomino) {
+            if (pentomino && pentomino.initialDimensions) {
+                pentomino.dimensions = pentomino.initialDimensions.slice();
+            }
+            if (pentomino && pentomino.face % 2 == 1) {
+                pentomino.dimensions.reverse();
+            }
+        };
+
+        PentominoService.prototype.toggleOblock = function toggleOblock(count) {
+            if (this.pentominos.length > count) {
+                this.oBlock = this.pentominos.pop();
+            } else {
+                if (this.oBlock) {
+                    this.pentominos.push(this.oBlock);
+                    this.oBlock = null;
+                }
+            }
+        };
+
+        PentominoService.prototype.getStartPosition = function getStartPosition(shape) {
+            var _this3 = this;
+
+            return this.ds.getStartPosition(shape).then(function (response) {
+                _this3.bs.boardType = shape;
+                _this3.sls.currentSolution = -1;
+                _this3.sls.setShowSolutions();
+                var count = response.length;
+                _this3.toggleOblock(count);
+                for (var i = 0; i < count; i++) {
+                    var pentomino = _this3.pentominos[i];
+                    pentomino.face = response[i].face;
+                    pentomino.position = response[i].position;
+                    pentomino.active = false;
+                    pentomino.index = i;
+                    if (!pentomino.initialDimensions) {
+                        pentomino.initialDimensions = pentomino.dimensions.slice();
+                    } else {
+                        pentomino.dimensions = pentomino.initialDimensions.slice();
+                    }
+                    if (pentomino.face % 2 == 1) {
+                        pentomino.dimensions.reverse();
+                    }
+                }
+                _this3.registerPieces();
+            });
+        };
+
+        return PentominoService;
+    }()) || _class);
+});
+define('services/permutation-service',['exports', 'aurelia-framework', './board-service'], function (exports, _aureliaFramework, _boardService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.PermutationService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var PermutationService = exports.PermutationService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function PermutationService(boardService) {
+            _classCallCheck(this, PermutationService);
+
+            this.bs = boardService;
+            this.rotable = [[[1, 2, 3, 0, 5, 6, 7, 4], [1, 2, 3, 0], [1, 2, 3, 0], [1, 0, 3, 2], [1, 0], [0]], [[4, 7, 6, 5, 0, 3, 2, 1], [3, 2, 1, 0], [0, 3, 2, 1], [2, 3, 0, 1], [0, 1], [0]], [[6, 5, 4, 7, 2, 1, 0, 3], [1, 0, 3, 2], [2, 1, 0, 3], [2, 3, 0, 1], [0, 1], [0]]];
+        }
+
+        PermutationService.prototype.flipRotate = function flipRotate(pentomino, part) {
+            if (part == undefined) {
+                part = pentomino.activePart;
+            }
+            pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
+
+            if (part === 0) {
+                pentomino.dimensions.reverse();
+            }
+        };
+
+        PermutationService.prototype.flipBoardYAxis = function flipBoardYAxis(pentominos) {
+            var pentomino = void 0;
+            for (var i = 0; i < pentominos.length; i++) {
+                pentomino = pentominos[i];
+                this.flipRotate(pentomino, 1);
+                pentomino.position.x = this.bs.getWidth() - pentomino.position.x - pentomino.dimensions[0];
+            }
+        };
+
+        PermutationService.prototype.rotateSquareBoard = function rotateSquareBoard(pentominos) {
+            var pentomino = void 0;
+            var origin = {};
+            for (var i = 0; i < pentominos.length; i++) {
+                pentomino = pentominos[i];
+
+                origin.x = pentomino.position.x;
+                origin.y = pentomino.position.y + pentomino.dimensions[1];
+
+                pentomino.position.x = this.bs.getWidth() - origin.y;
+                pentomino.position.y = origin.x;
+
+                this.flipRotate(pentomino, 0);
+            }
+        };
+
+        PermutationService.prototype.shiftPieces = function shiftPieces(pentominos, dx, dy) {
+            for (var i = 0; i < pentominos.length; i++) {
+                pentominos[i].position.x += dx;
+                pentominos[i].position.y += dy;
+            }
+        };
+
+        PermutationService.prototype.rotateBoard = function rotateBoard(pentominos) {
+            if (this.bs.boardType == 'square') {
+                this.rotateSquareBoard(pentominos);
+            } else {
+                for (var i = 0; i < 2; i++) {
+                    this.rotateSquareBoard(pentominos);
+                }this.shiftPieces(pentominos, 0, 4);
+            }
+        };
+
+        PermutationService.prototype.mixBoard = function mixBoard(pentominos) {
+            var clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+            var clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+            var maxX = clientWidth - 4;
+            var maxY = clientHeight - 4;
+
+            var offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+
+            var count = pentominos.length;
+            for (var i = 0; i < count; i++) {
+                var pentomino = pentominos[i];
+                var face = Math.floor(Math.random() * pentomino.faces.length);
+                pentomino.face = face;
+
+                do {
+                    var xPos = Math.floor(Math.random() * maxX);
+                    xPos -= offsetX;
+                    var yPos = Math.floor(Math.random() * maxY);
+
+                    pentomino.position.x = xPos;
+                    pentomino.position.y = yPos;
+                } while (this.bs.touchesBoard(pentomino));
+                pentomino.onBoard = false;
+            }
+        };
+
+        return PermutationService;
+    }()) || _class);
+});
+define('services/setting-service',["exports", "aurelia-framework"], function (exports, _aureliaFramework) {
+    "use strict";
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SettingService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var SettingService = exports.SettingService = function () {
+        function SettingService() {
+            _classCallCheck(this, SettingService);
+
+            this.opaqueBlocks = true;
+            this.showSolutions = false;
+            this.scale = 1;
+            this.partSize = 40;
+            this.opaqueBlocks = false;
+        }
+
+        SettingService.prototype.getScale = function getScale() {
+            var screenWidth = document.querySelectorAll("html")[0].clientWidth;
+            var boardWidth = document.querySelectorAll(".board")[0].clientWidth;
+            var scale = Math.min(screenWidth / boardWidth, 1);
+            scale = Math.floor(scale * 10) / 10;
+            this.scale = scale;
+            return {
+                'transformOrigin': 'top',
+                '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
+                '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
+                'transform': 'scale(' + scale + ', ' + scale + ')'
             };
         };
 
-        SolvingCustomElement.prototype.stop = function stop() {
-            this.slvrWrkr.terminate();
-            this.ps.setPentominos(this.backupPentominos);
+        SettingService.prototype.setShowSolutions = function setShowSolutions() {
+            this.showSolutions = true;
         };
 
-        return SolvingCustomElement;
+        return SettingService;
+    }();
+});
+define('services/solution-service',['exports', 'aurelia-framework', './board-service', './permutation-service', './data-service', '../services/setting-service'], function (exports, _aureliaFramework, _boardService, _permutationService, _dataService, _settingService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SolutionService = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var SolutionService = exports.SolutionService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _permutationService.PermutationService, _dataService.DataService, _settingService.SettingService), _dec(_class = function () {
+        function SolutionService(boardService, permutationService, dataService, settingService) {
+            _classCallCheck(this, SolutionService);
+
+            this.bs = boardService;
+            this.ds = dataService;
+            this.ss = settingService;
+            this.prms = permutationService;
+            this.boardType = this.bs.boardType;
+            this.currentSolution = -1;
+            this.getSolutions();
+        }
+
+        SolutionService.prototype.getSolutions = function getSolutions() {
+            this.solutions = this.ds.getSolutions();
+            this.setShowSolutions();
+        };
+
+        SolutionService.prototype.setShowSolutions = function setShowSolutions() {
+            this.currentSolution = -1;
+            if (this.solutions[this.bs.boardType].length > 0) {
+                this.ss.setShowSolutions();
+            }
+        };
+
+        SolutionService.prototype.saveSolution = function saveSolution(pentominos) {
+            var solutionResult = this.isNewSolution(pentominos);
+
+            if (!isNaN(solutionResult)) {
+                this.currentSolution = solutionResult;
+                this.bs.unsetNewSolution();
+            } else {
+                this.ds.saveSolution(solutionResult);
+                this.solutions[this.boardType].push(solutionResult);
+                this.currentSolution = this.solutions[this.boardType].length - 1;
+                this.bs.setNewSolution();
+            }
+        };
+
+        SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
+            var isNewSolution = true;
+            var rotations = this.boardType == 'square' ? 4 : 2;
+            var solutionString = this.solution2String(pentominos);
+            var foundSolStr = solutionString;
+            var solutionsCount = this.solutions[this.boardType].length;
+
+            for (var flip = 0; flip < 2; flip++) {
+                for (var rotation = 0; rotation < rotations; rotation++) {
+                    for (var i = 0; i < solutionsCount; i++) {
+                        solutionString = this.solution2String(pentominos);
+                        isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
+                        if (!isNewSolution) return i;
+                    }
+
+                    this.prms.rotateBoard(pentominos);
+                }
+                this.prms.flipBoardYAxis(pentominos);
+            }
+            return foundSolStr;
+        };
+
+        SolutionService.prototype.solution2String = function solution2String(pentominos) {
+            var solutionString = "";
+            var count = pentominos.length;
+            for (var i = 0; i < count; i++) {
+                var pentomino = pentominos[i];
+                solutionString += this.pentomino2string(pentomino);
+            }
+            return solutionString;
+        };
+
+        SolutionService.prototype.pentomino2string = function pentomino2string(pentomino) {
+            var parts = [];
+            if (pentomino) {
+                parts.push('#' + pentomino.name);
+                parts.push(pentomino.face);
+                parts.push(pentomino.position.x);
+                parts.push(pentomino.position.y);
+                return parts.join('_');
+            }
+        };
+
+        return SolutionService;
     }()) || _class);
+});
+define('services/solver-worker',[], function () {
+    'use strict';
+
+    var boardType = '';
+    var boardWidth = void 0;
+    var boardHeight = void 0;
+    var fields = [];
+    var pentominos = [];
+    var offBoardPentominos = [];
+    var startPositionsXblock = {
+        'square': [[1, 0], [1, 1], [2, 0], [2, 1], [2, 2]],
+        'rectangle': [[1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]],
+        'dozen': [],
+        'beam': [],
+        'stick': [],
+        'twig': [[0, 1], [0, 6]]
+    };
+    var xPentomino = function xPentomino() {
+        return getPentomino('x');
+    };
+    var startPosXBlock = 0;
+    var positionsTried = 0;
+    var proceed = true;
+
+    var adjustDimensions = function adjustDimensions(pentomino) {
+        if (pentomino && pentomino.initialDimensions) {
+            pentomino.dimensions = pentomino.initialDimensions.slice();
+        }
+        if (pentomino && pentomino.face % 2 === 1) {
+            pentomino.dimensions.reverse();
+        }
+    };
+
+    var autoSolve = function autoSolve(offBoards) {
+        if (allOffBoard()) {
+            setOnboard(xPentomino(), false);
+            var xPosition = getXBlockPosition();
+            while (xPosition) {
+                movePentomino(xPentomino(), 0, xPosition, false);
+                sendFeedBack('draw');
+                positionsTried++;
+                offBoards = findNextFit(offBoards);
+                xPosition = getXBlockPosition();
+            }
+        } else {
+            offBoards = findNextFit(offBoards);
+        }
+        return offBoards;
+    };
+
+    var allOffBoard = function allOffBoard() {
+        var emptyBoard = pentominos.length === 0;
+        return emptyBoard;
+    };
+
+    var copyBoardFields = function copyBoardFields() {
+        var flds = [];
+        for (var y = 0; y < boardHeight; y++) {
+            flds.push([]);
+            for (var x = 0; x < boardWidth; x++) {
+                flds[y].push(fields[y][x]);
+            }
+        }
+        return flds;
+    };
+
+    var discard = function discard(misFits) {
+        var pentomino = pentominos.pop();
+        pentomino.onBoard = false;
+        misFits.push(pentomino);
+        registerPiece(pentomino, -1);
+        return misFits;
+    };
+
+    var findFirstEmptyPosition = function findFirstEmptyPosition() {
+        for (var y = 0; y < boardHeight; y++) {
+            for (var x = 0; x < boardWidth; x++) {
+                if (fields[y][x] === 0) return [x, y];
+            }
+        }
+        return false;
+    };
+
+    var findFirstPartRight = function findFirstPartRight(pentomino) {
+        var offsetRight = pentomino.dimensions[0];
+        var part = pentomino.faces[pentomino.face][0];
+        for (var j = 0; j < pentomino.faces[pentomino.face].length; j++) {
+            part = pentomino.faces[pentomino.face][j];
+            offsetRight = part[1] === 0 && part[0] < offsetRight ? part[0] : offsetRight;
+        }
+        return offsetRight;
+    };
+
+    var findNextFit = function findNextFit(offBoards) {
+        var misFits = [];
+        var firstEmptyPosition = findFirstEmptyPosition();
+        if (firstEmptyPosition) {
+            if (holeFitsXPieces(firstEmptyPosition)) {
+                while (offBoards.length) {
+                    var pentomino = nextOnboard(offBoards);
+                    if (pentomino) {
+                        var count = pentomino.faces.length;
+                        for (var face = 0; face < count; face++) {
+                            positionsTried++;
+                            movePentomino(pentomino, face, firstEmptyPosition, true);
+                            if (isFitting() && proceed) {
+                                sendFeedBack('draw');
+                                findNextFit(sortPentominos(misFits.concat(offBoards)));
+                            }
+                        }
+                        discard(misFits);
+                        sendFeedBack('draw');
+                    }
+                }
+            }
+        } else {
+            sendFeedBack('solution');
+        }
+        return misFits.concat(offBoards);
+    };
+
+    var findPentominoByName = function findPentominoByName(set, name) {
+        return set.find(function (pento) {
+            return pento.name === name;
+        });
+    };
+
+    var getPentomino = function getPentomino(name) {
+        var pentomino = findPentominoByName(pentominos.concat(offBoardPentominos), name);
+        return pentomino;
+    };
+
+    var getXBlockPosition = function getXBlockPosition() {
+        if (startPosXBlock < startPositionsXblock[boardType].length) {
+            var position = startPositionsXblock[boardType][startPosXBlock].slice();
+            startPosXBlock += 1;
+            return position;
+        } else {
+            return false;
+        }
+    };
+
+    var holeFitsXPieces = function holeFitsXPieces(xy) {
+        var holeSize = 0;
+        var oPentoOnboard = oPentominoOnboard();
+        var label = 'a';
+        var board = copyBoardFields();
+        var y = xy[1];
+
+        var countDown = function countDown(xy) {
+            var y = xy[1];
+            var x = xy[0];
+            while (y < boardHeight && board[y][x] === 0) {
+                board[y][x] = label;
+                holeSize++;
+
+                countLeft([x - 1, y]);
+                countRight([x + 1, y]);
+                y++;
+            }
+        };
+
+        var countUp = function countUp(xy) {
+            var y = xy[1];
+            var x = xy[0];
+            while (y >= 0 && board[y][x] === 0) {
+                board[y][x] = label;
+                holeSize++;
+
+                countRight([x + 1, y]);
+                countLeft([x - 1, y]);
+                y--;
+            }
+        };
+
+        var countRight = function countRight(xy) {
+            var x = xy[0];
+            var y = xy[1];
+            while (x < boardWidth && board[y][x] === 0) {
+                board[y][x] = label;
+                holeSize++;
+
+                countDown([x, y + 1]);
+                countUp([x, y - 1]);
+                x++;
+            }
+        };
+
+        var countLeft = function countLeft(xy) {
+            var x = xy[0];
+            var y = xy[1];
+            while (x >= 0 && board[y][x] === 0) {
+                board[y][x] = label;
+                holeSize++;
+
+                countDown([x, y + 1]);
+                countUp([x, y - 1]);
+                x--;
+            }
+        };
+
+        countRight(xy);
+        return holeFits(holeSize);
+    };
+
+    var boardHas60Squares = function boardHas60Squares() {
+        return !(boardType === 'square' || boardType === 'stick');
+    };
+
+    var holeFits = function holeFits(sum) {
+        var compensation = oPentominoOnboard() || boardHas60Squares() ? 0 : 4;
+        return (sum - compensation) % 5 === 0;
+    };
+
+    var initVariables = function initVariables(data) {
+        boardType = data.boardType;
+        boardWidth = data.boardWidth;
+        boardHeight = data.boardHeight;
+        fields = data.fields;
+        pentominos = data.onBoards;
+        offBoardPentominos = data.offBoards;
+    };
+
+    var isFitting = function isFitting() {
+        var sum = 0;
+        var h = fields.length;
+        for (var y = 0; y < h; y++) {
+            var w = fields[y].length;
+            for (var x = 0; x < w; x++) {
+                if (fields[y][x] > 1) {
+                    return false;
+                } else {
+                    sum += fields[y][x];
+                }
+            }
+        }
+        return noneStickingOut(sum);
+    };
+
+    var logBoard = function logBoard() {
+        var flds = setBoardFields('');
+        var blockCount = pentominos.length;
+        for (var i = 0; i < blockCount; i++) {
+            var pentomino = pentominos[i];
+            var face = pentomino.faces[pentomino.face];
+            var partCount = face.length;
+            for (var j = 0; j < partCount; j++) {
+                var x = face[j][0] + pentomino.position.x;
+                var y = face[j][1] + pentomino.position.y;
+                if (y < boardHeight && x < boardWidth) {
+                    flds[y][x] += pentomino.name;
+                }
+            }
+        }
+        console.clear();
+        console.table(flds);
+    };
+
+    var movePentomino = function movePentomino(pentomino, face, position, shiftLeft) {
+        var newPosition = void 0;
+        registerPiece(pentomino, -1);
+        setFace(pentomino, face);
+
+        if (shiftLeft && position[0] > 0) {
+            var xShift = findFirstPartRight(pentomino);
+            newPosition = [position[0] - xShift, position[1]];
+        } else {
+            newPosition = position;
+        }
+        setPosition(pentomino, newPosition);
+        registerPiece(pentomino, 1);
+    };
+
+    var nextOnboard = function nextOnboard(offBoards) {
+        var pentomino = offBoards.shift();
+        pentomino.onBoard = true;
+        pentominos.push(pentomino);
+        registerPiece(pentomino, 1);
+        return pentomino;
+    };
+
+    var noneStickingOut = function noneStickingOut(sum) {
+        var compensation = oPentominoOnboard() || boardType === 'rectangle' ? 4 : 0;
+        return (sum - compensation) % 5 === 0;
+    };
+
+    var onBoard = function onBoard(x, y) {
+        return x >= 0 && x < boardWidth && y >= 0 && y < boardHeight;
+    };
+
+    var oPentominoOnboard = function oPentominoOnboard() {
+        return pentominos.filter(function (pento) {
+            return pento.name === 'o';
+        }).length > 0;
+    };
+
+    var registerPiece = function registerPiece(pentomino, onOff) {
+        if (pentomino) {
+            var onBoardParts = 0;
+            var face = pentomino.faces[pentomino.face];
+            var partsCount = face.length;
+            for (var i = 0; i < partsCount; i++) {
+                var part = face[i];
+                var x = part[0] + pentomino.position.x;
+                var y = part[1] + pentomino.position.y;
+                if (onBoard(x, y)) {
+                    fields[y][x] += onOff;
+                    onBoardParts += 1;
+                }
+                pentomino.onBoard = onBoardParts == partsCount;
+            }
+        }
+    };
+
+    var sendFeedBack = function sendFeedBack(message) {
+        var workerData = {
+            message: message || 'solution',
+            onBoards: []
+        };
+        switch (message) {
+            case 'draw':
+                workerData.onBoards = pentominos;
+                break;
+            case 'solution':
+                workerData.onBoards = pentominos;
+                break;
+            case 'finish':
+                workerData.onBoards = pentominos.concat(offBoardPentominos);
+                postMessage(workerData);
+                close();
+            default:
+                close();
+                break;
+        }
+        postMessage(workerData);
+    };
+
+    var setFace = function setFace(pentomino, face) {
+        pentomino.face = face;
+        adjustDimensions(pentomino);
+    };
+
+    var setPosition = function setPosition(pentomino, position) {
+        pentomino.position.x = position[0];
+        pentomino.position.y = position[1];
+    };
+
+    var setBoardFields = function setBoardFields(content) {
+        var w = boardWidth;
+        var h = boardHeight;
+        var fields = [];
+        for (var y = 0; y < h; y++) {
+            fields.push([]);
+            for (var x = 0; x < w; x++) {
+                fields[y].push(content);
+            }
+        }
+        return fields;
+    };
+
+    var setOnboard = function setOnboard(pentomino) {
+        pentominos.push(pentomino);
+        var index = offBoardPentominos.indexOf(pentomino);
+        offBoardPentominos.splice(index, 1);
+    };
+
+    var sortPentominos = function sortPentominos(pentos) {
+        pentos.sort(function (a, b) {
+            return a.index - b.index;
+        });
+        return pentos;
+    };
+
+    onmessage = function onmessage(e) {
+        var message = e.data.message;
+        switch (message) {
+            case 'solve':
+                proceed = true;
+                initVariables(e.data);
+                offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
+                break;
+            case 'stop':
+                proceed = false;
+                break;
+            default:
+                break;
+        }
+        sendFeedBack('finish');
+    };
 });
 define('data/colors',[], function () {
     "use strict";
@@ -1197,127 +1952,13 @@ define('resources/index',["exports"], function (exports) {
   exports.configure = configure;
   function configure(config) {}
 });
-define('services/board-service',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
+define('components/board',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-    exports.BoardService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var BoardService = exports.BoardService = function () {
-        function BoardService() {
-            _classCallCheck(this, BoardService);
-
-            this.partSize = 40;
-            this.boardType = 'square';
-            this.boardTypes = {
-                'square': {
-                    w: 8,
-                    h: 8,
-                    surface: 64
-                },
-                'rectangle': {
-                    w: 6,
-                    h: 10,
-                    surface: 60
-                },
-                'dozen': {
-                    w: 12,
-                    h: 5,
-                    surface: 60
-                },
-                'beam': {
-                    w: 15,
-                    h: 4,
-                    surface: 60
-                },
-                'stick': {
-                    w: 16,
-                    h: 4,
-                    surface: 64
-                },
-                'twig': {
-                    w: 20,
-                    h: 3,
-                    surface: 60
-                }
-            };
-            this.solved = false;
-            this.newSolution = false;
-        }
-
-        BoardService.prototype.setSolved = function setSolved() {
-            this.solved = true;
-        };
-
-        BoardService.prototype.unsetSolved = function unsetSolved() {
-            this.solved = false;
-        };
-
-        BoardService.prototype.setNewSolution = function setNewSolution() {
-            this.newSolution = true;
-        };
-
-        BoardService.prototype.unsetNewSolution = function unsetNewSolution() {
-            this.newSolution = false;
-        };
-
-        BoardService.prototype.setBoardType = function setBoardType(shape) {
-            this.boardType = shape;
-        };
-
-        BoardService.prototype.getWidth = function getWidth() {
-            return this.boardTypes[this.boardType].w;
-        };
-
-        BoardService.prototype.getHeight = function getHeight() {
-            return this.boardTypes[this.boardType].h;
-        };
-
-        BoardService.prototype.boardsCount = function boardsCount() {
-            var count = 0;
-            for (var k in this.boardTypes) {
-                if (this.boardTypes.hasOwnProperty(k)) count++;
-            }return count;
-        };
-
-        BoardService.prototype.onBoard = function onBoard(x, y) {
-            return x >= 0 && x < this.getWidth() && y >= 0 && y < this.getHeight();
-        };
-
-        BoardService.prototype.touchesBoard = function touchesBoard(pentomino) {
-            var isTouching = false;
-            var count = pentomino.faces[pentomino.face].length;
-            for (var i = 0; i < count; i++) {
-                var part = pentomino.faces[pentomino.face][i];
-                var x = pentomino.position.x + part[0];
-                var y = pentomino.position.y + part[1];
-                var partIsOnBoard = this.onBoard(x, y);
-                if (partIsOnBoard) {
-                    isTouching = true;
-                    break;
-                }
-            }
-            return isTouching;
-        };
-
-        return BoardService;
-    }();
-});
-define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-client', './board-service'], function (exports, _aureliaFramework, _aureliaHttpClient, _boardService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.DataService = undefined;
+    exports.BoardCustomElement = undefined;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -1327,72 +1968,39 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
 
     var _dec, _class;
 
-    var DataService = exports.DataService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function DataService(boardService) {
-            _classCallCheck(this, DataService);
+    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function BoardCustomElement(boardService) {
+            _classCallCheck(this, BoardCustomElement);
 
             this.bs = boardService;
-            this.client = new _aureliaHttpClient.HttpClient();
         }
 
-        DataService.prototype.getPentominos = function getPentominos() {
-            var fileName = './src/data/pentominos.json';
-            return this.client.get(fileName).then(function (data) {
-                var response = JSON.parse(data.response);
-                return response;
-            });
+        BoardCustomElement.prototype.getBoardSizeCSS = function getBoardSizeCSS(shape) {
+            var boardType = this.bs.boardTypes[shape];
+            var css = {
+                width: boardType.w * this.bs.partSize + 'px',
+                height: boardType.h * this.bs.partSize + 'px'
+            };
+            return css;
         };
 
-        DataService.prototype.getColors = function getColors() {
-            var fileName = './src/data/colors.json';
-            return this.client.get(fileName).then(function (data) {
-                var response = JSON.parse(data.response);
-                return response;
-            });
+        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses(newSolution) {
+            var classes = ['board'];
+            var solvedClass = newSolution ? 'solved' : '';
+            classes.push(solvedClass);
+            return classes.join(' ');
         };
 
-        DataService.prototype.getStartPosition = function getStartPosition(boardShape) {
-            var fileName = './src/data/start-' + boardShape + '.json';
-            return this.client.get(fileName).then(function (data) {
-                var response = JSON.parse(data.response);
-                return response;
-            });
-        };
-
-        DataService.prototype.getSolutions = function getSolutions() {
-
-            var solutions = void 0;
-
-            if (localStorage.getItem("pentominos2")) {
-                solutions = JSON.parse(localStorage.getItem("pentominos2"));
-            } else {
-                solutions = {};
-                var boardTypes = this.bs.boardTypes;
-                for (var type in boardTypes) {
-                    if (boardTypes.hasOwnProperty(type)) {
-                        solutions[type] = [];
-                    }
-                }
-            }
-            return solutions;
-        };
-
-        DataService.prototype.saveSolution = function saveSolution(solutionString) {
-            var solutions = this.getSolutions(this.bs.boardTypes);
-            solutions[this.bs.boardType].push(solutionString);
-            localStorage.setItem("pentominos2", JSON.stringify(solutions));
-        };
-
-        return DataService;
+        return BoardCustomElement;
     }()) || _class);
 });
-define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './setting-service', './pentomino-service', './permutation-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _settingService, _pentominoService, _permutationService) {
+define('components/controls',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', '../services/setting-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _settingService, _pentominoService, _solutionService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-    exports.DragService = undefined;
+    exports.ControlsCustomElement = undefined;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -1402,103 +2010,235 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-templat
 
     var _dec, _class;
 
-    var DragService = exports.DragService = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _settingService.SettingService, _pentominoService.PentominoService, _permutationService.PermutationService), _dec(_class = function () {
-        function DragService(bindingSignaler, settingService, pentominoService, permutationService) {
-            _classCallCheck(this, DragService);
+    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _settingService.SettingService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
+        function ControlsCustomElement(bindingSignaler, boardService, settingService, pentominoService, solutionService) {
+            _classCallCheck(this, ControlsCustomElement);
 
             this.bnds = bindingSignaler;
+            this.bs = boardService;
             this.ss = settingService;
             this.ps = pentominoService;
-            this.prms = permutationService;
-            this.dragStartPos = {};
-            this.dragEndPos = {};
+            this.sls = solutionService;
+            this.solutionCount = this.sls.solutions[this.sls.boardType].length;
         }
 
-        DragService.prototype.getClientPos = function getClientPos(event) {
-            var clientX = event.touches ? event.touches[0].clientX : event.clientX;
-            var clientY = event.touches ? event.touches[0].clientY : event.clientY;
-            return {
-                x: clientX / this.ss.scale,
-                y: clientY / this.ss.scale
-            };
+        ControlsCustomElement.prototype.getIndicatorClass = function getIndicatorClass() {
+            var classes = ['indicator', 'rounded'];
+            var solvedClass = this.bs.solved && !this.bs.newSolution ? 'solved' : '';
+            classes.push(solvedClass);
+            return classes.join(' ');
         };
 
-        DragService.prototype.startDrag = function startDrag(pentomino, partIndex, event) {
-            if (this.container == null) {
-                var clientPos = this.getClientPos(event);
-                this.ps.setActivePentomino(pentomino, partIndex);
-                this.ps.registerPiece(pentomino, -1);
-                this.container = event.target.offsetParent.offsetParent;
-                this.container.style.zIndex = 100;
-                this.startX = clientPos.x - this.container.offsetLeft;
-                this.startY = clientPos.y - this.container.offsetTop;
-                this.x = clientPos.x - this.startX;
-                this.y = clientPos.y - this.startY;
-                this.dragStartPos.x = this.x;
-                this.dragStartPos.y = this.y;
+        ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText(currentSolution, solutionCount) {
+            var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+            var text = current + solutionCount;
+            return text;
+        };
+
+        ControlsCustomElement.prototype.showSolutions = function showSolutions(count) {
+            return count > 0;
+        };
+
+        ControlsCustomElement.prototype.showSolution = function showSolution() {
+            var pentominos = this.ps.pentominos;
+            var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
+            var splitString = solutionString.substr(1).split('#');
+            for (var i = 0; i < splitString.length; i++) {
+                var pentomino = this.ps.pentominos[i];
+                var props = splitString[i].split('_');
+                pentomino.face = parseInt(props[1], 10);
+                pentomino.position.x = parseInt(props[2], 10);
+                pentomino.position.y = parseInt(props[3], 10);
+            }
+            this.bnds.signal('position-signal');
+            this.ps.registerPieces();
+            this.bs.unsetNewSolution();
+        };
+
+        ControlsCustomElement.prototype.disableNextButton = function disableNextButton(current, count) {
+            return current + 1 == count;
+        };
+
+        ControlsCustomElement.prototype.disablePreviousButton = function disablePreviousButton(current) {
+            return current == 0;
+        };
+
+        ControlsCustomElement.prototype.showFirstSolution = function showFirstSolution() {
+            this.sls.currentSolution = 0;
+            this.showSolution();
+        };
+
+        ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
+            if (this.sls.currentSolution > 0) {
+                this.sls.currentSolution--;
+                this.showSolution();
+            }
+        };
+
+        ControlsCustomElement.prototype.showNextSolution = function showNextSolution() {
+            if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
+                this.sls.currentSolution++;
+                this.showSolution();
+            }
+        };
+
+        return ControlsCustomElement;
+    }()) || _class);
+});
+define('components/header',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.HeaderCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function HeaderCustomElement(boardService) {
+            _classCallCheck(this, HeaderCustomElement);
+
+            this.bs = boardService;
+            this.title = 'Pentomino';
+        }
+
+        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss(shape) {
+            var boardType = this.bs.boardTypes[shape];
+            var css = {
+                width: boardType.w * this.bs.partSize + 'px'
+            };
+            return css;
+        };
+
+        return HeaderCustomElement;
+    }()) || _class);
+});
+define('components/menu',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'aurelia-templating-resources', '../services/board-service', '../services/solution-service', '../services/pentomino-service', '../services/permutation-service', '../services/setting-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _aureliaTemplatingResources, _boardService, _solutionService, _pentominoService, _permutationService, _settingService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.MenuCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var MenuCustomElement = exports.MenuCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _solutionService.SolutionService, _pentominoService.PentominoService, _permutationService.PermutationService, _settingService.SettingService), _dec(_class = function () {
+        function MenuCustomElement(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
+            _classCallCheck(this, MenuCustomElement);
+
+            this.bnds = bindingSignaler;
+            this.bs = boardService;
+            this.ea = eventAggregator;
+            this.sls = solutionService;
+            this.ps = pentominoService;
+            this.prms = permutationService;
+            this.ss = settingService;
+            this.boardTypes = Object.keys(this.bs.boardTypes);
+            this.settings = {
+                menuVisible: false,
+                submenuBoardsVisible: false
+            };
+        }
+
+        MenuCustomElement.prototype.rotateBoard = function rotateBoard() {
+            this.prms.rotateBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+        };
+
+        MenuCustomElement.prototype.flipBoardYAxis = function flipBoardYAxis() {
+            this.prms.flipBoardYAxis(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+        };
+
+        MenuCustomElement.prototype.showTheMenu = function showTheMenu() {
+            this.settings.menuVisible = true;
+            this.settings.submenuBoardsVisible = false;
+        };
+
+        MenuCustomElement.prototype.mixBoard = function mixBoard() {
+            this.prms.mixBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+        };
+
+        MenuCustomElement.prototype.hideTheMenu = function hideTheMenu() {
+            this.settings.menuVisible = false;
+        };
+
+        MenuCustomElement.prototype.showThisBoard = function showThisBoard(key) {
+            return true;
+        };
+
+        MenuCustomElement.prototype.toggleSubmenuBoards = function toggleSubmenuBoards() {
+            this.settings.submenuBoardsVisible = !this.settings.submenuBoardsVisible;
+            return false;
+        };
+
+        MenuCustomElement.prototype.getBoardDimensions = function getBoardDimensions(boardType) {
+            var text = '' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h;
+            return text;
+        };
+
+        MenuCustomElement.prototype.getActiveBoardClass = function getActiveBoardClass(boardType) {
+            return this.bs.boardType == boardType ? 'active' : '';
+        };
+
+        MenuCustomElement.prototype.screenIsLargeEnough = function screenIsLargeEnough() {
+            var clw = document.querySelectorAll('html')[0].clientWidth;
+            var clh = document.querySelectorAll('html')[0].clientHeight;
+            return clw + clh > 1100;
+        };
+
+        MenuCustomElement.prototype.getStartPosition = function getStartPosition(shape) {
+            this.ps.getStartPosition(shape);
+            this.ps.registerPieces();
+            this.bs.unsetSolved();
+            this.bs.unsetNewSolution();
+            this.settings.submenuBoardsVisible = false;
+            this.settings.menuVisible = false;
+        };
+
+        MenuCustomElement.prototype.workersSupported = function workersSupported() {
+            if (window.Worker) {
+                return true;
             }
             return false;
         };
 
-        DragService.prototype.doDrag = function doDrag(event) {
-            var clientPos = this.getClientPos(event);
-            if (this.ps.getActivePentomino()) {
-                this.x = clientPos.x - this.startX;
-                this.y = clientPos.y - this.startY;
-                this.container.style.left = this.x + 'px';
-                this.container.style.top = this.y + 'px';
-            }
+        MenuCustomElement.prototype.showSolvingPanel = function showSolvingPanel() {
+            this.ea.publish('showSolvingPanel', true);
+            this.settings.menuVisible = false;
         };
 
-        DragService.prototype.stopDrag = function stopDrag(event) {
-            this.dragEndPos.x = this.x;
-            this.dragEndPos.y = this.y;
-            var pentomino = this.ps.getActivePentomino();
-            if (pentomino) {
-                this.alignToGrid();
-                if (!this.isDragged()) {
-                    if (pentomino.type < 4 && pentomino.activePart < 3 || pentomino.type == 4 && pentomino.activePart < 1) {
-                        this.ps.adjustPosition();
-                        this.prms.flipRotate(pentomino);
-                        this.bnds.signal('position-signal');
-                    }
-                }
-                this.ps.registerPiece(pentomino, 1);
-                this.ps.isSolved();
-            }
-            this.releasePentomino();
-        };
-
-        DragService.prototype.releasePentomino = function releasePentomino() {
-            if (this.container) {
-                this.container.style.zIndex = '';
-                this.container = null;
-            }
-            this.ps.resetActivePentomino();
-        };
-
-        DragService.prototype.alignToGrid = function alignToGrid() {
-            var newX = Math.round(this.x / this.ss.partSize);
-            var newY = Math.round(this.y / this.ss.partSize);
-            this.ps.setActivePentominoPosition(newX, newY);
-            this.container.style.left = newX * this.ss.partSize + 'px';
-            this.container.style.top = newY * this.ss.partSize + 'px';
-        };
-
-        DragService.prototype.isDragged = function isDragged() {
-            return Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19 || Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19;
-        };
-
-        return DragService;
+        return MenuCustomElement;
     }()) || _class);
 });
-define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-templating-resources', './data-service', './board-service', './solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _dataService, _boardService, _solutionService) {
+define('components/pentominos',['exports', 'aurelia-framework', '../services/pentomino-service', '../services/setting-service', '../services/drag-service'], function (exports, _aureliaFramework, _pentominoService, _settingService, _dragService) {
     'use strict';
 
     Object.defineProperty(exports, "__esModule", {
         value: true
     });
-    exports.PentominoService = undefined;
+    exports.PentominosCustomElement = undefined;
 
     function _classCallCheck(instance, Constructor) {
         if (!(instance instanceof Constructor)) {
@@ -1508,523 +2248,102 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
 
     var _dec, _class;
 
-    var PentominoService = exports.PentominoService = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _dataService.DataService, _boardService.BoardService, _solutionService.SolutionService), _dec(_class = function () {
-        function PentominoService(bindingSignaler, dataService, boardService, solutionService) {
-            _classCallCheck(this, PentominoService);
+    var PentominosCustomElement = exports.PentominosCustomElement = (_dec = (0, _aureliaFramework.inject)(_pentominoService.PentominoService, _settingService.SettingService, _dragService.DragService), _dec(_class = function () {
+        function PentominosCustomElement(pentominoService, settingService, dragService) {
+            _classCallCheck(this, PentominosCustomElement);
 
-            this.bnds = bindingSignaler;
-            this.ds = dataService;
-            this.bs = boardService;
-            this.sls = solutionService;
-
-            this.pentominos = [];
-            this.offBoardPentominos = [];
-            this.fields = [];
-            this.activePentomino = null;
-            this.start();
+            this.ps = pentominoService;
+            this.ss = settingService;
+            this.ds = dragService;
         }
 
-        PentominoService.prototype.isSolved = function isSolved() {
-            var boardIsFull = this.boardIsFull();
-            if (boardIsFull) {
-                this.bs.setSolved();
-                this.sls.saveSolution(this.pentominos);
-            } else {
-                this.bs.unsetNewSolution();
-                this.bs.unsetSolved();
+        PentominosCustomElement.prototype.getPentominoClasses = function getPentominoClasses(pentomino) {
+            var classes = ['pentomino'];
+            classes.push('pentomino block_' + pentomino.name);
+            if (pentomino.active) {
+                classes.push('active');
             }
+            return classes.join(' ');
         };
 
-        PentominoService.prototype.boardIsFull = function boardIsFull() {
-            var h = this.bs.getHeight();
-            var w = this.bs.getWidth();
+        PentominosCustomElement.prototype.getPartClasses = function getPartClasses(pentomino, partIndex, face) {
+            var classes = ['fa', 'part'];
 
-            for (var y = 0; y < h; y++) {
-                for (var x = 0; x < w; x++) {
-                    if (this.fields[y][x] !== 1) {
-                        return false;
-                    }
-                }
+            var flipH = !(pentomino.index === 1 && pentomino.dimensions[0] > pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 0);
+            var flipV = !(pentomino.index === 1 && pentomino.dimensions[0] < pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 1);
+            if (partIndex === 0 && pentomino.type < 5) {
+                classes.push('fa-refresh');
+                classes.push('rotate');
             }
-            return true;
-        };
-
-        PentominoService.prototype.getActivePentomino = function getActivePentomino() {
-            return this.activePentomino;
-        };
-
-        PentominoService.prototype.getFields = function getFields() {
-            return this.fields;
-        };
-
-        PentominoService.prototype.setActivePentomino = function setActivePentomino(pentomino, index) {
-            this.activePentomino = pentomino;
-            this.activePentomino.activePart = index;
-        };
-
-        PentominoService.prototype.resetActivePentomino = function resetActivePentomino() {
-            if (this.activePentomino) {
-                this.activePentomino.activePart = null;
+            if (partIndex === 1 && pentomino.type < 4 && flipH) {
+                classes.push('fa-arrows-h');
+                classes.push('flipH');
             }
-            this.activePentomino = null;
-        };
-
-        PentominoService.prototype.setActivePentominoPosition = function setActivePentominoPosition(newX, newY) {
-            this.activePentomino.position.x = newX;
-            this.activePentomino.position.y = newY;
-        };
-
-        PentominoService.prototype.setAllOnboard = function setAllOnboard(onBoards, offBoards) {
-            this.pentominos = onBoards.concat(offBoards);
-            this.pentominos = this.sortPentominos(this.pentominos);
-            this.registerPieces();
-        };
-
-        PentominoService.prototype.signalViewUpdate = function signalViewUpdate() {
-            this.bnds.signal('position-signal');
-        };
-
-        PentominoService.prototype.sortPentominos = function sortPentominos(pentos) {
-            pentos.sort(function (a, b) {
-                return a.index - b.index;
-            });
-            return pentos;
-        };
-
-        PentominoService.prototype.setPentominosOffboard = function setPentominosOffboard() {
-            this.registerPieces();
-            this.offBoardPentominos = this.pentominos.filter(function (pento) {
-                return pento.onBoard === false;
-            });
-            this.pentominos = this.pentominos.filter(function (pento) {
-                return pento.onBoard === true;
-            });
-            this.registerPieces();
-            return this.offBoardPentominos;
-        };
-
-        PentominoService.prototype.adjustPosition = function adjustPosition() {
-            var pentomino = this.activePentomino;
-            var partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
-            var partAbsPosition = [pentomino.position.x + partRelPosition[0], pentomino.position.y + partRelPosition[1]];
-            var partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
-            var partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
-            switch (pentomino.activePart) {
-                case 0:
-                    pentomino.position.x = partAbsPosition[0] - partToBottom;
-                    pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
-                    break;
-                case 1:
-                    pentomino.position.x = partAbsPosition[0] - partToRight;
-                    break;
-                case 2:
-                    pentomino.position.y = partAbsPosition[1] - partToBottom;
-                    break;
+            if (partIndex === 2 && pentomino.type < 4 && flipV) {
+                classes.push('fa-arrows-v');
+                classes.push('flipV');
             }
+            return classes.join(' ');
         };
 
-        PentominoService.prototype.registerPiece = function registerPiece(pentomino, onOff) {
-            if (pentomino) {
-                var onBoardParts = 0;
-                var partsCount = pentomino.faces[pentomino.face].length;
-                for (var i = 0; i < partsCount; i++) {
-                    var x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
-                    var y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
-                    if (this.bs.onBoard(x, y)) {
-                        this.fields[y][x] += onOff;
-                        onBoardParts += 1;
-                    }
-                    pentomino.onBoard = onBoardParts == partsCount;
-                }
-            }
+        PentominosCustomElement.prototype.getPentominoCSS = function getPentominoCSS(x, y, color) {
+            var css = {
+                left: x * this.ss.partSize + 'px',
+                top: y * this.ss.partSize + 'px',
+                backgroundColor: color
+            };
+            return css;
         };
 
-        PentominoService.prototype.registerPieces = function registerPieces() {
-            this.fields = this.setBoardFields(0);
-            for (var i = 0; i < this.pentominos.length; i++) {
-                var pentomino = this.pentominos[i];
-                this.registerPiece(pentomino, 1);
-                this.adjustDimensions(pentomino);
-            }
-            this.signalViewUpdate();
+        PentominosCustomElement.prototype.getPartCSS = function getPartCSS(part) {
+            var css = {
+                'left': part[0] * this.ss.partSize + 'px',
+                'top': part[1] * this.ss.partSize + 'px'
+            };
+            return css;
         };
 
-        PentominoService.prototype.setBoardFields = function setBoardFields(content) {
-            var w = this.bs.getWidth();
-            var h = this.bs.getHeight();
-            var fields = [];
-            for (var y = 0; y < h; y++) {
-                fields.push([]);
-                for (var x = 0; x < w; x++) {
-                    fields[y].push(content);
-                }
-            }
-            return fields;
-        };
+        PentominosCustomElement.prototype.attached = function attached() {};
 
-        PentominoService.prototype.setPentominos = function setPentominos(pentos) {
-            this.pentominos = pentos;
-        };
+        return PentominosCustomElement;
+    }()) || _class);
+});
+define('components/solving',['exports', 'aurelia-framework', 'aurelia-event-aggregator', '../services/board-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _boardService, _pentominoService, _solutionService) {
+    'use strict';
 
-        PentominoService.prototype.setOffBoardPentominos = function setOffBoardPentominos(pentos) {
-            this.offBoardPentominos = pentos;
-        };
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SolvingCustomElement = undefined;
 
-        PentominoService.prototype.start = function start() {
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var SolvingCustomElement = exports.SolvingCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator, _boardService.BoardService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
+        function SolvingCustomElement(eventAggregator, boardService, pentominoService, solutionService) {
             var _this = this;
 
-            this.getPentominoData().then(function (response) {
-                _this.pentominos = response;
-                _this.getPentominoColors().then(function () {
-                    _this.getStartPosition(_this.bs.boardType).then(function () {
-                        _this.registerPieces();
-                        _this.solved = false;
-                    });
-                });
-            });
-        };
+            _classCallCheck(this, SolvingCustomElement);
 
-        PentominoService.prototype.getPentominoData = function getPentominoData() {
-            return this.ds.getPentominos().then(function (response) {
-                return response;
-            });
-        };
-
-        PentominoService.prototype.getPentominoColors = function getPentominoColors() {
-            var _this2 = this;
-
-            return this.ds.getColors().then(function (response) {
-                for (var i = 0; i < _this2.pentominos.length; i++) {
-                    _this2.pentominos[i].color = response[i].color;
-                }
-            });
-        };
-
-        PentominoService.prototype.adjustDimensions = function adjustDimensions(pentomino) {
-            if (pentomino && pentomino.initialDimensions) {
-                pentomino.dimensions = pentomino.initialDimensions.slice();
-            }
-            if (pentomino && pentomino.face % 2 == 1) {
-                pentomino.dimensions.reverse();
-            }
-        };
-
-        PentominoService.prototype.getStartPosition = function getStartPosition(shape) {
-            var _this3 = this;
-
-            return this.ds.getStartPosition(shape).then(function (response) {
-                _this3.bs.boardType = shape;
-                _this3.sls.currentSolution = -1;
-                _this3.sls.setShowSolutions();
-                var count = response.length;
-                for (var i = 0; i < count; i++) {
-                    var pentomino = _this3.pentominos[i];
-                    pentomino.face = response[i].face;
-                    pentomino.position = response[i].position;
-                    pentomino.active = false;
-                    pentomino.index = i;
-                    if (!pentomino.initialDimensions) {
-                        pentomino.initialDimensions = pentomino.dimensions.slice();
-                    } else {
-                        pentomino.dimensions = pentomino.initialDimensions.slice();
-                    }
-                    if (pentomino.face % 2 == 1) {
-                        pentomino.dimensions.reverse();
-                    }
-                }
-                while (_this3.pentominos.length < count) {
-                    _this3.pentominos.pop();
-                }
-                _this3.registerPieces();
-            });
-        };
-
-        return PentominoService;
-    }()) || _class);
-});
-define('services/permutation-service',['exports', 'aurelia-framework', './board-service'], function (exports, _aureliaFramework, _boardService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.PermutationService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var PermutationService = exports.PermutationService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function PermutationService(boardService) {
-            _classCallCheck(this, PermutationService);
-
-            this.bs = boardService;
-            this.rotable = [[[1, 2, 3, 0, 5, 6, 7, 4], [1, 2, 3, 0], [1, 2, 3, 0], [1, 0, 3, 2], [1, 0], [0]], [[4, 7, 6, 5, 0, 3, 2, 1], [3, 2, 1, 0], [0, 3, 2, 1], [2, 3, 0, 1], [0, 1], [0]], [[6, 5, 4, 7, 2, 1, 0, 3], [1, 0, 3, 2], [2, 1, 0, 3], [2, 3, 0, 1], [0, 1], [0]]];
-        }
-
-        PermutationService.prototype.flipRotate = function flipRotate(pentomino, part) {
-            if (part == undefined) {
-                part = pentomino.activePart;
-            }
-            pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
-
-            if (part === 0) {
-                pentomino.dimensions.reverse();
-            }
-        };
-
-        PermutationService.prototype.flipBoardYAxis = function flipBoardYAxis(pentominos) {
-            var pentomino = void 0;
-            for (var i = 0; i < pentominos.length; i++) {
-                pentomino = pentominos[i];
-                this.flipRotate(pentomino, 1);
-                pentomino.position.x = this.bs.getWidth() - pentomino.position.x - pentomino.dimensions[0];
-            }
-        };
-
-        PermutationService.prototype.rotateSquareBoard = function rotateSquareBoard(pentominos) {
-            var pentomino = void 0;
-            var origin = {};
-            for (var i = 0; i < pentominos.length; i++) {
-                pentomino = pentominos[i];
-
-                origin.x = pentomino.position.x;
-                origin.y = pentomino.position.y + pentomino.dimensions[1];
-
-                pentomino.position.x = this.bs.getWidth() - origin.y;
-                pentomino.position.y = origin.x;
-
-                this.flipRotate(pentomino, 0);
-            }
-        };
-
-        PermutationService.prototype.shiftPieces = function shiftPieces(pentominos, dx, dy) {
-            for (var i = 0; i < pentominos.length; i++) {
-                pentominos[i].position.x += dx;
-                pentominos[i].position.y += dy;
-            }
-        };
-
-        PermutationService.prototype.rotateBoard = function rotateBoard(pentominos) {
-            if (this.bs.boardType == 'square') {
-                this.rotateSquareBoard(pentominos);
-            } else {
-                for (var i = 0; i < 2; i++) {
-                    this.rotateSquareBoard(pentominos);
-                }this.shiftPieces(pentominos, 0, 4);
-            }
-        };
-
-        PermutationService.prototype.mixBoard = function mixBoard(pentominos) {
-            var clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-            var clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-            var maxX = clientWidth - 4;
-            var maxY = clientHeight - 4;
-
-            var offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
-
-            var count = pentominos.length;
-            for (var i = 0; i < count; i++) {
-                var pentomino = pentominos[i];
-                var face = Math.floor(Math.random() * pentomino.faces.length);
-                pentomino.face = face;
-
-                do {
-                    var xPos = Math.floor(Math.random() * maxX);
-                    xPos -= offsetX;
-                    var yPos = Math.floor(Math.random() * maxY);
-
-                    pentomino.position.x = xPos;
-                    pentomino.position.y = yPos;
-                } while (this.bs.touchesBoard(pentomino));
-                pentomino.onBoard = false;
-            }
-        };
-
-        return PermutationService;
-    }()) || _class);
-});
-define('services/setting-service',["exports", "aurelia-framework"], function (exports, _aureliaFramework) {
-    "use strict";
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SettingService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var SettingService = exports.SettingService = function () {
-        function SettingService() {
-            _classCallCheck(this, SettingService);
-
-            this.opaqueBlocks = true;
-            this.showSolutions = false;
-            this.scale = 1;
-            this.partSize = 40;
-            this.opaqueBlocks = false;
-        }
-
-        SettingService.prototype.getScale = function getScale() {
-            var screenWidth = document.querySelectorAll("html")[0].clientWidth;
-            var boardWidth = document.querySelectorAll(".board")[0].clientWidth;
-            var scale = Math.min(screenWidth / boardWidth, 1);
-            scale = Math.floor(scale * 10) / 10;
-            this.scale = scale;
-            return {
-                'transformOrigin': 'top',
-                '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
-                '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
-                'transform': 'scale(' + scale + ', ' + scale + ')'
-            };
-        };
-
-        SettingService.prototype.setShowSolutions = function setShowSolutions() {
-            this.showSolutions = true;
-        };
-
-        return SettingService;
-    }();
-});
-define('services/solution-service',['exports', 'aurelia-framework', './board-service', './permutation-service', './data-service', '../services/setting-service'], function (exports, _aureliaFramework, _boardService, _permutationService, _dataService, _settingService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SolutionService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var SolutionService = exports.SolutionService = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _permutationService.PermutationService, _dataService.DataService, _settingService.SettingService), _dec(_class = function () {
-        function SolutionService(boardService, permutationService, dataService, settingService) {
-            _classCallCheck(this, SolutionService);
-
-            this.bs = boardService;
-            this.ds = dataService;
-            this.ss = settingService;
-            this.prms = permutationService;
-            this.boardType = this.bs.boardType;
-            this.currentSolution = -1;
-            this.getSolutions();
-        }
-
-        SolutionService.prototype.getSolutions = function getSolutions() {
-            this.solutions = this.ds.getSolutions();
-            this.setShowSolutions();
-        };
-
-        SolutionService.prototype.setShowSolutions = function setShowSolutions() {
-            this.currentSolution = -1;
-            if (this.solutions[this.bs.boardType].length > 0) {
-                this.ss.setShowSolutions();
-            }
-        };
-
-        SolutionService.prototype.saveSolution = function saveSolution(pentominos) {
-            var solutionResult = this.isNewSolution(pentominos);
-
-            if (!isNaN(solutionResult)) {
-                this.currentSolution = solutionResult;
-                this.bs.unsetNewSolution();
-            } else {
-                this.ds.saveSolution(solutionResult);
-                this.solutions[this.boardType].push(solutionResult);
-                this.currentSolution = this.solutions[this.boardType].length - 1;
-                this.bs.setNewSolution();
-            }
-        };
-
-        SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
-            var isNewSolution = true;
-            var rotations = this.boardType == 'square' ? 4 : 2;
-            var solutionString = this.solution2String(pentominos);
-            var foundSolStr = solutionString;
-            var solutionsCount = this.solutions[this.boardType].length;
-
-            for (var flip = 0; flip < 2; flip++) {
-                for (var rotation = 0; rotation < rotations; rotation++) {
-                    for (var i = 0; i < solutionsCount; i++) {
-                        solutionString = this.solution2String(pentominos);
-                        isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
-                        if (!isNewSolution) return i;
-                    }
-
-                    this.prms.rotateBoard(pentominos);
-                }
-                this.prms.flipBoardYAxis(pentominos);
-            }
-            return foundSolStr;
-        };
-
-        SolutionService.prototype.solution2String = function solution2String(pentominos) {
-            var solutionString = "";
-            var count = pentominos.length;
-            for (var i = 0; i < count; i++) {
-                var pentomino = pentominos[i];
-                solutionString += this.pentomino2string(pentomino);
-            }
-            return solutionString;
-        };
-
-        SolutionService.prototype.pentomino2string = function pentomino2string(pentomino) {
-            var parts = [];
-            if (pentomino) {
-                parts.push('#' + pentomino.name);
-                parts.push(pentomino.face);
-                parts.push(pentomino.position.x);
-                parts.push(pentomino.position.y);
-                return parts.join('_');
-            }
-        };
-
-        return SolutionService;
-    }()) || _class);
-});
-define('services/solver-service',['exports', 'aurelia-framework', './data-service', './board-service', './pentomino-service', './solution-service'], function (exports, _aureliaFramework, _dataService, _boardService, _pentominoService, _solutionService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SolverService = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var SolverService = exports.SolverService = (_dec = (0, _aureliaFramework.inject)(_dataService.DataService, _boardService.BoardService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
-        function SolverService(dataService, boardService, pentominoService, solutionService) {
-            _classCallCheck(this, SolverService);
-
-            this.ds = dataService;
+            this.ea = eventAggregator;
             this.bs = boardService;
             this.ps = pentominoService;
             this.sls = solutionService;
+            this.solvingPanelVisible = false;
             this.backupPentominos = this.ps.pentominos.slice();
             this.slvrWrkr = null;
+            this.ea.subscribe('showSolvingPanel', function (response) {
+                _this.solvingPanelVisible = response;
+            });
         }
 
-        SolverService.prototype.startSolving = function startSolving() {
-            var _this = this;
+        SolvingCustomElement.prototype.autoSolve = function autoSolve() {
+            var _this2 = this;
 
             this.slvrWrkr = new Worker('./src/services/solver-worker.js');
             this.boardWidth = this.bs.getWidth();
@@ -2035,7 +2354,7 @@ define('services/solver-service',['exports', 'aurelia-framework', './data-servic
                 message: 'solve',
                 boardType: this.bs.boardType,
                 boardWidth: this.bs.getWidth(),
-                boardHeight: this.bs.getWidth(),
+                boardHeight: this.bs.getHeight(),
                 offBoards: this.ps.setPentominosOffboard(),
                 fields: this.ps.getFields(),
                 onBoards: this.ps.pentominos
@@ -2044,416 +2363,36 @@ define('services/solver-service',['exports', 'aurelia-framework', './data-servic
             this.slvrWrkr.postMessage(workerData);
 
             this.slvrWrkr.onmessage = function (e) {
-                var pentominos = _this.ps.sortPentominos(e.data.onBoards);
+                var pentominos = _this2.ps.sortPentominos(e.data.onBoards);
                 var offBoards = e.data.offBoards;
                 var message = e.data.message;
                 switch (message) {
                     case 'draw':
-                        _this.ps.setPentominos(pentominos);
+                        _this2.ps.setPentominos(pentominos);
                         break;
                     case 'solution':
-                        _this.sls.saveSolution(pentominos);
+                        _this2.ps.setPentominos(pentominos);
+                        _this2.sls.saveSolution(pentominos);
                         break;
-                    case 'none':
-                        _this.ps.setAllOnboard(pentominos, offBoards);
-                        console.log('No solutions found!');
+                    case 'finish':
+                        _this2.ps.setPentominos(pentominos);
+                        console.log('No more solutions found!');
                         break;
                     default:
-                        _this.ps.setAllOnboard(pentominos, offBoards);
+                        _this2.ps.setPentominos(pentominos);
+                        _this2.ps.setAllOnboard(pentominos, offBoards);
                         break;
                 }
             };
         };
 
-        SolverService.prototype.stop = function stop() {
+        SolvingCustomElement.prototype.stop = function stop() {
             this.slvrWrkr.terminate();
             this.ps.setPentominos(this.backupPentominos);
         };
 
-        return SolverService;
+        return SolvingCustomElement;
     }()) || _class);
-});
-define('services/solver-worker',[], function () {
-    'use strict';
-
-    var boardType = '';
-    var boardWidth = void 0;
-    var boardHeight = void 0;
-    var fields = [];
-    var pentominos = [];
-    var offBoardPentominos = [];
-    var startPositionsXblock = {
-        'square': [[1, 0], [1, 1], [2, 0], [2, 1], [2, 2]],
-        'rectangle': [[1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]],
-        'dozen': [],
-        'beam': [],
-        'stick': [],
-        'twig': [[1, 0], [6, 0]]
-    };
-    var xPentomino = function xPentomino() {
-        return getPentomino('x');
-    };
-    var startPosXBlock = 0;
-    var positionsTried = 0;
-    var proceed = true;
-
-    var adjustDimensions = function adjustDimensions(pentomino) {
-        if (pentomino && pentomino.initialDimensions) {
-            pentomino.dimensions = pentomino.initialDimensions.slice();
-        }
-        if (pentomino && pentomino.face % 2 === 1) {
-            pentomino.dimensions.reverse();
-        }
-    };
-
-    var autoSolve = function autoSolve(offBoards) {
-        if (allOffBoard()) {
-            setOnboard(xPentomino(), false);
-            var xPosition = getXBlockPosition();
-            while (xPosition) {
-                movePentomino(xPentomino(), 0, xPosition, false);
-                positionsTried++;
-                offBoards = findNextFit(offBoards);
-                xPosition = getXBlockPosition();
-            }
-        } else {
-            offBoards = findNextFit(offBoards);
-        }
-        return offBoards;
-    };
-
-    var allOffBoard = function allOffBoard() {
-        var emptyBoard = pentominos.length === 0;
-        return emptyBoard;
-    };
-
-    var copyBoardFields = function copyBoardFields() {
-        var flds = [];
-        for (var y = 0; y < boardHeight; y++) {
-            flds.push([]);
-            for (var x = 0; x < boardWidth; x++) {
-                flds[y].push(fields[y][x]);
-            }
-        }
-        return flds;
-    };
-
-    var discard = function discard(misFits) {
-        var pentomino = pentominos.pop();
-        pentomino.onBoard = false;
-        misFits.push(pentomino);
-        registerPiece(pentomino, -1);
-        return misFits;
-    };
-
-    var findFirstEmptyPosition = function findFirstEmptyPosition() {
-        for (var y = 0; y < boardHeight; y++) {
-            for (var x = 0; x < boardWidth; x++) {
-                if (fields[y][x] === 0) return [x, y];
-            }
-        }
-        return false;
-    };
-
-    var findFirstPartRight = function findFirstPartRight(pentomino) {
-        var offsetRight = pentomino.dimensions[0];
-        var part = pentomino.faces[pentomino.face][0];
-        for (var j = 0; j < pentomino.faces[pentomino.face].length; j++) {
-            part = pentomino.faces[pentomino.face][j];
-            offsetRight = part[1] === 0 && part[0] < offsetRight ? part[0] : offsetRight;
-        }
-        return offsetRight;
-    };
-
-    var findNextFit = function findNextFit(offBoards) {
-        var misFits = [];
-        var firstEmptyPosition = findFirstEmptyPosition();
-        if (firstEmptyPosition) {
-            if (holeFitsXPieces(firstEmptyPosition)) {
-                while (offBoards.length) {
-                    var pentomino = nextOnboard(offBoards);
-                    if (pentomino) {
-                        var count = pentomino.faces.length;
-                        for (var face = 0; face < count; face++) {
-                            positionsTried++;
-                            movePentomino(pentomino, face, firstEmptyPosition, true);
-                            if (isFitting() && proceed) {
-                                sendFeedBack('draw');
-                                findNextFit(sortPentominos(misFits.concat(offBoards)));
-                            }
-                        }
-                        discard(misFits);
-                        sendFeedBack('draw');
-                    }
-                }
-            }
-        } else {
-            sendFeedBack('solution');
-        }
-        return misFits.concat(offBoards);
-    };
-
-    var findPentominoByName = function findPentominoByName(set, name) {
-        return set.find(function (pento) {
-            return pento.name === name;
-        });
-    };
-
-    var getPentomino = function getPentomino(name) {
-        var pentomino = findPentominoByName(pentominos.concat(offBoardPentominos), name);
-        return pentomino;
-    };
-
-    var getXBlockPosition = function getXBlockPosition() {
-        if (startPosXBlock < startPositionsXblock[boardType].length) {
-            var position = startPositionsXblock[boardType][startPosXBlock].slice();
-            startPosXBlock += 1;
-            return position;
-        } else {
-            return false;
-        }
-    };
-
-    var holeFitsXPieces = function holeFitsXPieces(xy) {
-        var holeSize = 0;
-        var oPentoOnboard = oPentominoOnboard();
-        var label = 'a';
-        var board = copyBoardFields();
-        var y = xy[1];
-
-        var countDown = function countDown(xy) {
-            var y = xy[1];
-            var x = xy[0];
-            while (y < boardHeight && board[y][x] === 0) {
-                board[y][x] = label;
-                holeSize++;
-
-                countLeft([x - 1, y]);
-                countRight([x + 1, y]);
-                y++;
-            }
-        };
-
-        var countUp = function countUp(xy) {
-            var y = xy[1];
-            var x = xy[0];
-            while (y >= 0 && board[y][x] === 0) {
-                board[y][x] = label;
-                holeSize++;
-
-                countRight([x + 1, y]);
-                countLeft([x - 1, y]);
-                y--;
-            }
-        };
-
-        var countRight = function countRight(xy) {
-            var x = xy[0];
-            var y = xy[1];
-            while (x < boardWidth && board[y][x] === 0) {
-                board[y][x] = label;
-                holeSize++;
-
-                countDown([x, y + 1]);
-                countUp([x, y - 1]);
-                x++;
-            }
-        };
-
-        var countLeft = function countLeft(xy) {
-            var x = xy[0];
-            var y = xy[1];
-            while (x >= 0 && board[y][x] === 0) {
-                board[y][x] = label;
-                holeSize++;
-
-                countDown([x, y + 1]);
-                countUp([x, y - 1]);
-                x--;
-            }
-        };
-
-        countRight(xy);
-        return holeFits(holeSize);
-    };
-
-    var holeFits = function holeFits(sum) {
-        var compensation = oPentominoOnboard() || boardType === 'rectangle' ? 0 : 4;
-        return (sum - compensation) % 5 === 0;
-    };
-
-    var initVariables = function initVariables(data) {
-        boardType = data.boardType;
-        boardWidth = data.boardWidth;
-        boardHeight = data.boardHeight;
-        fields = data.fields;
-        pentominos = data.onBoards;
-        offBoardPentominos = data.offBoards;
-    };
-
-    var isFitting = function isFitting() {
-        var sum = 0;
-        var h = fields.length;
-        for (var y = 0; y < h; y++) {
-            var w = fields[y].length;
-            for (var x = 0; x < w; x++) {
-                if (fields[y][x] > 1) {
-                    return false;
-                } else {
-                    sum += fields[y][x];
-                }
-            }
-        }
-        return noneStickingOut(sum);
-    };
-
-    var logBoard = function logBoard() {
-        var flds = setBoardFields('');
-        var blockCount = pentominos.length;
-        for (var i = 0; i < blockCount; i++) {
-            var pentomino = pentominos[i];
-            var face = pentomino.faces[pentomino.face];
-            var partCount = face.length;
-            for (var j = 0; j < partCount; j++) {
-                var x = face[j][0] + pentomino.position.x;
-                var y = face[j][1] + pentomino.position.y;
-                if (y < boardHeight && x < boardWidth) {
-                    flds[y][x] += pentomino.name;
-                }
-            }
-        }
-        console.clear();
-        console.table(flds);
-    };
-
-    var movePentomino = function movePentomino(pentomino, face, position, shiftLeft) {
-        var newPosition = void 0;
-        registerPiece(pentomino, -1);
-        setFace(pentomino, face);
-
-        if (shiftLeft && position[0] > 0) {
-            var xShift = findFirstPartRight(pentomino);
-            newPosition = [position[0] - xShift, position[1]];
-        } else {
-            newPosition = position;
-        }
-        setPosition(pentomino, newPosition);
-        registerPiece(pentomino, 1);
-    };
-
-    var nextOnboard = function nextOnboard(offBoards) {
-        var pentomino = offBoards.shift();
-        pentomino.onBoard = true;
-        pentominos.push(pentomino);
-        registerPiece(pentomino, 1);
-        return pentomino;
-    };
-
-    var noneStickingOut = function noneStickingOut(sum) {
-        var compensation = oPentominoOnboard() || boardType === 'rectangle' ? 4 : 0;
-        return (sum - compensation) % 5 === 0;
-    };
-
-    var onBoard = function onBoard(x, y) {
-        return x >= 0 && x < boardWidth && y >= 0 && y < boardHeight;
-    };
-
-    var oPentominoOnboard = function oPentominoOnboard() {
-        return pentominos.filter(function (pento) {
-            return pento.name === 'o';
-        }).length > 0;
-    };
-
-    var registerPiece = function registerPiece(pentomino, onOff) {
-        if (pentomino) {
-            var onBoardParts = 0;
-            var face = pentomino.faces[pentomino.face];
-            var partsCount = face.length;
-            for (var i = 0; i < partsCount; i++) {
-                var part = face[i];
-                var x = part[0] + pentomino.position.x;
-                var y = part[1] + pentomino.position.y;
-                if (onBoard(x, y)) {
-                    fields[y][x] += onOff;
-                    onBoardParts += 1;
-                }
-                pentomino.onBoard = onBoardParts == partsCount;
-            }
-        }
-    };
-
-    var sendFeedBack = function sendFeedBack(message) {
-        var workerData = {
-            message: message || 'solution',
-            onBoards: []
-        };
-        switch (message) {
-            case 'draw':
-                workerData.onBoards = pentominos;
-                break;
-            case 'solution':
-                workerData.onBoards = pentominos;
-                break;
-            case 'finish':
-                workerData.onBoards = pentominos.concat(offBoardPentominos);
-            default:
-                break;
-        }
-        postMessage(workerData);
-    };
-
-    var setFace = function setFace(pentomino, face) {
-        pentomino.face = face;
-        adjustDimensions(pentomino);
-    };
-
-    var setPosition = function setPosition(pentomino, position) {
-        pentomino.position.x = position[0];
-        pentomino.position.y = position[1];
-    };
-
-    var setBoardFields = function setBoardFields(content) {
-        var w = boardWidth;
-        var h = boardHeight;
-        var fields = [];
-        for (var y = 0; y < h; y++) {
-            fields.push([]);
-            for (var x = 0; x < w; x++) {
-                fields[y].push(content);
-            }
-        }
-        return fields;
-    };
-
-    var setOnboard = function setOnboard(pentomino) {
-        pentominos.push(pentomino);
-        var index = offBoardPentominos.indexOf(pentomino);
-        offBoardPentominos.splice(index, 1);
-    };
-
-    var sortPentominos = function sortPentominos(pentos) {
-        pentos.sort(function (a, b) {
-            return a.index - b.index;
-        });
-        return pentos;
-    };
-
-    onmessage = function onmessage(e) {
-        var message = e.data.message;
-        switch (message) {
-            case 'solve':
-                proceed = true;
-                initVariables(e.data);
-                offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
-                break;
-            case 'stop':
-                proceed = false;
-                break;
-            default:
-                break;
-        }
-        sendFeedBack('finish');
-    };
 });
 define('resources/value-converters/part-pos-value-converter',['exports'], function (exports) {
     'use strict';
@@ -5137,11 +5076,11 @@ define('text!components/footer.html', ['module'], function(module) { module.expo
 define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n.button:disabled {\n    cursor : not-allowed;\n    opacity: .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss(bs.boardType)\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}</h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
-define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n"; });
-define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template>\n\n<!-- <template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino.faces[pentomino.face]\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"getPartCSS(part)\"\n                 xcss=\"left: ${part[0] * ss.partSize}px;top:${part[1] * ss.partSize}px\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template> -->"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
-define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <div show.bind=\"solvingPanelVisible\">\n        <button class=\"button\"\n                title=\"find all solutions\"\n                click.delegate=\"autoSolve()\"\n                touchstart.delegate=\"autoSolve()\">\n                <icon class=\"fa fa-fast-forward fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                show.bind=\"slvrWrkr != null\"\n                title=\"stop solutions worker\"\n                click.delegate=\"stop()\"\n                touchstart.delegate=\"stop()\">\n                <icon class=\"fa fa-stop fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
 define('text!components/solving.css', ['module'], function(module) { module.exports = ""; });
+define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
+define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template>\n\n<!-- <template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino.faces[pentomino.face]\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"getPartCSS(part)\"\n                 xcss=\"left: ${part[0] * ss.partSize}px;top:${part[1] * ss.partSize}px\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template> -->"; });
+define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <div show.bind=\"solvingPanelVisible\">\n        <button class=\"button\"\n                title=\"find all solutions\"\n                click.delegate=\"autoSolve()\"\n                touchstart.delegate=\"autoSolve()\">\n                <icon class=\"fa fa-fast-forward fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                show.bind=\"slvrWrkr != null\"\n                title=\"stop solutions worker\"\n                click.delegate=\"stop()\"\n                touchstart.delegate=\"stop()\">\n                <icon class=\"fa fa-stop fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
 //# sourceMappingURL=app-bundle.js.map

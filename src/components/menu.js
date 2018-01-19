@@ -10,21 +10,19 @@ import { BoardService } from '../services/board-service';
 import { SolutionService } from '../services/solution-service';
 import { PentominoService } from '../services/pentomino-service';
 import { PermutationService } from '../services/permutation-service';
-import { SolverService } from '../services/solver-service';
 import { SettingService } from '../services/setting-service';
 
-@inject(BindingSignaler, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SolverService, SettingService)
+@inject(BindingSignaler, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
 
 export class MenuCustomElement {
 
-    constructor(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, solverService, settingService) {
+    constructor(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
         this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ea = eventAggregator;
         this.sls = solutionService;
         this.ps = pentominoService;
         this.prms = permutationService;
-        this.slvs = solverService;
         this.ss = settingService;
         this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {

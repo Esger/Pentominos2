@@ -28,8 +28,8 @@ let startPositionsXblock = {
     'stick': [
     ],
     'twig': [
-        [1, 0],
-        [6, 0]
+        [0, 1],
+        [0, 6]
     ]
 };
 let xPentomino = () => getPentomino('x');
@@ -53,6 +53,7 @@ let autoSolve = function (offBoards) {
         let xPosition = getXBlockPosition();
         while (xPosition) {  //for all x positions
             movePentomino(xPentomino(), 0, xPosition, false);
+            sendFeedBack('draw');
             positionsTried++;
             offBoards = findNextFit(offBoards);
             xPosition = getXBlockPosition();
@@ -221,8 +222,12 @@ let holeFitsXPieces = function (xy) {
     return holeFits(holeSize);
 };
 
+let boardHas60Squares = function () {
+    return !(boardType === 'square' || boardType === 'stick');
+};
+
 let holeFits = function (sum) {
-    let compensation = (oPentominoOnboard() || boardType === 'rectangle') ? 0 : 4;
+    let compensation = (oPentominoOnboard() || boardHas60Squares()) ? 0 : 4;
     return ((sum - compensation) % 5 === 0);
 };
 
@@ -343,7 +348,10 @@ let sendFeedBack = function (message) {
             break;
         case 'finish':
             workerData.onBoards = pentominos.concat(offBoardPentominos);
+            postMessage(workerData);
+            close();
         default:
+            close();
             break;
     }
     postMessage(workerData);

@@ -36,7 +36,7 @@ export class SolvingCustomElement {
             message: 'solve',
             boardType: this.bs.boardType,
             boardWidth: this.bs.getWidth(),
-            boardHeight: this.bs.getWidth(),
+            boardHeight: this.bs.getHeight(),
             offBoards: this.ps.setPentominosOffboard(),
             fields: this.ps.getFields(),
             onBoards: this.ps.pentominos
