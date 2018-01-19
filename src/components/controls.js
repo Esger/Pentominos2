@@ -24,9 +24,7 @@ export class ControlsCustomElement {
         this.sls = solutionService;
         this.solutionCount = this.sls.solutions[this.sls.boardType].length;
         this.disabledButtons = false;
-        this.ea.subscribe('solving', response => {
-            this.disabledButtons = response;
-        });
+        this.setSubscribers();
     }
 
     getIndicatorClass() {
@@ -75,6 +73,11 @@ export class ControlsCustomElement {
         this.showSolution();
     }
 
+    showLastSolution() {
+        this.sls.currentSolution = this.solutionCount - 1;
+        this.showSolution();
+    }
+
     showPreviousSolution() {
         if (this.sls.currentSolution > 0) {
             this.sls.currentSolution--;
@@ -88,5 +91,38 @@ export class ControlsCustomElement {
             this.showSolution();
         }
     }
+
+    setSubscribers() {
+        let direction = 0;
+        let newDirection = 0;
+        let directions = {
+            'ArrowRight': 0,
+            'ArrowDown': 1,
+            'ArrowLeft': 2,
+            'ArrowUp': 3
+        }
+        this.ea.subscribe('solving', response => {
+            this.disabledButtons = response;
+        });
+        this.ea.subscribe('keyPressed', response => {
+            if (!this.disabledButtons) {
+                switch (response) {
+                    case 'ArrowRight': this.showNextSolution();
+                        break;
+                    case 'ArrowLeft': this.showPreviousSolution();
+                        break;
+                    case 'ArrowDown': this.showFirstSolution();
+                        break;
+                    case 'ArrowUp': this.showLastSolution();
+                        break;
+                    case ' ': this.ea.publish('pause');
+                        break;
+                }
+
+
+            }
+        });
+    }
+
 
 }
