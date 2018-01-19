@@ -2,17 +2,19 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
 import { SettingService } from './setting-service';
 import { PentominoService } from './pentomino-service';
 import { PermutationService } from './permutation-service';
 
-@inject(BindingSignaler, SettingService, PentominoService, PermutationService)
+@inject(BindingSignaler, EventAggregator, SettingService, PentominoService, PermutationService)
 
 export class DragService {
 
-    constructor(bindingSignaler, settingService, pentominoService, permutationService) {
+    constructor(bindingSignaler, eventAggregator, settingService, pentominoService, permutationService) {
         this.bnds = bindingSignaler;
+        this.ea = eventAggregator;
         this.ss = settingService;
         this.ps = pentominoService;
         this.prms = permutationService;
@@ -68,8 +70,10 @@ export class DragService {
                     ((pentomino.type == 4) && (pentomino.activePart < 1))) {
                     this.ps.adjustPosition();
                     this.prms.flipRotate(pentomino);
-                    this.bnds.signal('position-signal');
+                    this.ea.publish('move', 1);
                 }
+            } else {
+                this.ea.publish('move', 1);
             }
             this.ps.registerPiece(pentomino, 1);
             this.ps.isSolved();

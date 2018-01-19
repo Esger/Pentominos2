@@ -20,6 +20,13 @@
                 touchstart.delegate="stop()">
                 <icon class="fa fa-stop fa-lg"></icon>
         </button>
+        <button class="button"
+                disabled.bind="canStop"
+                title="close panel"
+                click.delegate="close()"
+                touchstart.delegate="close()">
+            <icon class="fa fa-close fa-lg"></icon>
+        </button>
         <p class="count">Tried ${positionsTried} positions</p>
     </div>
 </template>

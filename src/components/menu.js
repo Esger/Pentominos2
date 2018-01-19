@@ -2,11 +2,9 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
+import { EventAggregator } from 'aurelia-event-aggregator';
 import { SolutionService } from '../services/solution-service';
 import { PentominoService } from '../services/pentomino-service';
 import { PermutationService } from '../services/permutation-service';
@@ -55,6 +53,7 @@ export class MenuCustomElement {
         this.ps.registerPieces();
         this.settings.menuVisible = false;
         this.bnds.signal('position-signal');
+        this.ea.publish('move', 0);
     }
 
     hideTheMenu() {
