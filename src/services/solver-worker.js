@@ -1,9 +1,10 @@
-var boardType = '';
-var boardWidth, boardHeight;
-var fields = [];
-var pentominos = [];
-var offBoardPentominos = [];
-var startPositionsXblock = {
+let boardType = '';
+let boardWidth;
+let boardHeight;
+let fields = [];
+let pentominos = [];
+let offBoardPentominos = [];
+let startPositionsXblock = {
     'square': [
         [1, 0],
         [1, 1],
@@ -27,31 +28,32 @@ var startPositionsXblock = {
     'stick': [
     ],
     'twig': [
-        [1, 0],
-        [6, 0]
-    ],
+        [0, 1],
+        [0, 6]
+    ]
 };
-var xPentomino = () => getPentomino('x');
-var startPosXBlock = 0;
-var positionsTried = 0;
-var proceed = true;
+let xPentomino = () => getPentomino('x');
+let startPosXBlock = 0;
+let positionsTried = 0;
+let proceed = true;
 
-var adjustDimensions = function (pentomino) {
+let adjustDimensions = function (pentomino) {
     if (pentomino && pentomino.initialDimensions) {
         pentomino.dimensions = pentomino.initialDimensions.slice();
     }
-    if (pentomino && pentomino.face % 2 == 1) {
+    if (pentomino && pentomino.face % 2 === 1) {
         pentomino.dimensions.reverse();
     }
 };
 
-var autoSolve = function (offBoards, onBoards) {
+let autoSolve = function (offBoards) {
     if (allOffBoard()) {
         // put the x on board
         setOnboard(xPentomino(), false);
         let xPosition = getXBlockPosition();
         while (xPosition) {  //for all x positions
             movePentomino(xPentomino(), 0, xPosition, false);
+            sendFeedBack('draw');
             positionsTried++;
             offBoards = findNextFit(offBoards);
             xPosition = getXBlockPosition();
@@ -59,14 +61,15 @@ var autoSolve = function (offBoards, onBoards) {
     } else {
         offBoards = findNextFit(offBoards);
     }
+    return offBoards;
 };
 
-var allOffBoard = function () {
-    let emptyBoard = pentominos.length == 0;
+let allOffBoard = function () {
+    let emptyBoard = pentominos.length === 0;
     return emptyBoard;
 };
 
-var copyBoardFields = function () {
+let copyBoardFields = function () {
     let flds = [];
     for (let y = 0; y < boardHeight; y++) {
         flds.push([]);
@@ -77,7 +80,7 @@ var copyBoardFields = function () {
     return flds;
 };
 
-var discard = function (misFits) {
+let discard = function (misFits) {
     let pentomino = pentominos.pop();
     pentomino.onBoard = false;
     misFits.push(pentomino);
@@ -85,7 +88,7 @@ var discard = function (misFits) {
     return misFits;
 };
 
-var findFirstEmptyPosition = function () {
+let findFirstEmptyPosition = function () {
     // #todo Traverse arrays without for loop
     for (let y = 0; y < boardHeight; y++) {
         for (let x = 0; x < boardWidth; x++) {
@@ -95,7 +98,7 @@ var findFirstEmptyPosition = function () {
     return false;
 };
 
-var findFirstPartRight = function (pentomino) {
+let findFirstPartRight = function (pentomino) {
     let offsetRight = pentomino.dimensions[0];
     let part = pentomino.faces[pentomino.face][0];
     for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
@@ -105,11 +108,11 @@ var findFirstPartRight = function (pentomino) {
     return offsetRight;
 };
 
-var findNextFit = function (offBoards) {
+let findNextFit = function (offBoards) {
     let misFits = [];
     const firstEmptyPosition = findFirstEmptyPosition();
     if (firstEmptyPosition) { // start trying other pentominos
-        if (holeFitsXPieces(firstEmptyPosition)/* && this.positionsTried < 10000 */) {
+        if (holeFitsXPieces(firstEmptyPosition)) {
             while (offBoards.length) {
                 const pentomino = nextOnboard(offBoards);
                 if (pentomino) {
@@ -119,13 +122,12 @@ var findNextFit = function (offBoards) {
                     for (let face = 0; face < count; face++) {
                         positionsTried++;
                         movePentomino(pentomino, face, firstEmptyPosition, true);
-                        // sendFeedBack('draw');
                         if (isFitting() && proceed) {
                             sendFeedBack('draw');
                             findNextFit(sortPentominos(misFits.concat(offBoards)));
                         }
                     }
-                    misfits = discard(misFits);
+                    discard(misFits);
                     sendFeedBack('draw');
                 } // else next pentomino
             }
@@ -133,19 +135,19 @@ var findNextFit = function (offBoards) {
     } else {
         sendFeedBack('solution');
     }
-    return misFits;
+    return misFits.concat(offBoards);
 };
 
-var findPentominoByName = function (set, name) {
+let findPentominoByName = function (set, name) {
     return set.find((pento) => { return pento.name === name; });
 };
 
-var getPentomino = function (name) {
+let getPentomino = function (name) {
     let pentomino = findPentominoByName(pentominos.concat(offBoardPentominos), name);
     return pentomino;
 };
 
-var getXBlockPosition = function () {
+let getXBlockPosition = function () {
     if (startPosXBlock < startPositionsXblock[boardType].length) {
         let position = startPositionsXblock[boardType][startPosXBlock].slice();
         startPosXBlock += 1;
@@ -157,14 +159,14 @@ var getXBlockPosition = function () {
 
 // find out if open region at x,y is large enough for a pentomino by recursion counting
 // xy has to be the most up left open spot
-var holeFitsXPieces = function (xy) {
-    var holeSize = 0;
-    var oPentoOnboard = oPentominoOnboard();
-    var label = 'a';
-    var board = copyBoardFields();
-    var y = xy[1];
+let holeFitsXPieces = function (xy) {
+    let holeSize = 0;
+    let oPentoOnboard = oPentominoOnboard();
+    let label = 'a';
+    let board = copyBoardFields();
+    let y = xy[1];
 
-    var countDown = (xy) => {
+    let countDown = (xy) => {
         let y = xy[1];
         const x = xy[0];
         while ((y < boardHeight) && (board[y][x] === 0)) {
@@ -177,7 +179,7 @@ var holeFitsXPieces = function (xy) {
         }
     };
 
-    var countUp = (xy) => {
+    let countUp = (xy) => {
         let y = xy[1];
         const x = xy[0];
         while ((y >= 0) && (board[y][x] === 0)) {
@@ -190,7 +192,7 @@ var holeFitsXPieces = function (xy) {
         }
     };
 
-    var countRight = (xy) => {
+    let countRight = (xy) => {
         let x = xy[0];
         const y = xy[1];
         while ((x < boardWidth) && (board[y][x] === 0)) {
@@ -203,7 +205,7 @@ var holeFitsXPieces = function (xy) {
         }
     };
 
-    var countLeft = (xy) => {
+    let countLeft = (xy) => {
         let x = xy[0];
         const y = xy[1];
         while ((x >= 0) && (board[y][x] === 0)) {
@@ -220,12 +222,16 @@ var holeFitsXPieces = function (xy) {
     return holeFits(holeSize);
 };
 
-var holeFits = function (sum) {
-    let compensation = (oPentominoOnboard() || boardType === 'rectangle') ? 0 : 4;
+let boardHas60Squares = function () {
+    return !(boardType === 'square' || boardType === 'stick');
+};
+
+let holeFits = function (sum) {
+    let compensation = (oPentominoOnboard() || boardHas60Squares()) ? 0 : 4;
     return ((sum - compensation) % 5 === 0);
 };
 
-var initVariables = function (data) {
+let initVariables = function (data) {
     boardType = data.boardType;
     boardWidth = data.boardWidth;
     boardHeight = data.boardHeight;
@@ -235,7 +241,7 @@ var initVariables = function (data) {
 };
 
 // Return true if no overlapping pieces and all pieces are completely on the board
-var isFitting = function () {
+let isFitting = function () {
     let sum = 0;
     const h = fields.length;
     for (let y = 0; y < h; y++) {
@@ -251,7 +257,7 @@ var isFitting = function () {
     return noneStickingOut(sum);
 };
 
-var logBoard = function () {
+let logBoard = function () {
     let flds = setBoardFields('');
     const blockCount = pentominos.length;
     for (let i = 0; i < blockCount; i++) {
@@ -270,7 +276,7 @@ var logBoard = function () {
     console.table(flds);
 };
 
-var movePentomino = function (pentomino, face, position, shiftLeft) {
+let movePentomino = function (pentomino, face, position, shiftLeft) {
     let newPosition;
     registerPiece(pentomino, -1);
     setFace(pentomino, face);
@@ -286,7 +292,7 @@ var movePentomino = function (pentomino, face, position, shiftLeft) {
     registerPiece(pentomino, 1);
 };
 
-var nextOnboard = function (offBoards) {
+let nextOnboard = function (offBoards) {
     let pentomino = offBoards.shift();
     pentomino.onBoard = true;
     pentominos.push(pentomino);
@@ -294,22 +300,22 @@ var nextOnboard = function (offBoards) {
     return pentomino;
 };
 
-var noneStickingOut = function (sum) {
+let noneStickingOut = function (sum) {
     let compensation = (oPentominoOnboard() || boardType === 'rectangle') ? 4 : 0;
     return ((sum - compensation) % 5 === 0);
 };
 
-var onBoard = function (x, y) {
+let onBoard = function (x, y) {
     return (x >= 0) && (x < boardWidth) && (y >= 0) && (y < boardHeight);
 };
 
-var oPentominoOnboard = function () {
+let oPentominoOnboard = function () {
     return pentominos.filter((pento) => {
         return pento.name === 'o';
     }).length > 0;
 };
 
-var registerPiece = function (pentomino, onOff) {
+let registerPiece = function (pentomino, onOff) {
     if (pentomino) {
         let onBoardParts = 0;
         const face = pentomino.faces[pentomino.face];
@@ -327,26 +333,42 @@ var registerPiece = function (pentomino, onOff) {
     }
 };
 
-var sendFeedBack = function (message) {
+let sendFeedBack = function (message) {
     // logBoard();
     let workerData = {
         message: message || 'solution',
-        onBoards: pentominos || []
+        positions: positionsTried,
+        onBoards: []
     };
+    switch (message) {
+        case 'draw':
+            workerData.onBoards = pentominos;
+            break;
+        case 'solution':
+            workerData.onBoards = pentominos;
+            break;
+        case 'finish':
+            workerData.onBoards = pentominos.concat(offBoardPentominos);
+            postMessage(workerData);
+            close();
+        default:
+            close();
+            break;
+    }
     postMessage(workerData);
 };
 
-var setFace = function (pentomino, face) {
+let setFace = function (pentomino, face) {
     pentomino.face = face;
     adjustDimensions(pentomino);
 };
 
-var setPosition = function (pentomino, position) {
+let setPosition = function (pentomino, position) {
     pentomino.position.x = position[0];
     pentomino.position.y = position[1];
 };
 
-var setBoardFields = function (content) {
+let setBoardFields = function (content) {
     let w = boardWidth;
     let h = boardHeight;
     let fields = [];
@@ -359,13 +381,13 @@ var setBoardFields = function (content) {
     return fields;
 };
 
-var setOnboard = function (pentomino) {
+let setOnboard = function (pentomino) {
     pentominos.push(pentomino);
     let index = offBoardPentominos.indexOf(pentomino);
     offBoardPentominos.splice(index, 1);
 };
 
-var sortPentominos = function (pentos) {
+let sortPentominos = function (pentos) {
     pentos.sort((a, b) => {
         return a.index - b.index;
     });
@@ -373,13 +395,12 @@ var sortPentominos = function (pentos) {
 };
 
 onmessage = function (e) {
-    console.log('Starting solver worker');
     let message = e.data.message;
     switch (message) {
         case 'solve':
             proceed = true;
             initVariables(e.data);
-            autoSolve(offBoardPentominos, pentominos);
+            offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
             break;
         case 'stop':
             proceed = false;
@@ -387,5 +408,5 @@ onmessage = function (e) {
         default:
             break;
     }
-    console.log('Solver worker finished');
+    sendFeedBack('finish');
 };

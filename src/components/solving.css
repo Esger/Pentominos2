@@ -1,0 +1,10 @@
+.button:disabled {
+    pointer-events: none;
+    cursor        : not-allowed;
+}
+
+.count {
+    font-size  : 14px;
+    height     : 30px;
+    line-height: 30px;
+}

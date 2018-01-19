@@ -21,6 +21,7 @@ export class PentominoService {
         this.offBoardPentominos = [];
         this.fields = [];
         this.activePentomino = null;
+        this.oBlock = null;
         this.start();
     }
 
@@ -210,6 +211,18 @@ export class PentominoService {
         }
     }
 
+    // Remove or add the Oblock as needed for current boardType
+    toggleOblock(count) {
+        if (this.pentominos.length > count) {
+            this.oBlock = this.pentominos.pop();
+        } else {
+            if (this.oBlock) {
+                this.pentominos.push(this.oBlock);
+                this.oBlock = null;
+            }
+        }
+    }
+
     // Get the starting position for the given board type
     getStartPosition(shape) {
         return this.ds.getStartPosition(shape).then((response) => {
@@ -217,6 +230,7 @@ export class PentominoService {
             this.sls.currentSolution = -1;
             this.sls.setShowSolutions();
             let count = response.length;
+            this.toggleOblock(count);
             for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
@@ -231,9 +245,6 @@ export class PentominoService {
                 if (pentomino.face % 2 == 1) {
                     pentomino.dimensions.reverse();
                 }
-            }
-            while (this.pentominos.length < count) {
-                this.pentominos.pop();
             }
             this.registerPieces();
         });

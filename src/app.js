@@ -3,11 +3,13 @@ import {
     bindable
 } from 'aurelia-framework';
 import { DragService } from './services/drag-service';
+import { KeystrokeService } from './services/keystroke-service';
 
-@inject(DragService)
+@inject(DragService, KeystrokeService)
 
 export class App {
-    constructor(dragService) {
+    constructor(dragService, keystrokeService) {
         this.ds = dragService;
+        this.ks = keystrokeService;
     }
 }
