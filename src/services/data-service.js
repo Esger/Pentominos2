@@ -32,8 +32,8 @@ export class DataService {
             });
     }
 
-    getStartPosition(boardShape) {
-        let fileName = './src/data/start-' + boardShape + '.json';
+    getStartPosition() {
+        let fileName = './src/data/start-' + this.bs.boardType + '.json';
         return this.client.get(fileName)
             .then(data => {
                 let response = JSON.parse(data.response);
@@ -42,9 +42,7 @@ export class DataService {
     }
 
     getSolutions() {
-
         let solutions;
-
         if (localStorage.getItem("pentominos2")) {
             solutions = JSON.parse(localStorage.getItem("pentominos2"));
         } else {
@@ -60,7 +58,7 @@ export class DataService {
     }
 
     saveSolution(solutionString) {
-        let solutions = this.getSolutions(this.bs.boardTypes);
+        let solutions = this.getSolutions();
         solutions[this.bs.boardType].push(solutionString);
         localStorage.setItem("pentominos2", JSON.stringify(solutions));
     }

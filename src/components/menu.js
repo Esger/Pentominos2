@@ -101,8 +101,9 @@ export class MenuCustomElement {
         return clw + clh > 1100;
     }
 
-    getStartPosition(shape) {
-        this.ps.getStartPosition(shape);
+    setStartPosition(shape) {
+        this.bs.setBoardType(shape);
+        this.ps.getStartPosition();
         this.ps.registerPieces();
         this.bs.unsetSolved();
         this.bs.unsetNewSolution();

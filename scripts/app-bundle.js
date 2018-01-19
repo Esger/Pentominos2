@@ -384,8 +384,9 @@ define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-re
             return clw + clh > 1100;
         };
 
-        MenuCustomElement.prototype.getStartPosition = function getStartPosition(shape) {
-            this.ps.getStartPosition(shape);
+        MenuCustomElement.prototype.setStartPosition = function setStartPosition(shape) {
+            this.bs.setBoardType(shape);
+            this.ps.getStartPosition();
             this.ps.registerPieces();
             this.bs.unsetSolved();
             this.bs.unsetNewSolution();
@@ -1429,8 +1430,8 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
             });
         };
 
-        DataService.prototype.getStartPosition = function getStartPosition(boardShape) {
-            var fileName = './src/data/start-' + boardShape + '.json';
+        DataService.prototype.getStartPosition = function getStartPosition() {
+            var fileName = './src/data/start-' + this.bs.boardType + '.json';
             return this.client.get(fileName).then(function (data) {
                 var response = JSON.parse(data.response);
                 return response;
@@ -1438,9 +1439,7 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.getSolutions = function getSolutions() {
-
             var solutions = void 0;
-
             if (localStorage.getItem("pentominos2")) {
                 solutions = JSON.parse(localStorage.getItem("pentominos2"));
             } else {
@@ -1456,7 +1455,7 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.saveSolution = function saveSolution(solutionString) {
-            var solutions = this.getSolutions(this.bs.boardTypes);
+            var solutions = this.getSolutions();
             solutions[this.bs.boardType].push(solutionString);
             localStorage.setItem("pentominos2", JSON.stringify(solutions));
         };
@@ -1812,7 +1811,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             this.getPentominoData().then(function (response) {
                 _this.pentominos = response;
                 _this.getPentominoColors().then(function () {
-                    _this.getStartPosition(_this.bs.boardType).then(function () {
+                    _this.getStartPosition().then(function () {
                         _this.registerPieces();
                         _this.solved = false;
                     });
@@ -1845,9 +1844,16 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             }
         };
 
-        PentominoService.prototype.toggleOblock = function toggleOblock(count) {
-            if (this.pentominos.length > count) {
-                this.oBlock = this.pentominos.pop();
+        PentominoService.prototype.boardHas60Squares = function boardHas60Squares() {
+            var shape = this.bs.boardType;
+            return !(shape === 'square' || shape === 'stick');
+        };
+
+        PentominoService.prototype.toggleOblock = function toggleOblock() {
+            if (this.boardHas60Squares()) {
+                if (!this.oBlock) {
+                    this.oBlock = this.pentominos.pop();
+                }
             } else {
                 if (this.oBlock) {
                     this.pentominos.push(this.oBlock);
@@ -1856,15 +1862,14 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             }
         };
 
-        PentominoService.prototype.getStartPosition = function getStartPosition(shape) {
+        PentominoService.prototype.getStartPosition = function getStartPosition() {
             var _this3 = this;
 
-            return this.ds.getStartPosition(shape).then(function (response) {
-                _this3.bs.boardType = shape;
+            return this.ds.getStartPosition().then(function (response) {
                 _this3.sls.currentSolution = -1;
                 _this3.sls.setShowSolutions();
                 var count = response.length;
-                _this3.toggleOblock(count);
+                _this3.toggleOblock();
                 for (var i = 0; i < count; i++) {
                     var pentomino = _this3.pentominos[i];
                     pentomino.face = response[i].face;
@@ -5240,11 +5245,11 @@ define('text!components/footer.html', ['module'], function(module) { module.expo
 define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n.button:disabled, .indicator:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss(bs.boardType)\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}\n        <span class=\"moves\"\n              click.delegate=\"resetMoves()\"\n              touchstart.delegate=\"resetMoves()\"\n              if.bind=\"moves > 0\">${moves}</span>\n    </h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
-define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"getStartPosition(boardType)\"\n                    touchstart.delegate=\"getStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
+define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"setStartPosition(boardType)\"\n                    touchstart.delegate=\"setStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n\nh1 .moves {\n    float    : right;\n    font-size: 14px;\n    cursor   : pointer;\n}\n"; });
-define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.position.x},${pentomino.position.y} -->\n            </div>\n        </div>\n    </div>\n</template>\n\n<!-- <template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino.faces[pentomino.face]\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"getPartCSS(part)\"\n                 xcss=\"left: ${part[0] * ss.partSize}px;top:${part[1] * ss.partSize}px\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n            </div>\n        </div>\n    </div>\n</template> -->"; });
+define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.position.x},${pentomino.position.y} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
 define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <div show.bind=\"solvingPanelVisible\">\n        <button class=\"button\"\n                title=\"shuffle\"\n                click.delegate=\"mixBoard()\"\n                touchstart.delegate=\"mixBoard()\">\n                        <icon class=\"fa fa-random fa-lg\"></icon>\n                </button>\n        <button class=\"button\"\n                title=\"find all solutions\"\n                click.delegate=\"autoSolve()\"\n                touchstart.delegate=\"autoSolve()\">\n                <icon class=\"fa fa-fast-forward fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                disabled.bind=\"!canStop\"\n                title=\"stop solutions worker\"\n                click.delegate=\"stop()\"\n                touchstart.delegate=\"stop()\">\n                <icon class=\"fa fa-stop fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                disabled.bind=\"canStop\"\n                title=\"close panel\"\n                click.delegate=\"close()\"\n                touchstart.delegate=\"close()\">\n            <icon class=\"fa fa-close fa-lg\"></icon>\n        </button>\n        <p class=\"count\">Tried ${positionsTried} positions</p>\n    </div>\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
-define('text!components/solving.css', ['module'], function(module) { module.exports = ".button:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n}\n\n.count {\n    font-size  : 14px;\n    height     : 30px;\n    line-height: 30px;\n}\n"; });
+define('text!components/solving.css', ['module'], function(module) { module.exports = ".button:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n}\n\n.count {\n    text-align : center;\n    font-size  : 14px;\n    height     : 30px;\n    line-height: 30px;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
