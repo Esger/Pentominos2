@@ -23,15 +23,8 @@ export class SolutionService {
 
     getSolutions() {
         this.solutions = this.ds.getSolutions();
-        this.setShowSolutions();
     }
 
-    setShowSolutions() {
-        this.currentSolution = -1;
-        if (this.solutions[this.bs.boardType].length > 0) {
-            this.ss.setShowSolutions();
-        }
-    }
 
     saveSolution(pentominos) {
         let solutionResult = this.isNewSolution(pentominos);

@@ -40,8 +40,8 @@ export class ControlsCustomElement {
         return text;
     }
 
-    showSolutions(count) {
-        return count > 0;
+    get solutionsAvailable() {
+        return this.sls.solutions[this.bs.boardType].length > 0;
     }
 
     showSolution() {

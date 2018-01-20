@@ -234,7 +234,7 @@ export class PentominoService {
     getStartPosition() {
         return this.ds.getStartPosition().then((response) => {
             this.sls.currentSolution = -1;
-            this.sls.setShowSolutions();
+            // this.sls.setShowSolutions();
             let count = response.length;
             this.toggleOblock();
             for (let i = 0; i < count; i++) {
