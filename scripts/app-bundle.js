@@ -2272,12 +2272,10 @@ define('services/solver-worker',[], function () {
                             positionsTried++;
                             movePentomino(pentomino, face, firstEmptyPosition, true);
                             if (isFitting() && proceed) {
-                                sendFeedBack('draw');
                                 findNextFit(sortPentominos(misFits.concat(offBoards)));
                             }
                         }
                         discard(misFits);
-                        sendFeedBack('draw');
                     }
                 }
             }
@@ -2550,6 +2548,7 @@ define('services/solver-worker',[], function () {
     };
 
     onmessage = function onmessage(e) {
+        positionsTried = 0;
         var message = e.data.message;
         switch (message) {
             case 'solve':
