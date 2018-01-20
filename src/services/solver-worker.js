@@ -158,12 +158,12 @@ let findNextFit = function (offBoards) {
                         positionsTried++;
                         movePentomino(pentomino, face, firstEmptyPosition, true);
                         if (isFitting() && proceed) {
-                            sendFeedBack('draw');
+                            // sendFeedBack('draw');
                             findNextFit(sortPentominos(misFits.concat(offBoards)));
                         }
                     }
                     discard(misFits);
-                    sendFeedBack('draw');
+                    // sendFeedBack('draw');
                 } // else next pentomino
             }
         }
@@ -439,6 +439,7 @@ let sortPentominos = function (pentos) {
 };
 
 onmessage = function (e) {
+    positionsTried = 0;
     let message = e.data.message;
     switch (message) {
         case 'solve':
