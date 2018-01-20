@@ -157,7 +157,6 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-agg
             this.ss = settingService;
             this.ps = pentominoService;
             this.sls = solutionService;
-            this.solutionCount = this.sls.solutions[this.sls.boardType].length;
             this.disabledButtons = false;
             this.setSubscribers();
         }
@@ -261,9 +260,9 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-agg
         };
 
         _createClass(ControlsCustomElement, [{
-            key: 'solutionsAvailable',
+            key: 'solutionCount',
             get: function get() {
-                return this.sls.solutions[this.bs.boardType].length > 0;
+                return this.sls.solutions[this.bs.boardType].length;
             }
         }]);
 
@@ -1694,7 +1693,6 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
         PentominoService.prototype.boardIsFull = function boardIsFull() {
             var h = this.bs.getHeight();
             var w = this.bs.getWidth();
-
             for (var y = 0; y < h; y++) {
                 for (var x = 0; x < w; x++) {
                     if (this.fields[y][x] !== 1) {
@@ -1888,7 +1886,6 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
 
             return this.ds.getStartPosition().then(function (response) {
                 _this3.sls.currentSolution = -1;
-
                 var count = response.length;
                 _this3.toggleOblock();
                 for (var i = 0; i < count; i++) {
@@ -2187,7 +2184,7 @@ define('services/solver-worker',[], function () {
         }
     };
 
-    var autoSolve = function autoSolve(offBoards) {
+    var autoSolve = function autoSolve() {
         if (allOffBoard()) {
             setOnboard(xPentomino(), false);
             var xPosition = getXBlockPosition();
@@ -2195,13 +2192,12 @@ define('services/solver-worker',[], function () {
                 movePentomino(xPentomino(), 0, xPosition, false);
                 sendFeedBack('draw');
                 positionsTried++;
-                offBoards = findNextFit(offBoards);
+                offBoardPentominos = findNextFit(offBoardPentominos);
                 xPosition = getXBlockPosition();
             }
         } else {
-            offBoards = findNextFit(offBoards);
+            offBoardPentominos = findNextFit(offBoardPentominos);
         }
-        return offBoards;
     };
 
     var allOffBoard = function allOffBoard() {
@@ -2462,7 +2458,7 @@ define('services/solver-worker',[], function () {
     };
 
     var noneStickingOut = function noneStickingOut(sum) {
-        var compensation = !(oPentominoOnboard() || boardHas60Squares()) ? 4 : 0;
+        var compensation = oPentominoOnboard() ? 4 : 0;
         return (sum - compensation) % 5 === 0;
     };
 
@@ -2560,7 +2556,7 @@ define('services/solver-worker',[], function () {
             case 'solve':
                 proceed = true;
                 initVariables(e.data);
-                offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
+                autoSolve();
                 break;
             case 'stop':
                 proceed = false;
@@ -5247,7 +5243,7 @@ define('text!app.html', ['module'], function(module) { module.exports = "<templa
 define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n@media (min-height: 700px) {\n    .dragArea {\n        justify-content: center;\n    }\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS(bs.boardType)\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <pentominos></pentominos>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
-define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"solutionsAvailable\">\n        <button class=\"button small\"\n                title=\"Show previous solution\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <button class.bind=\"getIndicatorClass(bs.solved)\"\n                disabled.bind=\"disabledButtons\"\n                innerhtml.bind=\"getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showFirstSolution()\"\n                touchstart.delegate=\"showFirstSolution()\">\n        </button>\n        <button class=\"button small\"\n                title=\"Show next solution\"\n                disabled.bind=\"disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
+define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"solutionCount\">\n        <button class=\"button small\"\n                title=\"Show previous solution\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <button class.bind=\"getIndicatorClass(bs.solved)\"\n                disabled.bind=\"disabledButtons\"\n                innerhtml.bind=\"getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showFirstSolution()\"\n                touchstart.delegate=\"showFirstSolution()\">\n        </button>\n        <button class=\"button small\"\n                title=\"Show next solution\"\n                disabled.bind=\"disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    display         : flex;\n    flex-direction  : column;\n    position        : relative;\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
 define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <a href=\"http://www.ashware.nl\"\n       target=\"_blank\"\n       class=\"r\">&copy;&nbsp;ashWare</a>\n    <!-- <span class='st_sharethis' displayText='ShareThis'></span> -->\n</template>"; });
 define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n.button:disabled, .indicator:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });

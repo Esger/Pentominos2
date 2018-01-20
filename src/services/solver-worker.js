@@ -68,7 +68,7 @@ let adjustDimensions = function (pentomino) {
     }
 };
 
-let autoSolve = function (offBoards) {
+let autoSolve = function () {
     if (allOffBoard()) {
         // put the x on board
         setOnboard(xPentomino(), false);
@@ -77,13 +77,12 @@ let autoSolve = function (offBoards) {
             movePentomino(xPentomino(), 0, xPosition, false);
             sendFeedBack('draw');
             positionsTried++;
-            offBoards = findNextFit(offBoards);
+            offBoardPentominos = findNextFit(offBoardPentominos);
             xPosition = getXBlockPosition();
         }
     } else {
-        offBoards = findNextFit(offBoards);
+        offBoardPentominos = findNextFit(offBoardPentominos);
     }
-    return offBoards;
 };
 
 let allOffBoard = function () {
@@ -349,7 +348,7 @@ let nextOnboard = function (offBoards) {
 };
 
 let noneStickingOut = function (sum) {
-    let compensation = !(oPentominoOnboard() || boardHas60Squares()) ? 4 : 0;
+    let compensation = oPentominoOnboard() ? 4 : 0;
     return ((sum - compensation) % 5 === 0);
 };
 
@@ -448,7 +447,7 @@ onmessage = function (e) {
         case 'solve':
             proceed = true;
             initVariables(e.data);
-            offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
+            autoSolve();
             break;
         case 'stop':
             proceed = false;

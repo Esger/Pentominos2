@@ -22,9 +22,12 @@ export class ControlsCustomElement {
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
-        this.solutionCount = this.sls.solutions[this.sls.boardType].length;
         this.disabledButtons = false;
         this.setSubscribers();
+    }
+
+    get solutionCount() {
+        return this.sls.solutions[this.bs.boardType].length;
     }
 
     getIndicatorClass() {
@@ -38,10 +41,6 @@ export class ControlsCustomElement {
         let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
         let text = current + solutionCount;
         return text;
-    }
-
-    get solutionsAvailable() {
-        return this.sls.solutions[this.bs.boardType].length > 0;
     }
 
     showSolution() {
