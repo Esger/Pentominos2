@@ -20,11 +20,6 @@
     align-items    : center;
     overflow       : hidden;
 }
-@media (min-height: 700px) {
-    .dragArea {
-        justify-content: center;
-    }
-}
 
 .r {
     float: right;
