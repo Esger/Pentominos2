@@ -16,22 +16,14 @@ export class SolutionService {
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
-        this.boardType = this.bs.boardType;
         this.currentSolution = -1;
         this.getSolutions();
     }
 
     getSolutions() {
         this.solutions = this.ds.getSolutions();
-        this.setShowSolutions();
     }
 
-    setShowSolutions() {
-        this.currentSolution = -1;
-        if (this.solutions[this.bs.boardType].length > 0) {
-            this.ss.setShowSolutions();
-        }
-    }
 
     saveSolution(pentominos) {
         let solutionResult = this.isNewSolution(pentominos);
@@ -43,18 +35,18 @@ export class SolutionService {
             this.bs.unsetNewSolution();
         } else {
             this.ds.saveSolution(solutionResult);
-            this.solutions[this.boardType].push(solutionResult);
-            this.currentSolution = this.solutions[this.boardType].length - 1;
+            this.solutions[this.bs.boardType].push(solutionResult);
+            this.currentSolution = this.solutions[this.bs.boardType].length - 1;
             this.bs.setNewSolution();
         }
     }
 
     isNewSolution(pentominos) {
         let isNewSolution = true;
-        let rotations = (this.boardType == 'square') ? 4 : 2;
+        let rotations = (this.bs.boardType == 'square') ? 4 : 2;
         let solutionString = this.solution2String(pentominos);
         let foundSolStr = solutionString;
-        let solutionsCount = this.solutions[this.boardType].length;
+        let solutionsCount = this.solutions[this.bs.boardType].length;
 
         // Mirror
         for (let flip = 0; flip < 2; flip++) {

@@ -1,7 +1,7 @@
 <template>
     <require from="components/controls.css"></require>
     <div class="controls"
-         if.bind="showSolutions(sls.solutions[bs.boardType].length)">
+         if.bind="solutionCount">
         <button class="button small"
                 title="Show previous solution"
                 disabled.bind="disablePreviousButton(sls.currentSolution)"

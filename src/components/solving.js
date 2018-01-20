@@ -20,7 +20,6 @@ export class SolvingCustomElement {
         this.sls = solutionService;
         this.prms = permutationService;
         this.solvingPanelVisible = false;
-        this.backupPentominos = this.ps.pentominos.slice();
         this.slvrWrkr = null;
         this.canStop = false;
         this.positionsTried = 0;
@@ -31,6 +30,7 @@ export class SolvingCustomElement {
     }
 
     autoSolve() {
+        this.backupPentominos = this.ps.pentominos.slice();
         this.slvrWrkr = new Worker('./src/services/solver-worker.js');
         this.canStop = true;
         this.boardWidth = this.bs.getWidth();
@@ -61,6 +61,7 @@ export class SolvingCustomElement {
                     break;
                 case 'solution':
                     this.ps.setPentominos(pentominos);
+                    this.bs.setSolved();
                     this.sls.saveSolution(pentominos);
                     break;
                 case 'finish':

@@ -35,8 +35,8 @@ export class BoardService {
                 surface: 64
             },
             'twig': {
-                w: 3,
-                h: 20,
+                w: 20,
+                h: 3,
                 surface: 60
             }
         };

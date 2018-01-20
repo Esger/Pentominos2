@@ -1,6 +1,7 @@
 let boardType = '';
 let boardWidth;
 let boardHeight;
+let rotatedBoard = false;
 let fields = [];
 let pentominos = [];
 let offBoardPentominos = [];
@@ -22,14 +23,35 @@ let startPositionsXblock = {
         [1, 3]
     ],
     'dozen': [
+        [1, 0],
+        [2, 0],
+        [3, 0],
+        [4, 0],
+        [0, 1],
+        [1, 1],
+        [2, 1],
+        [3, 1],
+        [4, 1]
     ],
     'beam': [
+        [1, 0],
+        [2, 0],
+        [3, 0],
+        [4, 0],
+        [5, 0],
+        [6, 0]
     ],
     'stick': [
+        [1, 0],
+        [2, 0],
+        [3, 0],
+        [4, 0],
+        [5, 0],
+        [6, 0]
     ],
     'twig': [
-        [0, 1],
-        [0, 6]
+        [1, 0],
+        [6, 0]
     ]
 };
 let xPentomino = () => getPentomino('x');
@@ -46,7 +68,7 @@ let adjustDimensions = function (pentomino) {
     }
 };
 
-let autoSolve = function (offBoards) {
+let autoSolve = function () {
     if (allOffBoard()) {
         // put the x on board
         setOnboard(xPentomino(), false);
@@ -55,13 +77,12 @@ let autoSolve = function (offBoards) {
             movePentomino(xPentomino(), 0, xPosition, false);
             sendFeedBack('draw');
             positionsTried++;
-            offBoards = findNextFit(offBoards);
+            findNextFit(offBoardPentominos.slice());
             xPosition = getXBlockPosition();
         }
     } else {
-        offBoards = findNextFit(offBoards);
+        findNextFit(offBoardPentominos.slice());
     }
-    return offBoards;
 };
 
 let allOffBoard = function () {
@@ -85,14 +106,20 @@ let discard = function (misFits) {
     pentomino.onBoard = false;
     misFits.push(pentomino);
     registerPiece(pentomino, -1);
-    return misFits;
 };
 
 let findFirstEmptyPosition = function () {
     // #todo Traverse arrays without for loop
-    for (let y = 0; y < boardHeight; y++) {
-        for (let x = 0; x < boardWidth; x++) {
-            if (fields[y][x] === 0) return [x, y];
+    let firstAxis = Math.max(boardHeight, boardWidth);
+    let secondAxis = Math.min(boardHeight, boardWidth);
+
+    for (let i = 0; i < firstAxis; i++) {
+        for (let j = 0; j < secondAxis; j++) {
+            if (rotatedBoard) {
+                if (fields[j][i] === 0) return [i, j];
+            } else {
+                if (fields[i][j] === 0) return [j, i];
+            }
         }
     }
     return false;
@@ -100,12 +127,22 @@ let findFirstEmptyPosition = function () {
 
 let findFirstPartRight = function (pentomino) {
     let offsetRight = pentomino.dimensions[0];
-    let part = pentomino.faces[pentomino.face][0];
-    for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
-        part = pentomino.faces[pentomino.face][j];
+    let face = pentomino.faces[pentomino.face];
+    for (let j = 0; j < face.length; j++) {
+        let part = face[j];
         offsetRight = ((part[1] === 0) && (part[0] < offsetRight)) ? part[0] : offsetRight;
     }
     return offsetRight;
+};
+
+let findFirstPartDown = function (pentomino) {
+    let offsetDown = pentomino.dimensions[1];
+    let face = pentomino.faces[pentomino.face];
+    for (let j = 0; j < face.length; j++) {
+        let part = face[j];
+        offsetDown = ((part[0] === 0) && (part[1] < offsetDown)) ? part[1] : offsetDown;
+    }
+    return offsetDown;
 };
 
 let findNextFit = function (offBoards) {
@@ -116,8 +153,6 @@ let findNextFit = function (offBoards) {
             while (offBoards.length) {
                 const pentomino = nextOnboard(offBoards);
                 if (pentomino) {
-                    // console.clear();
-                    // console.log('trying ', positionsTried, pentomino.name);
                     const count = pentomino.faces.length;
                     for (let face = 0; face < count; face++) {
                         positionsTried++;
@@ -135,7 +170,6 @@ let findNextFit = function (offBoards) {
     } else {
         sendFeedBack('solution');
     }
-    return misFits.concat(offBoards);
 };
 
 let findPentominoByName = function (set, name) {
@@ -235,6 +269,7 @@ let initVariables = function (data) {
     boardType = data.boardType;
     boardWidth = data.boardWidth;
     boardHeight = data.boardHeight;
+    rotatedBoard = boardHeight < boardWidth;
     fields = data.fields;
     pentominos = data.onBoards;
     offBoardPentominos = data.offBoards;
@@ -276,17 +311,26 @@ let logBoard = function () {
     console.table(flds);
 };
 
-let movePentomino = function (pentomino, face, position, shiftLeft) {
+let movePentomino = function (pentomino, face, position, shiftIt) {
     let newPosition;
     registerPiece(pentomino, -1);
     setFace(pentomino, face);
     // If left top of pentomino is empty ___|
-    // move pentomino to the left
-    if (shiftLeft && position[0] > 0) {
-        let xShift = findFirstPartRight(pentomino);
-        newPosition = [position[0] - xShift, position[1]];
+    // move pentomino to the left or up in case of oblong board 
+    if (rotatedBoard) {
+        if (shiftIt && position[1] > 0) {
+            let yShift = findFirstPartDown(pentomino);
+            newPosition = [position[0], position[1] - yShift];
+        } else {
+            newPosition = position;
+        }
     } else {
-        newPosition = position;
+        if (shiftIt && position[0] > 0) {
+            let xShift = findFirstPartRight(pentomino);
+            newPosition = [position[0] - xShift, position[1]];
+        } else {
+            newPosition = position;
+        }
     }
     setPosition(pentomino, newPosition);
     registerPiece(pentomino, 1);
@@ -301,7 +345,7 @@ let nextOnboard = function (offBoards) {
 };
 
 let noneStickingOut = function (sum) {
-    let compensation = (oPentominoOnboard() || boardType === 'rectangle') ? 4 : 0;
+    let compensation = oPentominoOnboard() ? 4 : 0;
     return ((sum - compensation) % 5 === 0);
 };
 
@@ -400,7 +444,7 @@ onmessage = function (e) {
         case 'solve':
             proceed = true;
             initVariables(e.data);
-            offBoardPentominos = autoSolve(offBoardPentominos, pentominos);
+            autoSolve();
             break;
         case 'stop':
             proceed = false;

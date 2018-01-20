@@ -39,7 +39,6 @@ export class PentominoService {
     boardIsFull() {
         let h = this.bs.getHeight();
         let w = this.bs.getWidth();
-        // console.table(this.fields);
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 if (this.fields[y][x] !== 1) {
@@ -178,9 +177,9 @@ export class PentominoService {
         this.getPentominoData().then((response) => {
             this.pentominos = response;
             this.getPentominoColors().then(() => {
-                this.getStartPosition(this.bs.boardType).then(() => {
+                this.getStartPosition().then(() => {
                     this.registerPieces();
-                    this.solved = false;
+                    this.bs.unsetSolved();
                 });
             });
         });
@@ -211,10 +210,17 @@ export class PentominoService {
         }
     }
 
+    boardHas60Squares() {
+        let shape = this.bs.boardType;
+        return !(shape === 'square' || shape === 'stick');
+    };
+
     // Remove or add the Oblock as needed for current boardType
-    toggleOblock(count) {
-        if (this.pentominos.length > count) {
-            this.oBlock = this.pentominos.pop();
+    toggleOblock() {
+        if (this.boardHas60Squares()) {
+            if (!this.oBlock) {
+                this.oBlock = this.pentominos.pop();
+            }
         } else {
             if (this.oBlock) {
                 this.pentominos.push(this.oBlock);
@@ -224,13 +230,11 @@ export class PentominoService {
     }
 
     // Get the starting position for the given board type
-    getStartPosition(shape) {
-        return this.ds.getStartPosition(shape).then((response) => {
-            this.bs.boardType = shape;
+    getStartPosition() {
+        return this.ds.getStartPosition().then((response) => {
             this.sls.currentSolution = -1;
-            this.sls.setShowSolutions();
             let count = response.length;
-            this.toggleOblock(count);
+            this.toggleOblock();
             for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;

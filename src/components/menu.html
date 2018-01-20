@@ -21,8 +21,8 @@
                 <li repeat.for="boardType of boardTypes"
                     if.bind="showThisBoard(boardType)"
                     class.bind="getActiveBoardClass(boardType)"
-                    click.delegate="getStartPosition(boardType)"
-                    touchstart.delegate="getStartPosition(boardType)"
+                    click.delegate="setStartPosition(boardType)"
+                    touchstart.delegate="setStartPosition(boardType)"
                     innerhtml.bind="getBoardDimensions(boardType)"></li>
             </ul>
         </li>
