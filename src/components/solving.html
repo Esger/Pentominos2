@@ -1,5 +1,6 @@
 <template>
     <require from="components/solving.css"></require>
+    <require from="resources/value-converters/thousands-value-converter"></require>
     <div show.bind="solvingPanelVisible">
         <button class="button"
                 title="shuffle"
@@ -27,6 +28,6 @@
                 touchstart.delegate="close()">
             <icon class="fa fa-close fa-lg"></icon>
         </button>
-        <p class="count">Tried ${positionsTried} positions</p>
+        <p class="count">Tried ${positionsTried | thousands} positions</p>
     </div>
 </template>

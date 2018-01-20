@@ -47,7 +47,7 @@ export class SolutionService {
         let solutionString = this.solution2String(pentominos);
         let foundSolStr = solutionString;
         let solutionsCount = this.solutions[this.bs.boardType].length;
-
+        // use .split() to create arrays
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
             // Rotate
@@ -68,7 +68,7 @@ export class SolutionService {
 
     solution2String(pentominos) {
         let solutionString = "";
-        let count = pentominos.length;
+        const count = pentominos.length;
         for (let i = 0; i < count; i++) {
             let pentomino = pentominos[i];
             solutionString += this.pentomino2string(pentomino);
