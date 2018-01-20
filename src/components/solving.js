@@ -26,7 +26,7 @@ export class SolvingCustomElement {
         this.ea.subscribe('showSolvingPanel', response => {
             this.solvingPanelVisible = response;
         });
-
+        this.solutionsBuffer = [];
     }
 
     autoSolve() {
@@ -49,6 +49,7 @@ export class SolvingCustomElement {
 
         this.ea.publish('solving', true);
         this.slvrWrkr.postMessage(workerData);
+        this.handleSolutions();
 
         this.slvrWrkr.onmessage = (e) => {
             let pentominos = this.ps.sortPentominos(e.data.onBoards);
@@ -60,22 +61,35 @@ export class SolvingCustomElement {
                     this.ps.setPentominos(pentominos);
                     break;
                 case 'solution':
-                    this.ps.setPentominos(pentominos);
-                    this.bs.setSolved();
-                    this.sls.saveSolution(pentominos);
+                    setTimeout(() => { this.bufferSolution(pentominos) });
                     break;
                 case 'finish':
-                    this.ps.setPentominos(pentominos);
+                    // this.ps.setPentominos(pentominos);
                     this.canStop = false;
                     this.ea.publish('solving', false);
                     console.log('No more solutions found!');
                     break;
                 default:
-                    this.ps.setPentominos(pentominos);
-                    this.ps.setAllOnboard(pentominos, offBoards);
                     break;
             }
         };
+    }
+
+    bufferSolution(solution) {
+        this.solutionsBuffer.push(solution);
+    }
+
+    handleSolutions() {
+        let self = this;
+        if (self.solutionsBuffer.length) {
+            let pentominos = self.solutionsBuffer.shift();
+            self.ps.setPentominos(pentominos);
+            self.bs.setSolved();
+            self.sls.saveSolution(pentominos);
+        }
+        if (self.canStop || self.solutionsBuffer.length) {
+            requestAnimationFrame(() => { self.handleSolutions() });
+        }
     }
 
     mixBoard() {

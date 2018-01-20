@@ -41,24 +41,27 @@ export class SolutionService {
         }
     }
 
-    isNewSolution(pentominos) {
-        let isNewSolution = true;
-        let rotations = (this.bs.boardType == 'square') ? 4 : 2;
-        let solutionString = this.solution2String(pentominos);
-        let foundSolStr = solutionString;
-        let solutionsCount = this.solutions[this.bs.boardType].length;
+    findSolution(solutionString) {
+        let str = this.solutions[this.bs.boardType].find((solStr) => {
+            return solStr === solutionString;
+        });
+        return this.solutions[this.bs.boardType].indexOf(str);
+    }
 
+    isNewSolution(pentominos) {
+        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        const foundSolStr = this.solution2String(pentominos);;
+        // use .split() to create arrays
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
             // Rotate
             for (let rotation = 0; rotation < rotations; rotation++) {
                 // Existing solutions
-                for (let i = 0; i < solutionsCount; i++) {
-                    solutionString = this.solution2String(pentominos);
-                    isNewSolution = isNewSolution && (this.solutions[this.bs.boardType][i] !== solutionString);
-                    if (!isNewSolution) return i;
+                let solutionString = this.solution2String(pentominos);
+                let solNr = this.findSolution(solutionString);
+                if (solNr >= 0) {
+                    return solNr;
                 }
-                // Return to original position the last time
                 this.prms.rotateBoard(pentominos);
             }
             this.prms.flipBoardYAxis(pentominos);
@@ -68,8 +71,9 @@ export class SolutionService {
 
     solution2String(pentominos) {
         let solutionString = "";
-        let count = pentominos.length;
-        for (let i = 0; i < count; i++) {
+        const count = pentominos.length;
+        let i = 0;
+        for (; i < count; i++) {
             let pentomino = pentominos[i];
             solutionString += this.pentomino2string(pentomino);
         }
