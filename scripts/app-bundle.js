@@ -2122,21 +2122,24 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
             }
         };
 
+        SolutionService.prototype.findSolution = function findSolution(solutionString) {
+            var str = this.solutions[this.bs.boardType].find(function (solStr) {
+                return solStr === solutionString;
+            });
+            return this.solutions[this.bs.boardType].indexOf(str);
+        };
+
         SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
-            var isNewSolution = true;
             var rotations = this.bs.boardType == 'square' ? 4 : 2;
-            var solutionString = this.solution2String(pentominos);
-            var foundSolStr = solutionString;
-            var solutionsCount = this.solutions[this.bs.boardType].length;
+            var foundSolStr = this.solution2String(pentominos);;
 
             for (var flip = 0; flip < 2; flip++) {
                 for (var rotation = 0; rotation < rotations; rotation++) {
-                    for (var i = 0; i < solutionsCount; i++) {
-                        solutionString = this.solution2String(pentominos);
-                        isNewSolution = isNewSolution && this.solutions[this.bs.boardType][i] !== solutionString;
-                        if (!isNewSolution) return i;
+                    var solutionString = this.solution2String(pentominos);
+                    var solNr = this.findSolution(solutionString);
+                    if (solNr >= 0) {
+                        return solNr;
                     }
-
                     this.prms.rotateBoard(pentominos);
                 }
                 this.prms.flipBoardYAxis(pentominos);
@@ -2147,7 +2150,8 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
         SolutionService.prototype.solution2String = function solution2String(pentominos) {
             var solutionString = "";
             var count = pentominos.length;
-            for (var i = 0; i < count; i++) {
+            var i = 0;
+            for (; i < count; i++) {
                 var pentomino = pentominos[i];
                 solutionString += this.pentomino2string(pentomino);
             }
