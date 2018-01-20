@@ -179,7 +179,7 @@ export class PentominoService {
             this.getPentominoColors().then(() => {
                 this.getStartPosition().then(() => {
                     this.registerPieces();
-                    this.solved = false;
+                    this.bs.unsetSolved();
                 });
             });
         });

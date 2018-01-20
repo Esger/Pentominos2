@@ -534,7 +534,6 @@ define('components/solving',['exports', 'aurelia-framework', 'aurelia-templating
             this.sls = solutionService;
             this.prms = permutationService;
             this.solvingPanelVisible = false;
-            this.backupPentominos = this.ps.pentominos.slice();
             this.slvrWrkr = null;
             this.canStop = false;
             this.positionsTried = 0;
@@ -546,6 +545,7 @@ define('components/solving',['exports', 'aurelia-framework', 'aurelia-templating
         SolvingCustomElement.prototype.autoSolve = function autoSolve() {
             var _this2 = this;
 
+            this.backupPentominos = this.ps.pentominos.slice();
             this.slvrWrkr = new Worker('./src/services/solver-worker.js');
             this.canStop = true;
             this.boardWidth = this.bs.getWidth();
@@ -576,6 +576,7 @@ define('components/solving',['exports', 'aurelia-framework', 'aurelia-templating
                         break;
                     case 'solution':
                         _this2.ps.setPentominos(pentominos);
+                        _this2.bs.setSolved();
                         _this2.sls.saveSolution(pentominos);
                         break;
                     case 'finish':
@@ -1832,7 +1833,7 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                 _this.getPentominoColors().then(function () {
                     _this.getStartPosition().then(function () {
                         _this.registerPieces();
-                        _this.solved = false;
+                        _this.bs.unsetSolved();
                     });
                 });
             });
@@ -2081,7 +2082,6 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
             this.ds = dataService;
             this.ss = settingService;
             this.prms = permutationService;
-            this.boardType = this.bs.boardType;
             this.currentSolution = -1;
             this.getSolutions();
         }
@@ -2098,18 +2098,18 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
                 this.bs.unsetNewSolution();
             } else {
                 this.ds.saveSolution(solutionResult);
-                this.solutions[this.boardType].push(solutionResult);
-                this.currentSolution = this.solutions[this.boardType].length - 1;
+                this.solutions[this.bs.boardType].push(solutionResult);
+                this.currentSolution = this.solutions[this.bs.boardType].length - 1;
                 this.bs.setNewSolution();
             }
         };
 
         SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
             var isNewSolution = true;
-            var rotations = this.boardType == 'square' ? 4 : 2;
+            var rotations = this.bs.boardType == 'square' ? 4 : 2;
             var solutionString = this.solution2String(pentominos);
             var foundSolStr = solutionString;
-            var solutionsCount = this.solutions[this.boardType].length;
+            var solutionsCount = this.solutions[this.bs.boardType].length;
 
             for (var flip = 0; flip < 2; flip++) {
                 for (var rotation = 0; rotation < rotations; rotation++) {
@@ -2192,11 +2192,11 @@ define('services/solver-worker',[], function () {
                 movePentomino(xPentomino(), 0, xPosition, false);
                 sendFeedBack('draw');
                 positionsTried++;
-                offBoardPentominos = findNextFit(offBoardPentominos);
+                findNextFit(offBoardPentominos.slice());
                 xPosition = getXBlockPosition();
             }
         } else {
-            offBoardPentominos = findNextFit(offBoardPentominos);
+            findNextFit(offBoardPentominos.slice());
         }
     };
 
@@ -2284,7 +2284,6 @@ define('services/solver-worker',[], function () {
         } else {
             sendFeedBack('solution');
         }
-        return misFits.concat(offBoards);
     };
 
     var findPentominoByName = function findPentominoByName(set, name) {

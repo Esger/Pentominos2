@@ -77,11 +77,11 @@ let autoSolve = function () {
             movePentomino(xPentomino(), 0, xPosition, false);
             sendFeedBack('draw');
             positionsTried++;
-            offBoardPentominos = findNextFit(offBoardPentominos);
+            findNextFit(offBoardPentominos.slice());
             xPosition = getXBlockPosition();
         }
     } else {
-        offBoardPentominos = findNextFit(offBoardPentominos);
+        findNextFit(offBoardPentominos.slice());
     }
 };
 
@@ -153,8 +153,6 @@ let findNextFit = function (offBoards) {
             while (offBoards.length) {
                 const pentomino = nextOnboard(offBoards);
                 if (pentomino) {
-                    // console.clear();
-                    // console.log('trying ', positionsTried, pentomino.name);
                     const count = pentomino.faces.length;
                     for (let face = 0; face < count; face++) {
                         positionsTried++;
@@ -172,7 +170,6 @@ let findNextFit = function (offBoards) {
     } else {
         sendFeedBack('solution');
     }
-    return misFits.concat(offBoards);
 };
 
 let findPentominoByName = function (set, name) {
@@ -319,7 +316,7 @@ let movePentomino = function (pentomino, face, position, shiftIt) {
     registerPiece(pentomino, -1);
     setFace(pentomino, face);
     // If left top of pentomino is empty ___|
-    // move pentomino to the left or up in case of rotated board 
+    // move pentomino to the left or up in case of oblong board 
     if (rotatedBoard) {
         if (shiftIt && position[1] > 0) {
             let yShift = findFirstPartDown(pentomino);
