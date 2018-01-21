@@ -108,7 +108,8 @@ export class PentominoService {
         ];
         let partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
         let partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
-        switch (pentomino.activePart) {
+        let activePart = (pentomino.type === 4 && pentomino.activePart > 0) ? 3 : pentomino.activePart;
+        switch (activePart) {
             case 0:
                 pentomino.position.x = partAbsPosition[0] - partToBottom;
                 pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
@@ -119,6 +120,9 @@ export class PentominoService {
             case 2:
                 pentomino.position.y = partAbsPosition[1] - partToBottom;
                 break;
+            default:
+                pentomino.position.x = partAbsPosition[0] - partToBottom;
+                pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
         }
     }
 

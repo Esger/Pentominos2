@@ -65,9 +65,9 @@ export class DragService {
         if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                if (((pentomino.type < 4) &&
-                    (pentomino.activePart < 3)) ||
-                    ((pentomino.type == 4) && (pentomino.activePart < 1))) {
+                // if (((pentomino.type < 4) && (pentomino.activePart < 3)) ||
+                //     ((pentomino.type == 4) && (pentomino.activePart < 1))) {
+                if (pentomino.type <= 4) {
                     this.ps.adjustPosition();
                     this.prms.flipRotate(pentomino);
                     this.ea.publish('move', 1);
