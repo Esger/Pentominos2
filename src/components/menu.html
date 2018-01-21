@@ -1,6 +1,7 @@
 <template class="hamburger">
     <require from="components/menu.css"></require>
     <i class="fa fa-bars"
+       class.bind="menuDisabled ? 'disabled' : ''"
        click.delegate="showTheMenu()"
        touchstart.delegate="showTheMenu()"></i>
 
@@ -11,7 +12,7 @@
             touchstart.delegate="hideTheMenu()">
             <i class="fa fa-times"></i></li>
 
-        <li if.bind="sls.solutions['square'].length > 1"
+        <li class.bind="disableBoardSwitch ? 'disabled' : ''"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
             touchend.delegate="toggleSubmenuBoards()">
@@ -21,8 +22,8 @@
                 <li repeat.for="boardType of boardTypes"
                     if.bind="showThisBoard(boardType)"
                     class.bind="getActiveBoardClass(boardType)"
-                    click.delegate="getStartPosition(boardType)"
-                    touchstart.delegate="getStartPosition(boardType)"
+                    click.delegate="setStartPosition(boardType)"
+                    touchstart.delegate="setStartPosition(boardType)"
                     innerhtml.bind="getBoardDimensions(boardType)"></li>
             </ul>
         </li>
@@ -37,9 +38,9 @@
             click.delegate="mixBoard()"
             touchstart.delegate="mixBoard()">Shuffle</li>
 
-        <li if.bind="sls.solutions[bs.boardType].length > 20"
-            click.delegate="board.autoSolve()"
-            touchstart.delegate="board.autoSolve()">Spoiler</li>
+        <li class.bind="solverDisabled ? 'disabled' : ''"
+            click.delegate="showSolvingPanel()"
+            touchstart.delegate="showSolvingPanel()">Spoiler</li>
     </ul>
 
 </template>

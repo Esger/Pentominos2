@@ -1,0 +1,11 @@
+/* .button:disabled {
+    pointer-events: none;
+    cursor        : not-allowed;
+} */
+
+.count {
+    text-align : center;
+    font-size  : 14px;
+    height     : 30px;
+    line-height: 30px;
+}

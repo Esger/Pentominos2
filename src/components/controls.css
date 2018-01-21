@@ -6,7 +6,7 @@
     align-items    : center;
 }
 
-.controls .indicator, .controls button {
+.button, .indicator {
     height          : 30px;
     line-height     : 30px;
     font-family     : inherit;
@@ -20,29 +20,24 @@
     cursor          : pointer;
 }
 
-.controls .indicator {
+.indicator {
     margin-left: 5px;
 }
 
-.controls indicator.solved {
+.indicator.solved {
     border: 1px dotted lime;
 }
 
-.controls button.small {
+.button.small {
     width      : 40px;
     height     : 30px;
     line-height: 30px;
 }
 
-.controls button icon {
+.button icon {
     line-height: 30px;
 }
 
-.controls button:disabled {
-    cursor : not-allowed;
-    opacity: .2;
-}
-
-[class*='fa-step-'] {
+.controls [class*='fa-step-'] {
     vertical-align: 0;
 }

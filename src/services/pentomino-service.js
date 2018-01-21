@@ -2,25 +2,41 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(DataService, BoardService, SolutionService)
+@inject(BindingSignaler, DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(dataService, boardService, solutionService) {
+    constructor(bindingSignaler, dataService, boardService, solutionService) {
+
+        this.bnds = bindingSignaler;
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
+
         this.pentominos = [];
+        this.offBoardPentominos = [];
         this.fields = [];
-        this.currentPentomino = null;
+        this.activePentomino = null;
+        this.oBlock = null;
         this.start();
     }
 
-    pentominoCount() {
-        return this.pentominos.length;
+    get offBoards() {
+        let pentos = this.pentominos.filter((pento) => {
+            return pento.onBoard === false;
+        });
+        return pentos;
+    }
+
+    get onBoards() {
+        let pentos = this.pentominos.filter((pento) => {
+            return pento.onBoard === true;
+        });
+        return pentos;
     }
 
     isSolved() {
@@ -37,7 +53,6 @@ export class PentominoService {
     boardIsFull() {
         let h = this.bs.getHeight();
         let w = this.bs.getWidth();
-        // console.table(this.fields);
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
                 if (this.fields[y][x] !== 1) {
@@ -48,25 +63,44 @@ export class PentominoService {
         return true;
     }
 
-    setCurrentPentomino(pentomino, index) {
-        this.currentPentomino = pentomino;
-        this.currentPentomino.activePart = index;
+    getActivePentomino() {
+        return this.activePentomino;
     }
 
-    resetCurrentPentomino() {
-        if (this.currentPentomino) {
-            this.currentPentomino.activePart = null;
-            this.currentPentomino = null;
+    getFields() {
+        return this.fields;
+    }
+
+    setActivePentomino(pentomino, index) {
+        this.activePentomino = pentomino;
+        this.activePentomino.activePart = index;
+    }
+
+    resetActivePentomino() {
+        if (this.activePentomino) {
+            this.activePentomino.activePart = null;
         }
+        this.activePentomino = null;
     }
 
-    alignCurrentPentomino(newX, newY) {
-        this.currentPentomino.position.x = newX;
-        this.currentPentomino.position.y = newY;
+    setActivePentominoPosition(newX, newY) {
+        this.activePentomino.position.x = newX;
+        this.activePentomino.position.y = newY;
     }
 
-    adjustPosition() {
-        let pentomino = this.currentPentomino;
+    signalViewUpdate() {
+        this.bnds.signal('position-signal');
+    }
+
+    sortPentominos(pentos) {
+        pentos.sort((a, b) => {
+            return a.index - b.index;
+        });
+        return pentos;
+    }
+
+    adjustPosition() {  // Thanks Ben Nierop, for the idea
+        let pentomino = this.activePentomino;
         let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
         let partAbsPosition = [
             pentomino.position.x + partRelPosition[0],
@@ -89,59 +123,73 @@ export class PentominoService {
     }
 
     registerPiece(pentomino, onOff) {
-        if (pentomino && pentomino.faces) {
-            for (let j = 0; j < pentomino.faces[pentomino.face].length; j++) {
-                let x = pentomino.faces[pentomino.face][j][0] + pentomino.position.x;
-                let y = pentomino.faces[pentomino.face][j][1] + pentomino.position.y;
+        if (pentomino) {
+            let onBoardParts = 0;
+            let partsCount = pentomino.faces[pentomino.face].length;
+            for (let i = 0; i < partsCount; i++) {
+                let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
+                let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
                 if (this.bs.onBoard(x, y)) {
                     this.fields[y][x] += onOff;
+                    onBoardParts += 1;
                 }
+                pentomino.onBoard = (onBoardParts == partsCount);
             }
         }
     }
 
     registerPieces() {
-        this.setBoardFields(0);
+        this.fields = this.setBoardFields(0);
         for (var i = 0; i < this.pentominos.length; i++) {
-            let pentomino = this.pentominos[i]
+            let pentomino = this.pentominos[i];
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
         }
+        this.signalViewUpdate();
     }
 
     setBoardFields(content) {
         let w = this.bs.getWidth();
         let h = this.bs.getHeight();
-        this.fields = [];
+        let fields = [];
         for (let y = 0; y < h; y++) {
-            this.fields.push([]);
+            fields.push([]);
             for (let x = 0; x < w; x++) {
-                this.fields[y].push(content);
+                fields[y].push(content);
             }
         }
+        return fields;
+    }
+
+    setPentominos(pentos) {
+        this.pentominos = pentos;
+    }
+
+    setOffBoardPentominos(pentos) {
+        this.offBoardPentominos = pentos;
     }
 
     start() {
         this.getPentominoData().then((response) => {
             this.pentominos = response;
             this.getPentominoColors().then(() => {
-                this.getStartPosition(this.bs.boardType).then(() => {
-                    this.setBoardFields(0);
+                this.getStartPosition().then(() => {
                     this.registerPieces();
-                    this.solved = false;
+                    this.bs.unsetSolved();
                 });
             });
         });
     }
 
+    // Get the pentomino blocks
     getPentominoData() {
         return this.ds.getPentominos().then((response) => {
             return response;
         });
     }
 
+    // Get the colors for the pentominos
     getPentominoColors() {
-        // let self = this;
         return this.ds.getColors().then((response) => {
             for (let i = 0; i < this.pentominos.length; i++) {
                 this.pentominos[i].color = response[i].color;
@@ -158,12 +206,32 @@ export class PentominoService {
         }
     }
 
-    getStartPosition(shape) {
-        return this.ds.getStartPosition(shape).then((response) => {
-            this.bs.boardType = shape;
+    boardHas60Squares() {
+        let shape = this.bs.boardType;
+        return !(shape === 'square' || shape === 'stick');
+    };
+
+    // Remove or add the Oblock as needed for current boardType
+    toggleOblock() {
+        if (this.boardHas60Squares()) {
+            if (!this.oBlock) {
+                this.oBlock = this.pentominos.pop();
+            }
+        } else {
+            if (this.oBlock) {
+                this.pentominos.push(this.oBlock);
+                this.oBlock = null;
+            }
+        }
+    }
+
+    // Get the starting position for the given board type
+    getStartPosition() {
+        return this.ds.getStartPosition().then((response) => {
             this.sls.currentSolution = -1;
-            this.sls.setShowSolutions();
-            for (let i = 0; i < this.pentominos.length; i++) {
+            let count = response.length;
+            this.toggleOblock();
+            for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
                 pentomino.position = response[i].position;

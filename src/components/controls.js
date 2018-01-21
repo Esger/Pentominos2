@@ -2,22 +2,32 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import {
+    EventAggregator
+} from 'aurelia-event-aggregator';
+import { BindingSignaler } from 'aurelia-templating-resources';
 import { BoardService } from '../services/board-service';
 import { SettingService } from '../services/setting-service';
 import { PentominoService } from '../services/pentomino-service';
 import { SolutionService } from '../services/solution-service';
 
-@inject(BoardService, SettingService, PentominoService, SolutionService)
+@inject(BindingSignaler, BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
 
 export class ControlsCustomElement {
 
-    constructor(boardService, settingService, pentominoService, solutionService) {
-        this.bs = boardService; // kan weg?
+    constructor(bindingSignaler, boardService, eventAggregator, settingService, pentominoService, solutionService) {
+        this.ea = eventAggregator;
+        this.bnds = bindingSignaler;
+        this.bs = boardService;
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
-        this.pentominoCount = this.bs.pentominosLength();
-        this.solutionCount = this.sls.solutions[this.sls.boardType].length;
+        this.disabledButtons = false;
+        this.setSubscribers();
+    }
+
+    get solutionCount() {
+        return this.sls.solutions[this.bs.boardType].length;
     }
 
     getIndicatorClass() {
@@ -33,39 +43,37 @@ export class ControlsCustomElement {
         return text;
     }
 
-    showSolutions(count) {
-        return count > 0;
-    }
-
     showSolution() {
         let pentominos = this.ps.pentominos;
         let solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
         let splitString = solutionString.substr(1).split('#');
         for (let i = 0; i < splitString.length; i++) {
             let pentomino = this.ps.pentominos[i];
-            let props = splitString[i].split('_')
+            let props = splitString[i].split('_');
             pentomino.face = parseInt(props[1], 10);
             pentomino.position.x = parseInt(props[2], 10);
             pentomino.position.y = parseInt(props[3], 10);
         }
+        this.bnds.signal('position-signal');
         this.ps.registerPieces();
         this.bs.unsetNewSolution();
-    };
-
-    showButton() {
-        return (this.solutionCount > 0);
     }
 
     disableNextButton(current, count) {
-        return (current + 1 == count);
+        return (current + 1 == count) || this.disabledButtons;
     }
 
     disablePreviousButton(current) {
-        return (current == 0);
+        return (current == 0) || this.disabledButtons;
     }
 
     showFirstSolution() {
         this.sls.currentSolution = 0;
+        this.showSolution();
+    }
+
+    showLastSolution() {
+        this.sls.currentSolution = this.solutionCount - 1;
         this.showSolution();
     }
 
@@ -74,13 +82,46 @@ export class ControlsCustomElement {
             this.sls.currentSolution--;
             this.showSolution();
         }
-    };
+    }
 
     showNextSolution() {
         if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
             this.sls.currentSolution++;
             this.showSolution();
         }
-    };
+    }
+
+    setSubscribers() {
+        let direction = 0;
+        let newDirection = 0;
+        let directions = {
+            'ArrowRight': 0,
+            'ArrowDown': 1,
+            'ArrowLeft': 2,
+            'ArrowUp': 3
+        }
+        this.ea.subscribe('solving', response => {
+            this.disabledButtons = response;
+        });
+        this.ea.subscribe('keyPressed', response => {
+            if (!this.disabledButtons) {
+                switch (response) {
+                    case 'ArrowRight': this.showNextSolution();
+                        break;
+                    case 'ArrowLeft': this.showPreviousSolution();
+                        break;
+                    case 'ArrowDown': this.showFirstSolution();
+                        break;
+                    case 'ArrowUp': this.showLastSolution();
+                        break;
+                    case ' ': this.ea.publish('pause');
+                        break;
+                }
+
+
+            }
+        });
+    }
+
 
 }

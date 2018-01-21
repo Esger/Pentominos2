@@ -1,23 +1,22 @@
 <template>
     <require from="components/controls.css"></require>
     <div class="controls"
-         if.bind="showSolutions(sls.solutions[bs.boardType].length)">
-        <button class.bind="small"
+         if.bind="solutionCount">
+        <button class="button small"
                 title="Show previous solution"
-                if.bind="showButton()"
                 disabled.bind="disablePreviousButton(sls.currentSolution)"
                 click.delegate="showPreviousSolution()"
                 touchstart.delegate="showPreviousSolution()">
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
-        <div class.bind="getIndicatorClass(bs.solved)"
-             innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)"
-             click.delegate="showFirstSolution()"
-             touchstart.delegate="showFirstSolution()">
-        </div>
-        <button class="small"
+        <button class.bind="getIndicatorClass(bs.solved)"
+                disabled.bind="disabledButtons"
+                innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)"
+                click.delegate="showFirstSolution()"
+                touchstart.delegate="showFirstSolution()">
+        </button>
+        <button class="button small"
                 title="Show next solution"
-                if.bind="showButton()"
                 disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
                 click.delegate="showNextSolution()"
                 touchstart.delegate="showNextSolution()">

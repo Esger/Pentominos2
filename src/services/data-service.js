@@ -12,6 +12,13 @@ export class DataService {
     constructor(boardService) {
         this.bs = boardService;
         this.client = new HttpClient();
+        this.solutions = this.getSolutions();
+        this.timeOutHandle = undefined;
+    }
+
+    deleteSolutions() {
+        this.solutions[this.bs.boardType] = [];
+        this.saveSolution();
     }
 
     getPentominos() {
@@ -32,8 +39,8 @@ export class DataService {
             });
     }
 
-    getStartPosition(boardShape) {
-        let fileName = './src/data/start-' + boardShape + '.json';
+    getStartPosition() {
+        let fileName = './src/data/start-' + this.bs.boardType + '.json';
         return this.client.get(fileName)
             .then(data => {
                 let response = JSON.parse(data.response);
@@ -42,55 +49,47 @@ export class DataService {
     }
 
     getSolutions() {
-        // Convert old solutions
-        let convert = function (solutions) {
-            let convertedSolutions = {};
-            for (let boardType in solutions) {
-                if (solutions.hasOwnProperty(boardType)) {
-                    if (solutions[boardType].length) {
-                        for (let i = 0; i < solutions[boardType].length; i++) {
-                            solutions[boardType][i] = solutions[boardType][i].split('#');
-                            solutions[boardType][i].shift();
-                            for (let j = 0; j < solutions[boardType][i].length; j++) {
-                                solutions[boardType][i][j] = solutions[boardType][i][j].split('');
-                                solutions[boardType][i][j] = solutions[boardType][i][j].join('_')
-                            }
-                            solutions[boardType][i] = '#' + solutions[boardType][i].join('#');
-                        }
-                    }
-                }
-                convertedSolutions[boardType] = solutions[boardType];
-            }
-            return convertedSolutions;
-        };
-
         let solutions;
-
         if (localStorage.getItem("pentominos2")) {
             solutions = JSON.parse(localStorage.getItem("pentominos2"));
         } else {
-            if (localStorage.getItem("pentominos")) {
-                solutions = JSON.parse(localStorage.getItem("pentominos"));
-                solutions = convert(solutions);
-                localStorage.setItem("pentominos2", JSON.stringify(solutions));
-                localStorage.removeItem("pentominos");
-            } else {
-                solutions = {};
-                let boardTypes = this.bs.boardTypes;
-                for (let type in boardTypes) {
-                    if (boardTypes.hasOwnProperty(type)) {
-                        solutions[type] = [];
-                    }
+            solutions = {};
+            let boardTypes = this.bs.boardTypes;
+            for (let type in boardTypes) {
+                if (boardTypes.hasOwnProperty(type)) {
+                    solutions[type] = [];
                 }
             }
         }
         return solutions;
     }
 
-    saveSolution(solutionString) {
-        let solutions = this.getSolutions(this.bs.boardTypes);
-        solutions[this.bs.boardType].push(solutionString);
-        localStorage.setItem("pentominos2", JSON.stringify(solutions));
+    sortSolutions(solutions) {
+        if (Array.isArray(solutions)) {
+            return solutions.sort((a, b) => {
+                return a < b;
+            });
+        } else {
+            return solutions;
+        }
     }
 
+    saveSolution(solutionString) {
+        if (solutionString) {
+            this.solutions[this.bs.boardType].push(solutionString);
+        } else {
+            this.saveToLocalStorage();
+        }
+        if (!this.timeOutHandle) {
+            this.timeOutHandle = setTimeout(() => {
+                this.saveToLocalStorage();
+            }, 5000);
+        }
+    }
+
+    saveToLocalStorage() {
+        this.solutions[this.bs.boardType] = this.sortSolutions(this.solutions[this.bs.boardType]);
+        localStorage.setItem("pentominos2", JSON.stringify(this.solutions));
+        clearTimeout(this.timeOutHandle);
+    }
 }

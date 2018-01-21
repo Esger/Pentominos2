@@ -16,57 +16,57 @@ export class SolutionService {
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
-        this.boardType = this.bs.boardType;
         this.currentSolution = -1;
         this.getSolutions();
     }
 
     getSolutions() {
         this.solutions = this.ds.getSolutions();
-        this.setShowSolutions();
     }
 
-    setShowSolutions() {
-        this.currentSolution = -1;
-        if (this.solutions[this.bs.boardType].length > 0) {
-            this.ss.setShowSolutions();
-        }
+    deleteSolutions() {
+        this.ds.deleteSolutions();
+        this.getSolutions();
     }
 
     saveSolution(pentominos) {
-        let solutionResult = this.isNewSolution(pentominos);
-        // A number indicates an existing solution
-        // A string indicate a new solution
-        if (!isNaN(solutionResult)) {
-            // show this solution
-            this.currentSolution = solutionResult;
-            this.bs.unsetNewSolution();
+        if (pentominos) {
+            let solutionResult = this.isNewSolution(pentominos);
+            // A number indicates an existing solution
+            // A string indicate a new solution
+            if (!isNaN(solutionResult)) {
+                // show this solution
+                this.currentSolution = solutionResult;
+                this.bs.unsetNewSolution();
+            } else {
+                this.solutions[this.bs.boardType].push(solutionResult);
+                this.currentSolution = this.solutions[this.bs.boardType].length - 1;
+                this.bs.setNewSolution();
+                this.ds.saveSolution(solutionResult);
+            }
         } else {
-            this.ds.saveSolution(solutionResult);
-            this.solutions[this.boardType].push(solutionResult);
-            this.currentSolution = this.solutions[this.boardType].length - 1;
-            this.bs.setNewSolution();
+            this.ds.saveSolution();
         }
     }
 
-    isNewSolution(pentominos) {
-        let isNewSolution = true;
-        let rotations = (this.boardType == 'square') ? 4 : 2;
-        let solutionString = this.solution2String(pentominos);
-        let foundSolStr = solutionString;
-        let theLength = this.solutions[this.boardType].length;
+    findSolution(solutionString) {
+        return this.solutions[this.bs.boardType].indexOf(solutionString);
+    }
 
+    isNewSolution(pentominos) {
+        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        const foundSolStr = this.solution2String(pentominos);;
+        // use .split() to create arrays
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
             // Rotate
             for (let rotation = 0; rotation < rotations; rotation++) {
                 // Existing solutions
-                for (let i = 0; i < theLength; i++) {
-                    solutionString = this.solution2String(pentominos);
-                    isNewSolution = isNewSolution && (this.solutions[this.bs.boardType][i] !== solutionString);
-                    if (!isNewSolution) return i;
+                let solutionString = this.solution2String(pentominos);
+                let solNr = this.findSolution(solutionString);
+                if (solNr >= 0) {
+                    return solNr;
                 }
-                // Return to original position the last time
                 this.prms.rotateBoard(pentominos);
             }
             this.prms.flipBoardYAxis(pentominos);
@@ -76,9 +76,11 @@ export class SolutionService {
 
     solution2String(pentominos) {
         let solutionString = "";
-        let theLength = this.bs.pentominosLength();
-        for (let i = 0; i < theLength; i++) {
-            solutionString += this.pentomino2string(pentominos[i]);
+        const count = pentominos.length;
+        let i = 0;
+        for (; i < count; i++) {
+            let pentomino = pentominos[i];
+            solutionString += this.pentomino2string(pentomino);
         }
         return solutionString;
     }

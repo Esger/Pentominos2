@@ -1,14 +1,18 @@
 <template class="pentominosWrapper">
     <require from="components/pentominos.css"></require>
+    <require from="resources/value-converters/pento-pos-value-converter"></require>
+    <require from="resources/value-converters/part-pos-value-converter"></require>
+    <require from="resources/value-converters/pento-face-value-converter"></require>
     <div repeat.for="pentomino of ps.pentominos"
          class.bind="getPentominoClasses(pentomino)"
-         css.bind="getPentominoCSS(pentomino.position.x, pentomino.position.y, pentomino.color)">
+         css.bind="pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'">
         <div class="relContainer inheritBgColor">
-            <div repeat.for="part of pentomino.faces[pentomino.face]"
+            <div repeat.for="part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'"
                  class.bind="getPartClasses(pentomino, $index, pentomino.face)"
-                 css.bind="getPartCSS(part)"
+                 css.bind="part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'"
                  mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
                  touchstart.delegate="ds.startDrag(pentomino, $index, $event)">
+                <!-- ${pentomino.position.x},${pentomino.position.y} -->
             </div>
         </div>
     </div>
