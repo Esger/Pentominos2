@@ -24,28 +24,28 @@ export class SolutionService {
         this.solutions = this.ds.getSolutions();
     }
 
-
     saveSolution(pentominos) {
-        let solutionResult = this.isNewSolution(pentominos);
-        // A number indicates an existing solution
-        // A string indicate a new solution
-        if (!isNaN(solutionResult)) {
-            // show this solution
-            this.currentSolution = solutionResult;
-            this.bs.unsetNewSolution();
+        if (pentominos) {
+            let solutionResult = this.isNewSolution(pentominos);
+            // A number indicates an existing solution
+            // A string indicate a new solution
+            if (!isNaN(solutionResult)) {
+                // show this solution
+                this.currentSolution = solutionResult;
+                this.bs.unsetNewSolution();
+            } else {
+                this.solutions[this.bs.boardType].push(solutionResult);
+                this.currentSolution = this.solutions[this.bs.boardType].length - 1;
+                this.bs.setNewSolution();
+                this.ds.saveSolution(solutionResult);
+            }
         } else {
-            this.ds.saveSolution(solutionResult);
-            this.solutions[this.bs.boardType].push(solutionResult);
-            this.currentSolution = this.solutions[this.bs.boardType].length - 1;
-            this.bs.setNewSolution();
+            this.ds.saveSolution();
         }
     }
 
     findSolution(solutionString) {
-        let str = this.solutions[this.bs.boardType].find((solStr) => {
-            return solStr === solutionString;
-        });
-        return this.solutions[this.bs.boardType].indexOf(str);
+        return this.solutions[this.bs.boardType].indexOf(solutionString);
     }
 
     isNewSolution(pentominos) {

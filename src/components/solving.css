@@ -1,7 +1,7 @@
-.button:disabled {
+/* .button:disabled {
     pointer-events: none;
     cursor        : not-allowed;
-}
+} */
 
 .count {
     text-align : center;

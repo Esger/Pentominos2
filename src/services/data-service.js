@@ -12,6 +12,8 @@ export class DataService {
     constructor(boardService) {
         this.bs = boardService;
         this.client = new HttpClient();
+        this.solutions = this.getSolutions();
+        this.timeOutHandle = undefined;
     }
 
     getPentominos() {
@@ -57,10 +59,32 @@ export class DataService {
         return solutions;
     }
 
-    saveSolution(solutionString) {
-        let solutions = this.getSolutions();
-        solutions[this.bs.boardType].push(solutionString);
-        localStorage.setItem("pentominos2", JSON.stringify(solutions));
+    sortSolutions(solutions) {
+        if (Array.isArray(solutions)) {
+            return solutions.sort((a, b) => {
+                return a < b;
+            });
+        } else {
+            return solutions;
+        }
     }
 
+    saveSolution(solutionString) {
+        if (solutionString) {
+            this.solutions[this.bs.boardType].push(solutionString);
+        } else {
+            this.saveToLocalStorage();
+        }
+        if (!this.timeOutHandle) {
+            this.timeOutHandle = setTimeout(() => {
+                this.saveToLocalStorage();
+            }, 5000);
+        }
+    }
+
+    saveToLocalStorage() {
+        this.solutions[this.bs.boardType] = this.sortSolutions(this.solutions[this.bs.boardType]);
+        localStorage.setItem("pentominos2", JSON.stringify(this.solutions));
+        clearTimeout(this.timeOutHandle);
+    }
 }

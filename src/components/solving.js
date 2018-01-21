@@ -81,7 +81,8 @@ export class SolvingCustomElement {
 
     handleSolutions() {
         let self = this;
-        if (self.solutionsBuffer.length) {
+        // Are there any solutions to 
+        if (this.solutionsInQueue()) {
             let pentominos = self.solutionsBuffer.shift();
             self.ps.setPentominos(pentominos);
             self.bs.setSolved();
@@ -89,7 +90,13 @@ export class SolvingCustomElement {
         }
         if (self.canStop || self.solutionsBuffer.length) {
             requestAnimationFrame(() => { self.handleSolutions() });
+        } else {
+            self.sls.saveSolution();
         }
+    }
+
+    solutionsInQueue() {
+        return this.solutionsBuffer.length;
     }
 
     mixBoard() {
