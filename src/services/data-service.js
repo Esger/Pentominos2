@@ -16,6 +16,11 @@ export class DataService {
         this.timeOutHandle = undefined;
     }
 
+    deleteSolutions() {
+        this.solutions[this.bs.boardType] = [];
+        this.saveSolution();
+    }
+
     getPentominos() {
         let fileName = './src/data/pentominos.json';
         return this.client.get(fileName)

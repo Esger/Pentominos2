@@ -6,8 +6,8 @@
                 title="shuffle"
                 click.delegate="mixBoard()"
                 touchstart.delegate="mixBoard()">
-                        <icon class="fa fa-random fa-lg"></icon>
-                </button>
+                <icon class="fa fa-random fa-lg"></icon>
+        </button>
         <button class="button"
                 title="find all solutions"
                 click.delegate="autoSolve()"
@@ -22,11 +22,18 @@
                 <icon class="fa fa-stop fa-lg"></icon>
         </button>
         <button class="button"
+                disabled.bind="canStop || solutionsInQueue || noSolutions"
+                title="delete these solutions"
+                click.delegate="delete()"
+                touchstart.delegate="delete()">
+                <icon class="fa fa-trash fa-lg"></icon>
+        </button>
+        <button class="button"
                 disabled.bind="canStop"
                 title="close panel"
                 click.delegate="close()"
                 touchstart.delegate="close()">
-            <icon class="fa fa-close fa-lg"></icon>
+                <icon class="fa fa-close fa-lg"></icon>
         </button>
         <p class="count">Tried ${positionsTried | thousands} positions</p>
     </div>

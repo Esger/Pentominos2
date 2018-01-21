@@ -25,8 +25,20 @@ export class SolvingCustomElement {
         this.positionsTried = 0;
         this.ea.subscribe('showSolvingPanel', response => {
             this.solvingPanelVisible = response;
+            if (!response) {
+                this.stop();
+            }
         });
         this.solutionsBuffer = [];
+        this.backupPentominos = this.ps.pentominos.slice();
+    }
+
+    get solutionsInQueue() {
+        return this.solutionsBuffer.length;
+    }
+
+    get noSolutions() {
+        return this.sls.solutions[this.bs.boardType].length === 0;
     }
 
     autoSolve() {
@@ -37,14 +49,15 @@ export class SolvingCustomElement {
         this.boardHeight = this.bs.getHeight();
         this.startPosXBlock = 0;
         this.positionsTried = 0;
+        this.solutionsBuffer = [];
         let workerData = {
             message: 'solve',
             boardType: this.bs.boardType,
             boardWidth: this.bs.getWidth(),
             boardHeight: this.bs.getHeight(),
-            offBoards: this.ps.setPentominosOffboard(),
             fields: this.ps.getFields(),
-            onBoards: this.ps.pentominos
+            onBoards: this.ps.onBoards,
+            offBoards: this.ps.offBoards
         };
 
         this.ea.publish('solving', true);
@@ -64,7 +77,6 @@ export class SolvingCustomElement {
                     setTimeout(() => { this.bufferSolution(pentominos) });
                     break;
                 case 'finish':
-                    // this.ps.setPentominos(pentominos);
                     this.canStop = false;
                     this.ea.publish('solving', false);
                     console.log('No more solutions found!');
@@ -79,10 +91,21 @@ export class SolvingCustomElement {
         this.solutionsBuffer.push(solution);
     }
 
+    close() {
+        this.ea.publish('showSolvingPanel', false);
+    }
+
+    delete() {
+        this.stageBuffer = [];
+        this.sls.deleteSolutions();
+        this.ps.setPentominos(this.backupPentominos);
+        this.ps.registerPieces();
+    }
+
     handleSolutions() {
         let self = this;
         // Are there any solutions to 
-        if (this.solutionsInQueue()) {
+        if (this.solutionsInQueue) {
             let pentominos = self.solutionsBuffer.shift();
             self.ps.setPentominos(pentominos);
             self.bs.setSolved();
@@ -95,24 +118,20 @@ export class SolvingCustomElement {
         }
     }
 
-    solutionsInQueue() {
-        return this.solutionsBuffer.length;
-    }
-
     mixBoard() {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.bnds.signal('position-signal');
     }
 
-    close() {
-        this.solvingPanelVisible = false;
-    }
-
     stop() {
         this.canStop = false;
         this.ea.publish('solving', false);
-        this.slvrWrkr.terminate();
-        this.ps.setPentominos(this.backupPentominos);
+        if (this.slvrWrkr) {
+            this.slvrWrkr.terminate();
+            this.ps.setPentominos(this.backupPentominos);
+            this.ps.registerPieces();
+        }
     }
+
 }

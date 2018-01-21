@@ -25,6 +25,20 @@ export class PentominoService {
         this.start();
     }
 
+    get offBoards() {
+        let pentos = this.pentominos.filter((pento) => {
+            return pento.onBoard === false;
+        });
+        return pentos;
+    }
+
+    get onBoards() {
+        let pentos = this.pentominos.filter((pento) => {
+            return pento.onBoard === true;
+        });
+        return pentos;
+    }
+
     isSolved() {
         let boardIsFull = this.boardIsFull();
         if (boardIsFull) {
@@ -74,12 +88,6 @@ export class PentominoService {
         this.activePentomino.position.y = newY;
     }
 
-    setAllOnboard(onBoards, offBoards) {
-        this.pentominos = onBoards.concat(offBoards);
-        this.pentominos = this.sortPentominos(this.pentominos);
-        this.registerPieces();
-    }
-
     signalViewUpdate() {
         this.bnds.signal('position-signal');
     }
@@ -89,18 +97,6 @@ export class PentominoService {
             return a.index - b.index;
         });
         return pentos;
-    }
-
-    setPentominosOffboard() {
-        this.registerPieces();
-        this.offBoardPentominos = this.pentominos.filter((pento) => {
-            return pento.onBoard === false;
-        });
-        this.pentominos = this.pentominos.filter((pento) => {
-            return pento.onBoard === true;
-        });
-        this.registerPieces();
-        return this.offBoardPentominos;
     }
 
     adjustPosition() {  // Thanks Ben Nierop, for the idea
