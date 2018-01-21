@@ -38,11 +38,11 @@
     line-height: 30px;
 }
 
-.button:disabled, .indicator:disabled {
+/* .button:disabled, .indicator:disabled {
     pointer-events: none;
     cursor        : not-allowed;
     opacity       : .2;
-}
+} */
 
 [class*='fa-step-'] {
     vertical-align: 0;

@@ -71,566 +71,6 @@ define('main',['exports', './environment'], function (exports, _environment) {
     });
   }
 });
-define('components/board',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.BoardCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
-        function BoardCustomElement(boardService) {
-            _classCallCheck(this, BoardCustomElement);
-
-            this.bs = boardService;
-        }
-
-        BoardCustomElement.prototype.getBoardSizeCSS = function getBoardSizeCSS(shape) {
-            var boardType = this.bs.boardTypes[shape];
-            var css = {
-                width: boardType.w * this.bs.partSize + 'px',
-                height: boardType.h * this.bs.partSize + 'px'
-            };
-            return css;
-        };
-
-        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses(newSolution) {
-            var classes = ['board'];
-            var solvedClass = newSolution ? 'solved' : '';
-            classes.push(solvedClass);
-            return classes.join(' ');
-        };
-
-        return BoardCustomElement;
-    }()) || _class);
-});
-define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'aurelia-templating-resources', '../services/board-service', '../services/setting-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _aureliaTemplatingResources, _boardService, _settingService, _pentominoService, _solutionService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.ControlsCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _createClass = function () {
-        function defineProperties(target, props) {
-            for (var i = 0; i < props.length; i++) {
-                var descriptor = props[i];
-                descriptor.enumerable = descriptor.enumerable || false;
-                descriptor.configurable = true;
-                if ("value" in descriptor) descriptor.writable = true;
-                Object.defineProperty(target, descriptor.key, descriptor);
-            }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-            if (protoProps) defineProperties(Constructor.prototype, protoProps);
-            if (staticProps) defineProperties(Constructor, staticProps);
-            return Constructor;
-        };
-    }();
-
-    var _dec, _class;
-
-    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _settingService.SettingService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
-        function ControlsCustomElement(bindingSignaler, boardService, eventAggregator, settingService, pentominoService, solutionService) {
-            _classCallCheck(this, ControlsCustomElement);
-
-            this.ea = eventAggregator;
-            this.bnds = bindingSignaler;
-            this.bs = boardService;
-            this.ss = settingService;
-            this.ps = pentominoService;
-            this.sls = solutionService;
-            this.disabledButtons = false;
-            this.setSubscribers();
-        }
-
-        ControlsCustomElement.prototype.getIndicatorClass = function getIndicatorClass() {
-            var classes = ['indicator', 'rounded'];
-            var solvedClass = this.bs.solved && !this.bs.newSolution ? 'solved' : '';
-            classes.push(solvedClass);
-            return classes.join(' ');
-        };
-
-        ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText(currentSolution, solutionCount) {
-            var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
-            var text = current + solutionCount;
-            return text;
-        };
-
-        ControlsCustomElement.prototype.showSolution = function showSolution() {
-            var pentominos = this.ps.pentominos;
-            var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
-            var splitString = solutionString.substr(1).split('#');
-            for (var i = 0; i < splitString.length; i++) {
-                var pentomino = this.ps.pentominos[i];
-                var props = splitString[i].split('_');
-                pentomino.face = parseInt(props[1], 10);
-                pentomino.position.x = parseInt(props[2], 10);
-                pentomino.position.y = parseInt(props[3], 10);
-            }
-            this.bnds.signal('position-signal');
-            this.ps.registerPieces();
-            this.bs.unsetNewSolution();
-        };
-
-        ControlsCustomElement.prototype.disableNextButton = function disableNextButton(current, count) {
-            return current + 1 == count || this.disabledButtons;
-        };
-
-        ControlsCustomElement.prototype.disablePreviousButton = function disablePreviousButton(current) {
-            return current == 0 || this.disabledButtons;
-        };
-
-        ControlsCustomElement.prototype.showFirstSolution = function showFirstSolution() {
-            this.sls.currentSolution = 0;
-            this.showSolution();
-        };
-
-        ControlsCustomElement.prototype.showLastSolution = function showLastSolution() {
-            this.sls.currentSolution = this.solutionCount - 1;
-            this.showSolution();
-        };
-
-        ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
-            if (this.sls.currentSolution > 0) {
-                this.sls.currentSolution--;
-                this.showSolution();
-            }
-        };
-
-        ControlsCustomElement.prototype.showNextSolution = function showNextSolution() {
-            if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
-                this.sls.currentSolution++;
-                this.showSolution();
-            }
-        };
-
-        ControlsCustomElement.prototype.setSubscribers = function setSubscribers() {
-            var _this = this;
-
-            var direction = 0;
-            var newDirection = 0;
-            var directions = {
-                'ArrowRight': 0,
-                'ArrowDown': 1,
-                'ArrowLeft': 2,
-                'ArrowUp': 3
-            };
-            this.ea.subscribe('solving', function (response) {
-                _this.disabledButtons = response;
-            });
-            this.ea.subscribe('keyPressed', function (response) {
-                if (!_this.disabledButtons) {
-                    switch (response) {
-                        case 'ArrowRight':
-                            _this.showNextSolution();
-                            break;
-                        case 'ArrowLeft':
-                            _this.showPreviousSolution();
-                            break;
-                        case 'ArrowDown':
-                            _this.showFirstSolution();
-                            break;
-                        case 'ArrowUp':
-                            _this.showLastSolution();
-                            break;
-                        case ' ':
-                            _this.ea.publish('pause');
-                            break;
-                    }
-                }
-            });
-        };
-
-        _createClass(ControlsCustomElement, [{
-            key: 'solutionCount',
-            get: function get() {
-                return this.sls.solutions[this.bs.boardType].length;
-            }
-        }]);
-
-        return ControlsCustomElement;
-    }()) || _class);
-});
-define('components/header',['exports', 'aurelia-framework', '../services/board-service', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _boardService, _aureliaEventAggregator) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.HeaderCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _aureliaEventAggregator.EventAggregator), _dec(_class = function () {
-        function HeaderCustomElement(boardService, eventAggregator) {
-            var _this = this;
-
-            _classCallCheck(this, HeaderCustomElement);
-
-            this.bs = boardService;
-            this.ea = eventAggregator;
-            this.title = 'Pentomino';
-            this.moves = 0;
-            this.ea.subscribe('move', function (result) {
-                result > 0 ? _this.moves++ : _this.moves = 0;
-            });
-        }
-
-        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss(shape) {
-            var boardType = this.bs.boardTypes[shape];
-            var css = {
-                width: boardType.w * this.bs.partSize + 'px'
-            };
-            return css;
-        };
-
-        HeaderCustomElement.prototype.resetMoves = function resetMoves() {
-            this.ea.publish('move', 0);
-        };
-
-        return HeaderCustomElement;
-    }()) || _class);
-});
-define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', 'aurelia-event-aggregator', '../services/solution-service', '../services/pentomino-service', '../services/permutation-service', '../services/setting-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _aureliaEventAggregator, _solutionService, _pentominoService, _permutationService, _settingService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.MenuCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var MenuCustomElement = exports.MenuCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _solutionService.SolutionService, _pentominoService.PentominoService, _permutationService.PermutationService, _settingService.SettingService), _dec(_class = function () {
-        function MenuCustomElement(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
-            _classCallCheck(this, MenuCustomElement);
-
-            this.bnds = bindingSignaler;
-            this.bs = boardService;
-            this.ea = eventAggregator;
-            this.sls = solutionService;
-            this.ps = pentominoService;
-            this.prms = permutationService;
-            this.ss = settingService;
-            this.boardTypes = Object.keys(this.bs.boardTypes);
-            this.settings = {
-                menuVisible: false,
-                submenuBoardsVisible: false
-            };
-        }
-
-        MenuCustomElement.prototype.rotateBoard = function rotateBoard() {
-            this.prms.rotateBoard(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
-        };
-
-        MenuCustomElement.prototype.flipBoardYAxis = function flipBoardYAxis() {
-            this.prms.flipBoardYAxis(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
-        };
-
-        MenuCustomElement.prototype.showTheMenu = function showTheMenu() {
-            this.settings.menuVisible = true;
-            this.settings.submenuBoardsVisible = false;
-        };
-
-        MenuCustomElement.prototype.mixBoard = function mixBoard() {
-            this.prms.mixBoard(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.settings.menuVisible = false;
-            this.bnds.signal('position-signal');
-            this.ea.publish('move', 0);
-        };
-
-        MenuCustomElement.prototype.hideTheMenu = function hideTheMenu() {
-            this.settings.menuVisible = false;
-        };
-
-        MenuCustomElement.prototype.showThisBoard = function showThisBoard(key) {
-            return true;
-        };
-
-        MenuCustomElement.prototype.toggleSubmenuBoards = function toggleSubmenuBoards() {
-            this.settings.submenuBoardsVisible = !this.settings.submenuBoardsVisible;
-            return false;
-        };
-
-        MenuCustomElement.prototype.getBoardDimensions = function getBoardDimensions(boardType) {
-            var text = '' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h;
-            return text;
-        };
-
-        MenuCustomElement.prototype.getActiveBoardClass = function getActiveBoardClass(boardType) {
-            return this.bs.boardType == boardType ? 'active' : '';
-        };
-
-        MenuCustomElement.prototype.screenIsLargeEnough = function screenIsLargeEnough() {
-            var clw = document.querySelectorAll('html')[0].clientWidth;
-            var clh = document.querySelectorAll('html')[0].clientHeight;
-            return clw + clh > 1100;
-        };
-
-        MenuCustomElement.prototype.setStartPosition = function setStartPosition(shape) {
-            this.bs.setBoardType(shape);
-            this.ps.getStartPosition();
-            this.ps.registerPieces();
-            this.bs.unsetSolved();
-            this.bs.unsetNewSolution();
-            this.settings.submenuBoardsVisible = false;
-            this.settings.menuVisible = false;
-        };
-
-        MenuCustomElement.prototype.workersSupported = function workersSupported() {
-            if (window.Worker) {
-                return true;
-            }
-            return false;
-        };
-
-        MenuCustomElement.prototype.showSolvingPanel = function showSolvingPanel() {
-            this.ea.publish('showSolvingPanel', true);
-            this.settings.menuVisible = false;
-        };
-
-        return MenuCustomElement;
-    }()) || _class);
-});
-define('components/pentominos',['exports', 'aurelia-framework', '../services/pentomino-service', '../services/setting-service', '../services/drag-service'], function (exports, _aureliaFramework, _pentominoService, _settingService, _dragService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.PentominosCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var PentominosCustomElement = exports.PentominosCustomElement = (_dec = (0, _aureliaFramework.inject)(_pentominoService.PentominoService, _settingService.SettingService, _dragService.DragService), _dec(_class = function () {
-        function PentominosCustomElement(pentominoService, settingService, dragService) {
-            _classCallCheck(this, PentominosCustomElement);
-
-            this.ps = pentominoService;
-            this.ss = settingService;
-            this.ds = dragService;
-        }
-
-        PentominosCustomElement.prototype.getPentominoClasses = function getPentominoClasses(pentomino) {
-            var classes = ['pentomino'];
-            classes.push('pentomino block_' + pentomino.name);
-            if (pentomino.active) {
-                classes.push('active');
-            }
-            return classes.join(' ');
-        };
-
-        PentominosCustomElement.prototype.getPartClasses = function getPartClasses(pentomino, partIndex, face) {
-            var classes = ['fa', 'part'];
-
-            var flipH = !(pentomino.index === 1 && pentomino.dimensions[0] > pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 0);
-            var flipV = !(pentomino.index === 1 && pentomino.dimensions[0] < pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 1);
-            if (partIndex === 0 && pentomino.type < 5) {
-                classes.push('fa-refresh');
-                classes.push('rotate');
-            }
-            if (partIndex === 1 && pentomino.type < 4 && flipH) {
-                classes.push('fa-arrows-h');
-                classes.push('flipH');
-            }
-            if (partIndex === 2 && pentomino.type < 4 && flipV) {
-                classes.push('fa-arrows-v');
-                classes.push('flipV');
-            }
-            return classes.join(' ');
-        };
-
-        PentominosCustomElement.prototype.getPentominoCSS = function getPentominoCSS(x, y, color) {
-            var css = {
-                left: x * this.ss.partSize + 'px',
-                top: y * this.ss.partSize + 'px',
-                backgroundColor: color
-            };
-            return css;
-        };
-
-        PentominosCustomElement.prototype.getPartCSS = function getPartCSS(part) {
-            var css = {
-                'left': part[0] * this.ss.partSize + 'px',
-                'top': part[1] * this.ss.partSize + 'px'
-            };
-            return css;
-        };
-
-        PentominosCustomElement.prototype.attached = function attached() {};
-
-        return PentominosCustomElement;
-    }()) || _class);
-});
-define('components/solving',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', 'aurelia-event-aggregator', '../services/pentomino-service', '../services/permutation-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _aureliaEventAggregator, _pentominoService, _permutationService, _solutionService) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.SolvingCustomElement = undefined;
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var _dec, _class;
-
-    var SolvingCustomElement = exports.SolvingCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _pentominoService.PentominoService, _permutationService.PermutationService, _solutionService.SolutionService), _dec(_class = function () {
-        function SolvingCustomElement(bindingSignaler, boardService, eventAggregator, pentominoService, permutationService, solutionService) {
-            var _this = this;
-
-            _classCallCheck(this, SolvingCustomElement);
-
-            this.ea = eventAggregator;
-            this.bnds = bindingSignaler;
-            this.bs = boardService;
-            this.ps = pentominoService;
-            this.sls = solutionService;
-            this.prms = permutationService;
-            this.solvingPanelVisible = false;
-            this.slvrWrkr = null;
-            this.canStop = false;
-            this.positionsTried = 0;
-            this.ea.subscribe('showSolvingPanel', function (response) {
-                _this.solvingPanelVisible = response;
-            });
-            this.solutionsBuffer = [];
-        }
-
-        SolvingCustomElement.prototype.autoSolve = function autoSolve() {
-            var _this2 = this;
-
-            this.backupPentominos = this.ps.pentominos.slice();
-            this.slvrWrkr = new Worker('./src/services/solver-worker.js');
-            this.canStop = true;
-            this.boardWidth = this.bs.getWidth();
-            this.boardHeight = this.bs.getHeight();
-            this.startPosXBlock = 0;
-            this.positionsTried = 0;
-            var workerData = {
-                message: 'solve',
-                boardType: this.bs.boardType,
-                boardWidth: this.bs.getWidth(),
-                boardHeight: this.bs.getHeight(),
-                offBoards: this.ps.setPentominosOffboard(),
-                fields: this.ps.getFields(),
-                onBoards: this.ps.pentominos
-            };
-
-            this.ea.publish('solving', true);
-            this.slvrWrkr.postMessage(workerData);
-            this.handleSolutions();
-
-            this.slvrWrkr.onmessage = function (e) {
-                var pentominos = _this2.ps.sortPentominos(e.data.onBoards);
-                var offBoards = e.data.offBoards;
-                var message = e.data.message;
-                _this2.positionsTried = e.data.positions;
-                switch (message) {
-                    case 'draw':
-                        _this2.ps.setPentominos(pentominos);
-                        break;
-                    case 'solution':
-                        setTimeout(function () {
-                            _this2.bufferSolution(pentominos);
-                        });
-                        break;
-                    case 'finish':
-                        _this2.canStop = false;
-                        _this2.ea.publish('solving', false);
-                        console.log('No more solutions found!');
-                        break;
-                    default:
-                        break;
-                }
-            };
-        };
-
-        SolvingCustomElement.prototype.bufferSolution = function bufferSolution(solution) {
-            this.solutionsBuffer.push(solution);
-        };
-
-        SolvingCustomElement.prototype.handleSolutions = function handleSolutions() {
-            var self = this;
-            if (self.solutionsBuffer.length) {
-                var pentominos = self.solutionsBuffer.shift();
-                self.ps.setPentominos(pentominos);
-                self.bs.setSolved();
-                self.sls.saveSolution(pentominos);
-            }
-            if (self.canStop || self.solutionsBuffer.length) {
-                requestAnimationFrame(function () {
-                    self.handleSolutions();
-                });
-            }
-        };
-
-        SolvingCustomElement.prototype.mixBoard = function mixBoard() {
-            this.prms.mixBoard(this.ps.pentominos);
-            this.ps.registerPieces();
-            this.bnds.signal('position-signal');
-        };
-
-        SolvingCustomElement.prototype.close = function close() {
-            this.solvingPanelVisible = false;
-        };
-
-        SolvingCustomElement.prototype.stop = function stop() {
-            this.canStop = false;
-            this.ea.publish('solving', false);
-            this.slvrWrkr.terminate();
-            this.ps.setPentominos(this.backupPentominos);
-        };
-
-        return SolvingCustomElement;
-    }()) || _class);
-});
 define('data/colors',[], function () {
     "use strict";
 
@@ -1306,6 +746,573 @@ define('data/start-twig',[], function () {
         }
     }];
 });
+define('components/board',['exports', 'aurelia-framework', '../services/board-service'], function (exports, _aureliaFramework, _boardService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.BoardCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService), _dec(_class = function () {
+        function BoardCustomElement(boardService) {
+            _classCallCheck(this, BoardCustomElement);
+
+            this.bs = boardService;
+        }
+
+        BoardCustomElement.prototype.getBoardSizeCSS = function getBoardSizeCSS(shape) {
+            var boardType = this.bs.boardTypes[shape];
+            var css = {
+                width: boardType.w * this.bs.partSize + 'px',
+                height: boardType.h * this.bs.partSize + 'px'
+            };
+            return css;
+        };
+
+        BoardCustomElement.prototype.getBoardClasses = function getBoardClasses(newSolution) {
+            var classes = ['board'];
+            var solvedClass = newSolution ? 'solved' : '';
+            classes.push(solvedClass);
+            return classes.join(' ');
+        };
+
+        return BoardCustomElement;
+    }()) || _class);
+});
+define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'aurelia-templating-resources', '../services/board-service', '../services/setting-service', '../services/pentomino-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaEventAggregator, _aureliaTemplatingResources, _boardService, _settingService, _pentominoService, _solutionService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.ControlsCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _createClass = function () {
+        function defineProperties(target, props) {
+            for (var i = 0; i < props.length; i++) {
+                var descriptor = props[i];
+                descriptor.enumerable = descriptor.enumerable || false;
+                descriptor.configurable = true;
+                if ("value" in descriptor) descriptor.writable = true;
+                Object.defineProperty(target, descriptor.key, descriptor);
+            }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+            if (protoProps) defineProperties(Constructor.prototype, protoProps);
+            if (staticProps) defineProperties(Constructor, staticProps);
+            return Constructor;
+        };
+    }();
+
+    var _dec, _class;
+
+    var ControlsCustomElement = exports.ControlsCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _settingService.SettingService, _pentominoService.PentominoService, _solutionService.SolutionService), _dec(_class = function () {
+        function ControlsCustomElement(bindingSignaler, boardService, eventAggregator, settingService, pentominoService, solutionService) {
+            _classCallCheck(this, ControlsCustomElement);
+
+            this.ea = eventAggregator;
+            this.bnds = bindingSignaler;
+            this.bs = boardService;
+            this.ss = settingService;
+            this.ps = pentominoService;
+            this.sls = solutionService;
+            this.disabledButtons = false;
+            this.setSubscribers();
+        }
+
+        ControlsCustomElement.prototype.getIndicatorClass = function getIndicatorClass() {
+            var classes = ['indicator', 'rounded'];
+            var solvedClass = this.bs.solved && !this.bs.newSolution ? 'solved' : '';
+            classes.push(solvedClass);
+            return classes.join(' ');
+        };
+
+        ControlsCustomElement.prototype.getIndicatorText = function getIndicatorText(currentSolution, solutionCount) {
+            var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+            var text = current + solutionCount;
+            return text;
+        };
+
+        ControlsCustomElement.prototype.showSolution = function showSolution() {
+            var pentominos = this.ps.pentominos;
+            var solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
+            var splitString = solutionString.substr(1).split('#');
+            for (var i = 0; i < splitString.length; i++) {
+                var pentomino = this.ps.pentominos[i];
+                var props = splitString[i].split('_');
+                pentomino.face = parseInt(props[1], 10);
+                pentomino.position.x = parseInt(props[2], 10);
+                pentomino.position.y = parseInt(props[3], 10);
+            }
+            this.bnds.signal('position-signal');
+            this.ps.registerPieces();
+            this.bs.unsetNewSolution();
+        };
+
+        ControlsCustomElement.prototype.disableNextButton = function disableNextButton(current, count) {
+            return current + 1 == count || this.disabledButtons;
+        };
+
+        ControlsCustomElement.prototype.disablePreviousButton = function disablePreviousButton(current) {
+            return current == 0 || this.disabledButtons;
+        };
+
+        ControlsCustomElement.prototype.showFirstSolution = function showFirstSolution() {
+            this.sls.currentSolution = 0;
+            this.showSolution();
+        };
+
+        ControlsCustomElement.prototype.showLastSolution = function showLastSolution() {
+            this.sls.currentSolution = this.solutionCount - 1;
+            this.showSolution();
+        };
+
+        ControlsCustomElement.prototype.showPreviousSolution = function showPreviousSolution() {
+            if (this.sls.currentSolution > 0) {
+                this.sls.currentSolution--;
+                this.showSolution();
+            }
+        };
+
+        ControlsCustomElement.prototype.showNextSolution = function showNextSolution() {
+            if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
+                this.sls.currentSolution++;
+                this.showSolution();
+            }
+        };
+
+        ControlsCustomElement.prototype.setSubscribers = function setSubscribers() {
+            var _this = this;
+
+            var direction = 0;
+            var newDirection = 0;
+            var directions = {
+                'ArrowRight': 0,
+                'ArrowDown': 1,
+                'ArrowLeft': 2,
+                'ArrowUp': 3
+            };
+            this.ea.subscribe('solving', function (response) {
+                _this.disabledButtons = response;
+            });
+            this.ea.subscribe('keyPressed', function (response) {
+                if (!_this.disabledButtons) {
+                    switch (response) {
+                        case 'ArrowRight':
+                            _this.showNextSolution();
+                            break;
+                        case 'ArrowLeft':
+                            _this.showPreviousSolution();
+                            break;
+                        case 'ArrowDown':
+                            _this.showFirstSolution();
+                            break;
+                        case 'ArrowUp':
+                            _this.showLastSolution();
+                            break;
+                        case ' ':
+                            _this.ea.publish('pause');
+                            break;
+                    }
+                }
+            });
+        };
+
+        _createClass(ControlsCustomElement, [{
+            key: 'solutionCount',
+            get: function get() {
+                return this.sls.solutions[this.bs.boardType].length;
+            }
+        }]);
+
+        return ControlsCustomElement;
+    }()) || _class);
+});
+define('components/header',['exports', 'aurelia-framework', '../services/board-service', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _boardService, _aureliaEventAggregator) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.HeaderCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_boardService.BoardService, _aureliaEventAggregator.EventAggregator), _dec(_class = function () {
+        function HeaderCustomElement(boardService, eventAggregator) {
+            var _this = this;
+
+            _classCallCheck(this, HeaderCustomElement);
+
+            this.bs = boardService;
+            this.ea = eventAggregator;
+            this.title = 'Pentomino';
+            this.moves = 0;
+            this.ea.subscribe('move', function (result) {
+                result > 0 ? _this.moves++ : _this.moves = 0;
+            });
+        }
+
+        HeaderCustomElement.prototype.getHeaderSizeCss = function getHeaderSizeCss(shape) {
+            var boardType = this.bs.boardTypes[shape];
+            var css = {
+                width: boardType.w * this.bs.partSize + 'px'
+            };
+            return css;
+        };
+
+        HeaderCustomElement.prototype.resetMoves = function resetMoves() {
+            this.ea.publish('move', 0);
+        };
+
+        return HeaderCustomElement;
+    }()) || _class);
+});
+define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', 'aurelia-event-aggregator', '../services/solution-service', '../services/pentomino-service', '../services/permutation-service', '../services/setting-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _aureliaEventAggregator, _solutionService, _pentominoService, _permutationService, _settingService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.MenuCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var MenuCustomElement = exports.MenuCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _solutionService.SolutionService, _pentominoService.PentominoService, _permutationService.PermutationService, _settingService.SettingService), _dec(_class = function () {
+        function MenuCustomElement(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
+            _classCallCheck(this, MenuCustomElement);
+
+            this.bnds = bindingSignaler;
+            this.bs = boardService;
+            this.ea = eventAggregator;
+            this.sls = solutionService;
+            this.ps = pentominoService;
+            this.prms = permutationService;
+            this.ss = settingService;
+            this.boardTypes = Object.keys(this.bs.boardTypes);
+            this.settings = {
+                menuVisible: false,
+                submenuBoardsVisible: false
+            };
+        }
+
+        MenuCustomElement.prototype.rotateBoard = function rotateBoard() {
+            this.prms.rotateBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+        };
+
+        MenuCustomElement.prototype.flipBoardYAxis = function flipBoardYAxis() {
+            this.prms.flipBoardYAxis(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+        };
+
+        MenuCustomElement.prototype.showTheMenu = function showTheMenu() {
+            this.settings.menuVisible = true;
+            this.settings.submenuBoardsVisible = false;
+        };
+
+        MenuCustomElement.prototype.mixBoard = function mixBoard() {
+            this.prms.mixBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.settings.menuVisible = false;
+            this.bnds.signal('position-signal');
+            this.ea.publish('move', 0);
+        };
+
+        MenuCustomElement.prototype.hideTheMenu = function hideTheMenu() {
+            this.settings.menuVisible = false;
+        };
+
+        MenuCustomElement.prototype.showThisBoard = function showThisBoard(key) {
+            return true;
+        };
+
+        MenuCustomElement.prototype.toggleSubmenuBoards = function toggleSubmenuBoards() {
+            this.settings.submenuBoardsVisible = !this.settings.submenuBoardsVisible;
+            return false;
+        };
+
+        MenuCustomElement.prototype.getBoardDimensions = function getBoardDimensions(boardType) {
+            var text = '' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h;
+            return text;
+        };
+
+        MenuCustomElement.prototype.getActiveBoardClass = function getActiveBoardClass(boardType) {
+            return this.bs.boardType == boardType ? 'active' : '';
+        };
+
+        MenuCustomElement.prototype.screenIsLargeEnough = function screenIsLargeEnough() {
+            var clw = document.querySelectorAll('html')[0].clientWidth;
+            var clh = document.querySelectorAll('html')[0].clientHeight;
+            return clw + clh > 1100;
+        };
+
+        MenuCustomElement.prototype.setStartPosition = function setStartPosition(shape) {
+            this.bs.setBoardType(shape);
+            this.ps.getStartPosition();
+            this.ps.registerPieces();
+            this.bs.unsetSolved();
+            this.bs.unsetNewSolution();
+            this.settings.submenuBoardsVisible = false;
+            this.settings.menuVisible = false;
+        };
+
+        MenuCustomElement.prototype.workersSupported = function workersSupported() {
+            if (window.Worker) {
+                return true;
+            }
+            return false;
+        };
+
+        MenuCustomElement.prototype.showSolvingPanel = function showSolvingPanel() {
+            this.ea.publish('showSolvingPanel', true);
+            this.settings.menuVisible = false;
+        };
+
+        return MenuCustomElement;
+    }()) || _class);
+});
+define('components/pentominos',['exports', 'aurelia-framework', '../services/pentomino-service', '../services/setting-service', '../services/drag-service'], function (exports, _aureliaFramework, _pentominoService, _settingService, _dragService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.PentominosCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var PentominosCustomElement = exports.PentominosCustomElement = (_dec = (0, _aureliaFramework.inject)(_pentominoService.PentominoService, _settingService.SettingService, _dragService.DragService), _dec(_class = function () {
+        function PentominosCustomElement(pentominoService, settingService, dragService) {
+            _classCallCheck(this, PentominosCustomElement);
+
+            this.ps = pentominoService;
+            this.ss = settingService;
+            this.ds = dragService;
+        }
+
+        PentominosCustomElement.prototype.getPentominoClasses = function getPentominoClasses(pentomino) {
+            var classes = ['pentomino'];
+            classes.push('pentomino block_' + pentomino.name);
+            if (pentomino.active) {
+                classes.push('active');
+            }
+            return classes.join(' ');
+        };
+
+        PentominosCustomElement.prototype.getPartClasses = function getPartClasses(pentomino, partIndex, face) {
+            var classes = ['fa', 'part'];
+
+            var flipH = !(pentomino.index === 1 && pentomino.dimensions[0] > pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 0);
+            var flipV = !(pentomino.index === 1 && pentomino.dimensions[0] < pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 1);
+            if (partIndex === 0 && pentomino.type < 5) {
+                classes.push('fa-refresh');
+                classes.push('rotate');
+            }
+            if (partIndex === 1 && pentomino.type < 4 && flipH) {
+                classes.push('fa-arrows-h');
+                classes.push('flipH');
+            }
+            if (partIndex === 2 && pentomino.type < 4 && flipV) {
+                classes.push('fa-arrows-v');
+                classes.push('flipV');
+            }
+            return classes.join(' ');
+        };
+
+        PentominosCustomElement.prototype.getPentominoCSS = function getPentominoCSS(x, y, color) {
+            var css = {
+                left: x * this.ss.partSize + 'px',
+                top: y * this.ss.partSize + 'px',
+                backgroundColor: color
+            };
+            return css;
+        };
+
+        PentominosCustomElement.prototype.getPartCSS = function getPartCSS(part) {
+            var css = {
+                'left': part[0] * this.ss.partSize + 'px',
+                'top': part[1] * this.ss.partSize + 'px'
+            };
+            return css;
+        };
+
+        PentominosCustomElement.prototype.attached = function attached() {};
+
+        return PentominosCustomElement;
+    }()) || _class);
+});
+define('components/solving',['exports', 'aurelia-framework', 'aurelia-templating-resources', '../services/board-service', 'aurelia-event-aggregator', '../services/pentomino-service', '../services/permutation-service', '../services/solution-service'], function (exports, _aureliaFramework, _aureliaTemplatingResources, _boardService, _aureliaEventAggregator, _pentominoService, _permutationService, _solutionService) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.SolvingCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var SolvingCustomElement = exports.SolvingCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaTemplatingResources.BindingSignaler, _boardService.BoardService, _aureliaEventAggregator.EventAggregator, _pentominoService.PentominoService, _permutationService.PermutationService, _solutionService.SolutionService), _dec(_class = function () {
+        function SolvingCustomElement(bindingSignaler, boardService, eventAggregator, pentominoService, permutationService, solutionService) {
+            var _this = this;
+
+            _classCallCheck(this, SolvingCustomElement);
+
+            this.ea = eventAggregator;
+            this.bnds = bindingSignaler;
+            this.bs = boardService;
+            this.ps = pentominoService;
+            this.sls = solutionService;
+            this.prms = permutationService;
+            this.solvingPanelVisible = false;
+            this.slvrWrkr = null;
+            this.canStop = false;
+            this.positionsTried = 0;
+            this.ea.subscribe('showSolvingPanel', function (response) {
+                _this.solvingPanelVisible = response;
+            });
+            this.solutionsBuffer = [];
+        }
+
+        SolvingCustomElement.prototype.autoSolve = function autoSolve() {
+            var _this2 = this;
+
+            this.backupPentominos = this.ps.pentominos.slice();
+            this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+            this.canStop = true;
+            this.boardWidth = this.bs.getWidth();
+            this.boardHeight = this.bs.getHeight();
+            this.startPosXBlock = 0;
+            this.positionsTried = 0;
+            var workerData = {
+                message: 'solve',
+                boardType: this.bs.boardType,
+                boardWidth: this.bs.getWidth(),
+                boardHeight: this.bs.getHeight(),
+                offBoards: this.ps.setPentominosOffboard(),
+                fields: this.ps.getFields(),
+                onBoards: this.ps.pentominos
+            };
+
+            this.ea.publish('solving', true);
+            this.slvrWrkr.postMessage(workerData);
+            this.handleSolutions();
+
+            this.slvrWrkr.onmessage = function (e) {
+                var pentominos = _this2.ps.sortPentominos(e.data.onBoards);
+                var offBoards = e.data.offBoards;
+                var message = e.data.message;
+                _this2.positionsTried = e.data.positions;
+                switch (message) {
+                    case 'draw':
+                        _this2.ps.setPentominos(pentominos);
+                        break;
+                    case 'solution':
+                        setTimeout(function () {
+                            _this2.bufferSolution(pentominos);
+                        });
+                        break;
+                    case 'finish':
+                        _this2.canStop = false;
+                        _this2.ea.publish('solving', false);
+                        console.log('No more solutions found!');
+                        break;
+                    default:
+                        break;
+                }
+            };
+        };
+
+        SolvingCustomElement.prototype.bufferSolution = function bufferSolution(solution) {
+            this.solutionsBuffer.push(solution);
+        };
+
+        SolvingCustomElement.prototype.handleSolutions = function handleSolutions() {
+            var self = this;
+
+            if (this.solutionsInQueue()) {
+                var pentominos = self.solutionsBuffer.shift();
+                self.ps.setPentominos(pentominos);
+                self.bs.setSolved();
+                self.sls.saveSolution(pentominos);
+            }
+            if (self.canStop || self.solutionsBuffer.length) {
+                requestAnimationFrame(function () {
+                    self.handleSolutions();
+                });
+            } else {
+                self.sls.saveSolution();
+            }
+        };
+
+        SolvingCustomElement.prototype.solutionsInQueue = function solutionsInQueue() {
+            return this.solutionsBuffer.length;
+        };
+
+        SolvingCustomElement.prototype.mixBoard = function mixBoard() {
+            this.prms.mixBoard(this.ps.pentominos);
+            this.ps.registerPieces();
+            this.bnds.signal('position-signal');
+        };
+
+        SolvingCustomElement.prototype.close = function close() {
+            this.solvingPanelVisible = false;
+        };
+
+        SolvingCustomElement.prototype.stop = function stop() {
+            this.canStop = false;
+            this.ea.publish('solving', false);
+            this.slvrWrkr.terminate();
+            this.ps.setPentominos(this.backupPentominos);
+        };
+
+        return SolvingCustomElement;
+    }()) || _class);
+});
 define('resources/index',["exports"], function (exports) {
   "use strict";
 
@@ -1451,6 +1458,8 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
 
             this.bs = boardService;
             this.client = new _aureliaHttpClient.HttpClient();
+            this.solutions = this.getSolutions();
+            this.timeOutHandle = undefined;
         }
 
         DataService.prototype.getPentominos = function getPentominos() {
@@ -1493,10 +1502,35 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
             return solutions;
         };
 
+        DataService.prototype.sortSolutions = function sortSolutions(solutions) {
+            if (Array.isArray(solutions)) {
+                return solutions.sort(function (a, b) {
+                    return a < b;
+                });
+            } else {
+                return solutions;
+            }
+        };
+
         DataService.prototype.saveSolution = function saveSolution(solutionString) {
-            var solutions = this.getSolutions();
-            solutions[this.bs.boardType].push(solutionString);
-            localStorage.setItem("pentominos2", JSON.stringify(solutions));
+            var _this = this;
+
+            if (solutionString) {
+                this.solutions[this.bs.boardType].push(solutionString);
+            } else {
+                this.saveToLocalStorage();
+            }
+            if (!this.timeOutHandle) {
+                this.timeOutHandle = setTimeout(function () {
+                    _this.saveToLocalStorage();
+                }, 5000);
+            }
+        };
+
+        DataService.prototype.saveToLocalStorage = function saveToLocalStorage() {
+            this.solutions[this.bs.boardType] = this.sortSolutions(this.solutions[this.bs.boardType]);
+            localStorage.setItem("pentominos2", JSON.stringify(this.solutions));
+            clearTimeout(this.timeOutHandle);
         };
 
         return DataService;
@@ -2109,24 +2143,25 @@ define('services/solution-service',['exports', 'aurelia-framework', './board-ser
         };
 
         SolutionService.prototype.saveSolution = function saveSolution(pentominos) {
-            var solutionResult = this.isNewSolution(pentominos);
+            if (pentominos) {
+                var solutionResult = this.isNewSolution(pentominos);
 
-            if (!isNaN(solutionResult)) {
-                this.currentSolution = solutionResult;
-                this.bs.unsetNewSolution();
+                if (!isNaN(solutionResult)) {
+                    this.currentSolution = solutionResult;
+                    this.bs.unsetNewSolution();
+                } else {
+                    this.solutions[this.bs.boardType].push(solutionResult);
+                    this.currentSolution = this.solutions[this.bs.boardType].length - 1;
+                    this.bs.setNewSolution();
+                    this.ds.saveSolution(solutionResult);
+                }
             } else {
-                this.ds.saveSolution(solutionResult);
-                this.solutions[this.bs.boardType].push(solutionResult);
-                this.currentSolution = this.solutions[this.bs.boardType].length - 1;
-                this.bs.setNewSolution();
+                this.ds.saveSolution();
             }
         };
 
         SolutionService.prototype.findSolution = function findSolution(solutionString) {
-            var str = this.solutions[this.bs.boardType].find(function (solStr) {
-                return solStr === solutionString;
-            });
-            return this.solutions[this.bs.boardType].indexOf(str);
+            return this.solutions[this.bs.boardType].indexOf(solutionString);
         };
 
         SolutionService.prototype.isNewSolution = function isNewSolution(pentominos) {
@@ -2670,6 +2705,31 @@ define('resources/value-converters/pento-pos-value-converter',['exports'], funct
         };
 
         return PentoPosValueConverter;
+    }();
+});
+define('resources/value-converters/thousands-value-converter',['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var ThousandsValueConverter = exports.ThousandsValueConverter = function () {
+        function ThousandsValueConverter() {
+            _classCallCheck(this, ThousandsValueConverter);
+        }
+
+        ThousandsValueConverter.prototype.toView = function toView(number) {
+            return number.toLocaleString('nl');
+        };
+
+        return ThousandsValueConverter;
     }();
 });
 define('aurelia-templating-resources/compose',['exports', 'aurelia-dependency-injection', 'aurelia-logging', 'aurelia-task-queue', 'aurelia-templating', 'aurelia-pal'], function (exports, _aureliaDependencyInjection, _aureliaLogging, _aureliaTaskQueue, _aureliaTemplating, _aureliaPal) {
@@ -5259,46 +5319,21 @@ define('aurelia-templating-resources/dynamic-element',['exports', 'aurelia-templ
     return DynamicElement;
   }
 });
-define('resources/value-converters/thousands-value-converter',['exports'], function (exports) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var ThousandsValueConverter = exports.ThousandsValueConverter = function () {
-        function ThousandsValueConverter() {
-            _classCallCheck(this, ThousandsValueConverter);
-        }
-
-        ThousandsValueConverter.prototype.toView = function toView(number) {
-            return number.toLocaleString('nl');
-        };
-
-        return ThousandsValueConverter;
-    }();
-});
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/controls\"></require>\n    <require from=\"components/solving\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <controls></controls>\n        <solving></solving>\n        <footer></footer>\n    </div>\n</template>"; });
-define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n\n*[disabled], :disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template class.bind=\"getBoardClasses(bs.newSolution)\"\n          css.bind=\"getBoardSizeCSS(bs.boardType)\">\n    <require from=\"components/board.css\"></require>\n    <require from=\"components/pentominos\"></require>\n    <pentominos></pentominos>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
 define('text!components/controls.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/controls.css\"></require>\n    <div class=\"controls\"\n         if.bind=\"solutionCount\">\n        <button class=\"button small\"\n                title=\"Show previous solution\"\n                disabled.bind=\"disablePreviousButton(sls.currentSolution)\"\n                click.delegate=\"showPreviousSolution()\"\n                touchstart.delegate=\"showPreviousSolution()\">\n         <icon class=\"fa fa-step-backward fa-lg\"></icon>\n        </button>\n        <button class.bind=\"getIndicatorClass(bs.solved)\"\n                disabled.bind=\"disabledButtons\"\n                innerhtml.bind=\"getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showFirstSolution()\"\n                touchstart.delegate=\"showFirstSolution()\">\n        </button>\n        <button class=\"button small\"\n                title=\"Show next solution\"\n                disabled.bind=\"disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)\"\n                click.delegate=\"showNextSolution()\"\n                touchstart.delegate=\"showNextSolution()\">\n            <icon class=\"fa fa-step-forward fa-lg\"></icon>\n        </button>\n    </div>\n</template>"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ".board {\n    display         : flex;\n    flex-direction  : column;\n    position        : relative;\n    background-color: lightgray;\n    border          : 5px solid darkgray;\n    transition      : all .3s ease;\n}\n\n.board.solved, .solved {\n    border-color      : lime;\n    -webkit-box-shadow: 0 0 30px 0 rgba(0, 255, 0, .5);\n    box-shadow        : 0 0 30px 0 rgba(0, 255, 0, .5);\n}\n"; });
 define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <a href=\"http://www.ashware.nl\"\n       target=\"_blank\"\n       class=\"r\">&copy;&nbsp;ashWare</a>\n    <!-- <span class='st_sharethis' displayText='ShareThis'></span> -->\n</template>"; });
-define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n.button:disabled, .indicator:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
+define('text!components/controls.css', ['module'], function(module) { module.exports = ".controls {\n    width          : 320px;\n    height         : 40px;\n    display        : flex;\n    justify-content: center;\n    align-items    : center;\n}\n\n.button, .indicator {\n    height          : 30px;\n    line-height     : 30px;\n    font-family     : inherit;\n    background-color: transparent;\n    border          : none;\n    outline         : none;\n    color           : white;\n    font-size       : 14px;\n    padding         : 0 10px;\n    transition      : all .3s ease;\n    cursor          : pointer;\n}\n\n.indicator {\n    margin-left: 5px;\n}\n\n.indicator.solved {\n    border: 1px dotted lime;\n}\n\n.button.small {\n    width      : 40px;\n    height     : 30px;\n    line-height: 30px;\n}\n\n.button icon {\n    line-height: 30px;\n}\n\n/* .button:disabled, .indicator:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n} */\n\n[class*='fa-step-'] {\n    vertical-align: 0;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template css.bind=\"getHeaderSizeCss(bs.boardType)\">\n    <require from=\"components/header.css\"></require>\n    <require from=\"components/menu\"></require>\n    <menu></menu>\n    <h1>${title}\n        <span class=\"moves\"\n              click.delegate=\"resetMoves()\"\n              touchstart.delegate=\"resetMoves()\"\n              if.bind=\"moves > 0\">${moves}</span>\n    </h1>\n</template>"; });
 define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    display   : block;\n    width     : 100%;\n    position  : absolute;\n    padding   : 0 10px;\n    bottom    : 10px;\n    box-sizing: border-box;\n}\n\nfooter span {\n    color: #fff !important;\n}\n\nfooter a {\n    color          : #f2f2f2;\n    text-decoration: none;\n    font-size      : 12px;\n}\n"; });
-define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li if.bind=\"sls.solutions['square'].length > 1\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"setStartPosition(boardType)\"\n                    touchstart.delegate=\"setStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li if.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
+define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li disabled.bind=\"(sls.solutions['square'].length < 2)\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul disabled.bind=\"!settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    disabled.bind=\"!showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"setStartPosition(boardType)\"\n                    touchstart.delegate=\"setStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li disabled.bind=\"(sls.solutions[bs.boardType].length >= 0) && workersSupported()\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n\nh1 .moves {\n    float    : right;\n    font-size: 14px;\n    cursor   : pointer;\n}\n"; });
 define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.position.x},${pentomino.position.y} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 100;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
 define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <require from=\"resources/value-converters/thousands-value-converter\"></require>\n    <div show.bind=\"solvingPanelVisible\">\n        <button class=\"button\"\n                title=\"shuffle\"\n                click.delegate=\"mixBoard()\"\n                touchstart.delegate=\"mixBoard()\">\n                        <icon class=\"fa fa-random fa-lg\"></icon>\n                </button>\n        <button class=\"button\"\n                title=\"find all solutions\"\n                click.delegate=\"autoSolve()\"\n                touchstart.delegate=\"autoSolve()\">\n                <icon class=\"fa fa-fast-forward fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                disabled.bind=\"!canStop\"\n                title=\"stop solutions worker\"\n                click.delegate=\"stop()\"\n                touchstart.delegate=\"stop()\">\n                <icon class=\"fa fa-stop fa-lg\"></icon>\n        </button>\n        <button class=\"button\"\n                disabled.bind=\"canStop\"\n                title=\"close panel\"\n                click.delegate=\"close()\"\n                touchstart.delegate=\"close()\">\n            <icon class=\"fa fa-close fa-lg\"></icon>\n        </button>\n        <p class=\"count\">Tried ${positionsTried | thousands} positions</p>\n    </div>\n</template>"; });
 define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .2;\n    /*display: none;*/\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n    /*display: inline;*/\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
-define('text!components/solving.css', ['module'], function(module) { module.exports = ".button:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n}\n\n.count {\n    text-align : center;\n    font-size  : 14px;\n    height     : 30px;\n    line-height: 30px;\n}\n"; });
+define('text!components/solving.css', ['module'], function(module) { module.exports = "/* .button:disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n} */\n\n.count {\n    text-align : center;\n    font-size  : 14px;\n    height     : 30px;\n    line-height: 30px;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

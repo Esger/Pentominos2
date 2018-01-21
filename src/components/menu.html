@@ -11,15 +11,15 @@
             touchstart.delegate="hideTheMenu()">
             <i class="fa fa-times"></i></li>
 
-        <li if.bind="sls.solutions['square'].length > 1"
+        <li disabled.bind="(sls.solutions['square'].length < 2)"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
             touchend.delegate="toggleSubmenuBoards()">
             Board sizes&nbsp;&nbsp;<i class="fa fa-angle-right"></i>
-            <ul if.bind="settings.submenuBoardsVisible"
+            <ul disabled.bind="!settings.submenuBoardsVisible"
                 class="subMenu">
                 <li repeat.for="boardType of boardTypes"
-                    if.bind="showThisBoard(boardType)"
+                    disabled.bind="!showThisBoard(boardType)"
                     class.bind="getActiveBoardClass(boardType)"
                     click.delegate="setStartPosition(boardType)"
                     touchstart.delegate="setStartPosition(boardType)"
@@ -37,7 +37,7 @@
             click.delegate="mixBoard()"
             touchstart.delegate="mixBoard()">Shuffle</li>
 
-        <li if.bind="(sls.solutions[bs.boardType].length >= 0) && workersSupported()"
+        <li disabled.bind="(sls.solutions[bs.boardType].length >= 0) && workersSupported()"
             click.delegate="showSolvingPanel()"
             touchstart.delegate="showSolvingPanel()">Spoiler</li>
     </ul>
