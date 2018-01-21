@@ -25,8 +25,24 @@ export class MenuCustomElement {
         this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {
             menuVisible: false,
+            menuDisabled: false,
             submenuBoardsVisible: false,
         };
+        this.ea.subscribe('solving', response => {
+            this.settings.menuDisabled = response;
+        });
+    }
+
+    get disableBoardSwitch() {
+        return (this.sls.solutions['square'].length < 2);
+    }
+
+    get menuDisabled() {
+        return this.settings.menuDisabled;
+    }
+
+    get solverDisabled() {
+        return (this.sls.solutions[this.bs.boardType].length < 2) || !this.workersSupported();
     }
 
     rotateBoard() {
@@ -61,23 +77,23 @@ export class MenuCustomElement {
     }
 
     showThisBoard(key) {
-        // let threshold = 3;
-        // if (this.sls.solutions) {
-        //     switch (key) {
-        //         case 'square':
-        //             return true;
-        //         case 'rectangle':
-        //             return this.sls.solutions['square'].length > threshold;
-        //         case 'beam':
-        //             return this.sls.solutions['rectangle'].length > threshold;
-        //         case 'stick':
-        //             return this.sls.solutions['beam'].length > threshold;
-        //         case 'twig':
-        //             return this.sls.solutions['stick'].length > threshold;
-        //         default:
-        //             return false;
-        //     }
-        // }
+        let threshold = 3;
+        if (this.sls.solutions) {
+            switch (key) {
+                case 'square':
+                    return true;
+                case 'rectangle':
+                    return this.sls.solutions['square'].length > threshold;
+                case 'beam':
+                    return this.sls.solutions['rectangle'].length > threshold;
+                case 'stick':
+                    return this.sls.solutions['beam'].length > threshold;
+                case 'twig':
+                    return this.sls.solutions['stick'].length > threshold;
+                default:
+                    return false;
+            }
+        }
         return true;
     }
 
@@ -102,6 +118,7 @@ export class MenuCustomElement {
     }
 
     setStartPosition(shape) {
+        this.ea.publish('showSolvingPanel', false);
         this.bs.setBoardType(shape);
         this.ps.getStartPosition();
         this.ps.registerPieces();

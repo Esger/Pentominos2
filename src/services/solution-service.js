@@ -24,6 +24,11 @@ export class SolutionService {
         this.solutions = this.ds.getSolutions();
     }
 
+    deleteSolutions() {
+        this.ds.deleteSolutions();
+        this.getSolutions();
+    }
+
     saveSolution(pentominos) {
         if (pentominos) {
             let solutionResult = this.isNewSolution(pentominos);
