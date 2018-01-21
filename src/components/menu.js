@@ -42,7 +42,7 @@ export class MenuCustomElement {
     }
 
     get solverDisabled() {
-        return (this.sls.solutions[this.bs.boardType].length < 2) || !this.workersSupported();
+        return (this.sls.solutions['square'].length < 2) || !this.workersSupported();
     }
 
     rotateBoard() {
