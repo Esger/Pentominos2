@@ -1577,7 +1577,7 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.getPentominos = function getPentominos() {
-            var fileName = './src/data/pentominos.json';
+            var fileName = './src/resources/data/pentominos.json';
             return this.client.get(fileName).then(function (data) {
                 var response = JSON.parse(data.response);
                 return response;
@@ -1585,7 +1585,7 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.getColors = function getColors() {
-            var fileName = './src/data/colors.json';
+            var fileName = './src/resources/data/colors.json';
             return this.client.get(fileName).then(function (data) {
                 var response = JSON.parse(data.response);
                 return response;
@@ -1593,7 +1593,7 @@ define('services/data-service',['exports', 'aurelia-framework', 'aurelia-http-cl
         };
 
         DataService.prototype.getStartPosition = function getStartPosition() {
-            var fileName = './src/data/start-' + this.bs.boardType + '.json';
+            var fileName = './src/resources/data/start-' + this.bs.boardType + '.json';
             return this.client.get(fileName).then(function (data) {
                 var response = JSON.parse(data.response);
                 return response;
@@ -5464,6 +5464,681 @@ define('aurelia-templating-resources/dynamic-element',['exports', 'aurelia-templ
     }
     return DynamicElement;
   }
+});
+define('resources/data/colors',[], function () {
+    "use strict";
+
+    colors = [{
+        "name": "b",
+        "color": "midnightblue"
+    }, {
+        "name": "c",
+        "color": "darkviolet"
+    }, {
+        "name": "f",
+        "color": "darkorange"
+    }, {
+        "name": "i",
+        "color": "maroon"
+    }, {
+        "name": "l",
+        "color": "darkgreen"
+    }, {
+        "name": "n",
+        "color": "magenta"
+    }, {
+        "name": "t",
+        "color": "limegreen"
+    }, {
+        "name": "v",
+        "color": "deepskyblue"
+    }, {
+        "name": "w",
+        "color": "teal"
+    }, {
+        "name": "x",
+        "color": "red"
+    }, {
+        "name": "y",
+        "color": "gold"
+    }, {
+        "name": "z",
+        "color": "mediumblue"
+    }, {
+        "name": "o",
+        "color": "darkslategray"
+    }];
+});
+define('resources/data/pentominos',[], function () {
+    "use strict";
+
+    pentominos = [{
+        "name": "b",
+        "type": 0,
+        "faces": [[[1, 0], [1, 1], [0, 0], [2, 0], [0, 1]], [[1, 1], [1, 0], [0, 1], [0, 0], [1, 2]], [[1, 1], [1, 0], [0, 1], [2, 0], [2, 1]], [[0, 1], [0, 0], [1, 1], [0, 2], [1, 2]], [[1, 0], [1, 1], [0, 0], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 1], [0, 2], [1, 2]], [[1, 1], [1, 0], [0, 1], [0, 0], [2, 1]], [[0, 1], [0, 0], [1, 1], [0, 2], [1, 0]]],
+        "dimensions": [3, 2],
+        "parts": 5
+    }, {
+        "name": "c",
+        "type": 2,
+        "faces": [[[1, 0], [0, 1], [0, 0], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 0], [1, 2], [0, 2]], [[1, 1], [0, 0], [0, 1], [2, 1], [2, 0]], [[0, 1], [0, 0], [1, 0], [0, 2], [1, 2]]],
+        "dimensions": [3, 2],
+        "parts": 5
+    }, {
+        "name": "f",
+        "type": 0,
+        "faces": [[[1, 1], [1, 0], [0, 1], [2, 0], [1, 2]], [[1, 1], [1, 0], [0, 1], [2, 1], [2, 2]], [[1, 1], [1, 0], [2, 1], [0, 2], [1, 2]], [[1, 1], [1, 2], [0, 1], [0, 0], [2, 1]], [[1, 1], [1, 0], [2, 1], [0, 0], [1, 2]], [[1, 1], [1, 2], [0, 1], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 1], [1, 2], [2, 2]], [[1, 1], [1, 0], [0, 1], [2, 1], [0, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "i",
+        "type": 4,
+        "faces": [[[2, 0], [0, 0], [1, 0], [3, 0], [4, 0]], [[0, 2], [0, 0], [0, 1], [0, 3], [0, 4]]],
+        "dimensions": [5, 1],
+        "parts": 5
+    }, {
+        "name": "l",
+        "type": 0,
+        "faces": [[[0, 0], [0, 1], [1, 0], [2, 0], [3, 0]], [[1, 0], [1, 1], [0, 0], [1, 2], [1, 3]], [[3, 1], [3, 0], [2, 1], [0, 1], [1, 1]], [[0, 3], [0, 2], [1, 3], [0, 0], [0, 1]], [[3, 0], [3, 1], [2, 0], [0, 0], [1, 0]], [[1, 3], [1, 2], [0, 3], [1, 0], [1, 1]], [[0, 1], [0, 0], [1, 1], [2, 1], [3, 1]], [[0, 0], [0, 1], [1, 0], [0, 2], [0, 3]]],
+        "dimensions": [4, 2],
+        "parts": 5
+    }, {
+        "name": "n",
+        "type": 0,
+        "faces": [[[2, 0], [2, 1], [1, 0], [0, 0], [3, 1]], [[1, 2], [1, 1], [0, 2], [1, 0], [0, 3]], [[1, 1], [1, 0], [2, 1], [0, 0], [3, 1]], [[0, 1], [0, 2], [1, 1], [1, 0], [0, 3]], [[1, 0], [1, 1], [2, 0], [0, 1], [3, 0]], [[1, 1], [1, 2], [0, 1], [0, 0], [1, 3]], [[2, 1], [2, 0], [1, 1], [0, 1], [3, 0]], [[0, 2], [0, 1], [1, 2], [0, 0], [1, 3]]],
+        "dimensions": [4, 2],
+        "parts": 5
+    }, {
+        "name": "t",
+        "type": 2,
+        "faces": [[[1, 0], [1, 1], [0, 0], [2, 0], [1, 2]], [[2, 1], [2, 0], [1, 1], [0, 1], [2, 2]], [[1, 2], [1, 1], [0, 2], [1, 0], [2, 2]], [[0, 1], [0, 0], [1, 1], [2, 1], [0, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "v",
+        "type": 1,
+        "faces": [[[0, 2], [0, 1], [1, 2], [0, 0], [2, 2]], [[0, 0], [0, 1], [1, 0], [0, 2], [2, 0]], [[2, 0], [2, 1], [1, 0], [0, 0], [2, 2]], [[2, 2], [2, 1], [1, 2], [0, 2], [2, 0]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "w",
+        "type": 1,
+        "faces": [[[1, 1], [1, 2], [0, 1], [0, 0], [2, 2]], [[1, 1], [1, 0], [0, 1], [0, 2], [2, 0]], [[1, 1], [1, 0], [2, 1], [0, 0], [2, 2]], [[1, 1], [1, 2], [2, 1], [0, 2], [2, 0]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "x",
+        "type": 5,
+        "faces": [[[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "y",
+        "type": 0,
+        "faces": [[[0, 1], [0, 0], [1, 1], [0, 2], [0, 3]], [[2, 0], [2, 1], [1, 0], [0, 0], [3, 0]], [[1, 2], [1, 1], [0, 2], [1, 0], [1, 3]], [[1, 1], [1, 0], [0, 1], [2, 1], [3, 1]], [[1, 1], [1, 0], [0, 1], [1, 2], [1, 3]], [[2, 1], [2, 0], [1, 1], [0, 1], [3, 1]], [[0, 2], [0, 1], [1, 2], [0, 0], [0, 3]], [[1, 0], [1, 1], [0, 0], [2, 0], [3, 0]]],
+        "dimensions": [2, 4],
+        "parts": 5
+    }, {
+        "name": "z",
+        "type": 3,
+        "faces": [[[1, 1], [2, 2], [0, 1], [2, 1], [0, 0]], [[1, 1], [1, 2], [0, 2], [1, 0], [2, 0]], [[1, 1], [0, 2], [0, 1], [2, 0], [2, 1]], [[1, 1], [1, 2], [0, 0], [1, 0], [2, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "o",
+        "type": 5,
+        "faces": [[[0, 0], [1, 0], [0, 1], [1, 1]]],
+        "dimensions": [2, 2],
+        "parts": 4
+    }];
+});
+define('resources/data/start-beam',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 4,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 7,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 9,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 5
+        }
+    }];
+});
+define('resources/data/start-dozen',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 6,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }];
+});
+define('resources/data/start-rectangle',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 1
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 4
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": -1,
+            "y": 1
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 5
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 0,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 2
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 2
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 1
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 6
+        }
+    }];
+});
+define('resources/data/start-square',[], function () {
+    "use strict";
+
+    squareStart = [{
+        "name": "b",
+        "face": 7,
+        "position": {
+            "x": 1,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 2,
+        "position": {
+            "x": 4,
+            "y": 5
+        }
+    }, {
+        "name": "f",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 1
+        }
+    }, {
+        "name": "i",
+        "face": 0,
+        "position": {
+            "x": 1,
+            "y": 9
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 0
+        }
+    }, {
+        "name": "n",
+        "face": 4,
+        "position": {
+            "x": 2,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 4,
+            "y": 7
+        }
+    }, {
+        "name": "v",
+        "face": 2,
+        "position": {
+            "x": 1,
+            "y": 3
+        }
+    }, {
+        "name": "w",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 3
+        }
+    }, {
+        "name": "y",
+        "face": 6,
+        "position": {
+            "x": 1,
+            "y": 5
+        }
+    }, {
+        "name": "z",
+        "face": 3,
+        "position": {
+            "x": 1,
+            "y": 4
+        }
+    }, {
+        "name": "o",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 10
+        }
+    }];
+});
+define('resources/data/start-stick',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 7,
+        "position": {
+            "x": 5,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 5
+        }
+    }, {
+        "name": "f",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 1
+        }
+    }, {
+        "name": "i",
+        "face": 0,
+        "position": {
+            "x": 5,
+            "y": 9
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 0
+        }
+    }, {
+        "name": "n",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 7
+        }
+    }, {
+        "name": "v",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 3
+        }
+    }, {
+        "name": "w",
+        "face": 2,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 8,
+            "y": 3
+        }
+    }, {
+        "name": "y",
+        "face": 6,
+        "position": {
+            "x": 5,
+            "y": 5
+        }
+    }, {
+        "name": "z",
+        "face": 3,
+        "position": {
+            "x": 5,
+            "y": 4
+        }
+    }, {
+        "name": "o",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 10
+        }
+    }];
+});
+define('resources/data/start-twig',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 10,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 12,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 7,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 10,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 10,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 12,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }];
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/controls\"></require>\n    <require from=\"components/solving\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <controls></controls>\n        <solving></solving>\n        <footer></footer>\n    </div>\n</template>"; });
 define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n\n*[disabled], :disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n"; });
