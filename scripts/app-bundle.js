@@ -447,6 +447,7 @@ define('components/menu',['exports', 'aurelia-framework', 'aurelia-templating-re
 
         MenuCustomElement.prototype.setStartPosition = function setStartPosition(shape) {
             this.ea.publish('showSolvingPanel', false);
+            this.ea.publish('move', 0);
             this.bs.setBoardType(shape);
             this.ps.getStartPosition();
             this.ps.registerPieces();
