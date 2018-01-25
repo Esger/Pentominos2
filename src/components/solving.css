@@ -1,9 +1,8 @@
-/* .button:disabled {
-    pointer-events: none;
-    cursor        : not-allowed;
-} */
+.buttonRow {
+    margin-bottom: 10px;
+}
 
-.count {
+.count, .message {
     text-align : center;
     font-size  : 14px;
     height     : 30px;
