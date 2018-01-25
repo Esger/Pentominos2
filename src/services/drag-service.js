@@ -20,6 +20,7 @@ export class DragService {
         this.prms = permutationService;
         this.dragStartPos = {};
         this.dragEndPos = {};
+        this.lastZindex = 1;
     }
 
     getClientPos(event) {
@@ -37,7 +38,7 @@ export class DragService {
             this.ps.setActivePentomino(pentomino, partIndex);
             this.ps.registerPiece(pentomino, -1);
             this.container = event.target.offsetParent.offsetParent;
-            this.container.style.zIndex = 100;
+            this.container.style.zIndex = this.lastZindex++;
             this.startX = clientPos.x - this.container.offsetLeft;
             this.startY = clientPos.y - this.container.offsetTop;
             this.x = clientPos.x - this.startX;
@@ -83,7 +84,6 @@ export class DragService {
 
     releasePentomino() {
         if (this.container) {
-            this.container.style.zIndex = '';
             this.container = null;
         }
         this.ps.resetActivePentomino();

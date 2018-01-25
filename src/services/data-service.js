@@ -22,7 +22,7 @@ export class DataService {
     }
 
     getPentominos() {
-        let fileName = './src/data/pentominos.json';
+        let fileName = './data/pentominos.json';
         return this.client.get(fileName)
             .then((data) => {
                 let response = JSON.parse(data.response);
@@ -31,7 +31,7 @@ export class DataService {
     }
 
     getColors() {
-        let fileName = './src/data/colors.json';
+        let fileName = './data/colors.json';
         return this.client.get(fileName)
             .then(data => {
                 let response = JSON.parse(data.response);
@@ -40,7 +40,7 @@ export class DataService {
     }
 
     getStartPosition() {
-        let fileName = './src/data/start-' + this.bs.boardType + '.json';
+        let fileName = './data/start-' + this.bs.boardType + '.json';
         return this.client.get(fileName)
             .then(data => {
                 let response = JSON.parse(data.response);
