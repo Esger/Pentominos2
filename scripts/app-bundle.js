@@ -1505,13 +1505,20 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
             }
         };
 
+        PermutationService.prototype.shiftPiecesToTop = function shiftPiecesToTop(pentominos) {
+            var topMostY = Math.min.apply(Math, pentominos.map(function (pentomino) {
+                return pentomino.position.y;
+            }));
+            this.shiftPieces(pentominos, 0, -topMostY);
+        };
+
         PermutationService.prototype.rotateBoard = function rotateBoard(pentominos) {
             if (this.bs.boardType == 'square') {
                 this.rotateSquareBoard(pentominos);
             } else {
                 for (var i = 0; i < 2; i++) {
                     this.rotateSquareBoard(pentominos);
-                }this.shiftPieces(pentominos, 0, 4);
+                }this.shiftPiecesToTop(pentominos);
             }
         };
 
