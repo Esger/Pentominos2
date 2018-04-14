@@ -31,6 +31,7 @@ export class SolvingCustomElement {
         });
         this.solutionsBuffer = [];
         this.backupPentominos = this.ps.pentominos.slice();
+        this.alert = '';
     }
 
     get solutionsInQueue() {
@@ -39,6 +40,18 @@ export class SolvingCustomElement {
 
     get noSolutions() {
         return this.sls.solutions[this.bs.boardType].length === 0;
+    }
+
+    get noSpaceForSolving() {
+
+    }
+
+    get message() {
+        if (this.alert.length) {
+            return this.alert;
+        } else {
+            return false;
+        }
     }
 
     autoSolve() {
@@ -72,15 +85,19 @@ export class SolvingCustomElement {
             switch (message) {
                 case 'draw':
                     this.ps.setPentominos(pentominos);
+                    this.alert = '';
                     break;
                 case 'solution':
+                    this.alert = '';
                     setTimeout(() => { this.bufferSolution(pentominos) });
                     break;
                 case 'finish':
+                    this.alert = 'No more solutions found!';
                     this.canStop = false;
                     this.ea.publish('solving', false);
-                    console.log('No more solutions found!');
                     break;
+                case 'noSolution':
+                    this.alert = 'No solutions found';
                 default:
                     break;
             }

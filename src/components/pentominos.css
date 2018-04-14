@@ -11,6 +11,7 @@
     left          : 0;
     top           : 0;
     pointer-events: none;
+    z-index       : 0;
 }
 
 .inheritBgColor {
@@ -46,8 +47,7 @@
 
 .part::before {
     line-height: 38px;
-    opacity    : .2;
-    /*display: none;*/
+    opacity    : .5;
 }
 
 .block_n .part::before, .block_y .part::before {
@@ -60,7 +60,6 @@
 
 .pentomino.active .part::before, .pentomino:hover .part::before {
     opacity: 1;
-    /*display: inline;*/
 }
 
 .pentomino.transparent .part {

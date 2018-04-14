@@ -37,9 +37,14 @@ export class ControlsCustomElement {
         return classes.join(' ');
     }
 
-    getIndicatorText(currentSolution, solutionCount) {
+    get indicatorText() {
+        let currentSolution = this.sls.currentSolution;
+        let solutionCount = '(' + this.sls.solutions[this.bs.boardType].length + ') ';
+        let possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
+        let possible = (possibleSolutionsCount > 0) ? possibleSolutionsCount + ' ' : '0 ';
+        // console.log('possible solutions: ', possibleSolutionsCount);
         let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
-        let text = current + solutionCount;
+        let text = current + possible + solutionCount;
         return text;
     }
 
@@ -99,9 +104,14 @@ export class ControlsCustomElement {
             'ArrowDown': 1,
             'ArrowLeft': 2,
             'ArrowUp': 3
-        }
+        };
         this.ea.subscribe('solving', response => {
             this.disabledButtons = response;
+        });
+        this.ea.subscribe('move', response => {
+            if (response == 1) {
+                setTimeout(() => { this.sls.setPossibleSolutions(this.ps.onBoards); });
+            }
         });
         this.ea.subscribe('keyPressed', response => {
             if (!this.disabledButtons) {
