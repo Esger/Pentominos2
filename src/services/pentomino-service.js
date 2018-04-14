@@ -165,9 +165,9 @@ export class PentominoService {
         this.pentominos = pentos;
     }
 
-    setOffBoardPentominos(pentos) {
-        this.offBoardPentominos = pentos;
-    }
+    // setOffBoardPentominos(pentos) {
+    //     this.offBoardPentominos = pentos;
+    // }
 
     start() {
         this.getPentominoData().then((response) => {
@@ -209,7 +209,7 @@ export class PentominoService {
     boardHas60Squares() {
         let shape = this.bs.boardType;
         return !(shape === 'square' || shape === 'stick');
-    };
+    }
 
     // Remove or add the Oblock as needed for current boardType
     toggleOblock() {
