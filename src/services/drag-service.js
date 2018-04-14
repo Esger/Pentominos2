@@ -66,11 +66,12 @@ export class DragService {
         if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                // if (((pentomino.type < 4) && (pentomino.activePart < 3)) ||
-                //     ((pentomino.type == 4) && (pentomino.activePart < 1))) {
-                if (pentomino.type <= 4) {
-                    this.ps.adjustPosition();
+                if ((pentomino.type < 4) ||
+                    ((pentomino.type == 4) && (pentomino.activePart < 1))) {
+                    let oldActivePartPosition = this.ps.getActivePartPosition();
                     this.prms.flipRotate(pentomino);
+                    let newActivePartPosition = this.ps.getActivePartPosition();
+                    this.prms.adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition);
                     this.ea.publish('move', 1);
                 }
             } else {

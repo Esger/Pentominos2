@@ -63,12 +63,12 @@ export class PentominoService {
         return true;
     }
 
-    getActivePentomino() {
-        return this.activePentomino;
-    }
-
     getFields() {
         return this.fields;
+    }
+
+    getActivePentomino() {
+        return this.activePentomino;
     }
 
     setActivePentomino(pentomino, index) {
@@ -88,6 +88,14 @@ export class PentominoService {
         this.activePentomino.position.y = newY;
     }
 
+    getActivePartPosition() {
+        let pentomino = this.activePentomino;
+        return [
+            pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0],
+            pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]
+        ];
+    }
+
     signalViewUpdate() {
         this.bnds.signal('position-signal');
     }
@@ -97,33 +105,6 @@ export class PentominoService {
             return a.index - b.index;
         });
         return pentos;
-    }
-
-    adjustPosition() {  // Thanks Ben Nierop, for the idea
-        let pentomino = this.activePentomino;
-        let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
-        let partAbsPosition = [
-            pentomino.position.x + partRelPosition[0],
-            pentomino.position.y + partRelPosition[1]
-        ];
-        let partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
-        let partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
-        let activePart = (pentomino.type === 4 && pentomino.activePart > 0) ? 3 : pentomino.activePart;
-        switch (activePart) {
-            case 0:
-                pentomino.position.x = partAbsPosition[0] - partToBottom;
-                pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
-                break;
-            case 1:
-                pentomino.position.x = partAbsPosition[0] - partToRight;
-                break;
-            case 2:
-                pentomino.position.y = partAbsPosition[1] - partToBottom;
-                break;
-            default:
-                pentomino.position.x = partAbsPosition[0] - partToBottom;
-                pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
-        }
     }
 
     registerPiece(pentomino, onOff) {
@@ -168,10 +149,6 @@ export class PentominoService {
     setPentominos(pentos) {
         this.pentominos = pentos;
     }
-
-    // setOffBoardPentominos(pentos) {
-    //     this.offBoardPentominos = pentos;
-    // }
 
     start() {
         this.getPentominoData().then((response) => {

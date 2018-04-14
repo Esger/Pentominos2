@@ -54,7 +54,7 @@ export class PermutationService {
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
             [0, 0, 0, 0, 0]
-        ]
+        ];
         if (part == undefined) {
             part = partTranslations[pentomino.type][pentomino.activePart];
         }
@@ -103,6 +103,13 @@ export class PermutationService {
             return pentomino.position.y;
         }));
         this.shiftPieces(pentominos, 0, -topMostY);
+    }
+
+    // Thanks Ben Nierop, for the idea
+    adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
+        let dx = oldActivePartPosition[0] - newActivePartPosition[0];
+        let dy = oldActivePartPosition[1] - newActivePartPosition[1];
+        this.shiftPieces([pentomino], dx, dy);
     }
 
     rotateBoard(pentominos) {
