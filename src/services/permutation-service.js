@@ -81,13 +81,20 @@ export class PermutationService {
         }
     }
 
+    shiftPiecesToTop(pentominos) {
+        let topMostY = Math.min(...pentominos.map(pentomino => {
+            return pentomino.position.y;
+        }));
+        this.shiftPieces(pentominos, 0, -topMostY);
+    }
+
     rotateBoard(pentominos) {
         if (this.bs.boardType == 'square') {
             this.rotateSquareBoard(pentominos);
         } else {
-            // rotate twice and shift pentominos 4 positions down
+            // rotate twice and shift pentominos to top
             for (let i = 0; i < 2; i++) this.rotateSquareBoard(pentominos);
-            this.shiftPieces(pentominos, 0, 4);
+            this.shiftPiecesToTop(pentominos);
         }
     }
 

@@ -16,12 +16,52 @@ export class SolutionService {
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
+        this.possibleSolutions = [];
         this.currentSolution = -1;
         this.getSolutions();
     }
 
     getSolutions() {
         this.solutions = this.ds.getSolutions();
+    }
+
+    setPossibleSolutions(onBoardPentominos) {
+        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        let solutions = this.solutions[this.bs.boardType];
+        let flipRotatedOnboardStrings = [];
+
+        // Mirror
+        for (let flip = 0; flip < 2; flip++) {
+            // Rotate
+            for (let rotation = 0; rotation < rotations; rotation++) {
+                let onBoardStrings = onBoardPentominos.map(pentomino => {
+                    return this.pentomino2string(pentomino);
+                });
+                flipRotatedOnboardStrings.push(onBoardStrings);
+                this.prms.rotateBoard(onBoardPentominos);
+            }
+            this.prms.flipBoardYAxis(onBoardPentominos);
+        }
+
+        let containsAll = (solution) => {
+            let results = flipRotatedOnboardStrings.map(onBoardStringsArr => {
+                let result = true;
+                onBoardStringsArr.forEach(str => {
+                    result = solution.includes(str) && result;
+                });
+                return result;
+            });
+            return results.some(result => {
+                return result;
+            });
+        };
+        this.possibleSolutions = solutions.filter(solution => {
+            return containsAll(solution);
+        });
+    }
+
+    getPossibleSolutionsCount() {
+        return this.possibleSolutions.length;
     }
 
     deleteSolutions() {
@@ -55,7 +95,7 @@ export class SolutionService {
 
     isNewSolution(pentominos) {
         const rotations = (this.bs.boardType == 'square') ? 4 : 2;
-        const foundSolStr = this.solution2String(pentominos);;
+        const foundSolStr = this.solution2String(pentominos);
         // use .split() to create arrays
         // Mirror
         for (let flip = 0; flip < 2; flip++) {
