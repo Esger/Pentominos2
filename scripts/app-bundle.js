@@ -269,9 +269,9 @@ define('components/controls',['exports', 'aurelia-framework', 'aurelia-event-agg
             key: 'indicatorText',
             get: function get() {
                 var currentSolution = this.sls.currentSolution;
-                var solutionCount = this.sls.solutions[this.bs.boardType].length;
+                var solutionCount = '(' + this.sls.solutions[this.bs.boardType].length + ') ';
                 var possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
-                var possible = possibleSolutionsCount > 0 ? '(' + possibleSolutionsCount + ') ' : '(0) ';
+                var possible = possibleSolutionsCount > 0 ? possibleSolutionsCount + ' ' : '0 ';
 
                 var current = currentSolution >= 0 ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
                 var text = current + possible + solutionCount;

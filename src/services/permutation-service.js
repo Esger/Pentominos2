@@ -92,7 +92,7 @@ export class PermutationService {
         if (this.bs.boardType == 'square') {
             this.rotateSquareBoard(pentominos);
         } else {
-            // rotate twice and shift pentominos 4 positions down
+            // rotate twice and shift pentominos to top
             for (let i = 0; i < 2; i++) this.rotateSquareBoard(pentominos);
             this.shiftPiecesToTop(pentominos);
         }

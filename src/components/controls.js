@@ -39,9 +39,9 @@ export class ControlsCustomElement {
 
     get indicatorText() {
         let currentSolution = this.sls.currentSolution;
-        let solutionCount = this.sls.solutions[this.bs.boardType].length;
+        let solutionCount = '(' + this.sls.solutions[this.bs.boardType].length + ') ';
         let possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
-        let possible = (possibleSolutionsCount > 0) ? '(' + possibleSolutionsCount + ') ' : '(0) ';
+        let possible = (possibleSolutionsCount > 0) ? possibleSolutionsCount + ' ' : '0 ';
         // console.log('possible solutions: ', possibleSolutionsCount);
         let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
         let text = current + possible + solutionCount;
