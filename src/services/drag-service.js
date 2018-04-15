@@ -66,8 +66,11 @@ export class DragService {
         if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                if ((pentomino.type < 4) ||
-                    ((pentomino.type == 4) && (pentomino.activePart < 1))) {
+                // todo no if here; compensate in prms
+                if (((pentomino.type == 4) && (pentomino.activePart < 1)) ||
+                    ((pentomino.type == 3) && (pentomino.activePart < 3)) ||
+                    ((pentomino.type == 2) && (pentomino.activePart < 3)) ||
+                    (pentomino.type < 3)) {
                     let oldActivePartPosition = this.ps.getActivePartPosition();
                     this.prms.flipRotate(pentomino);
                     let newActivePartPosition = this.ps.getActivePartPosition();
