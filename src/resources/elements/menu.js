@@ -3,12 +3,12 @@ import {
     bindable
 } from 'aurelia-framework';
 import { BindingSignaler } from 'aurelia-templating-resources';
-import { BoardService } from '../services/board-service';
+import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
-import { SolutionService } from '../services/solution-service';
-import { PentominoService } from '../services/pentomino-service';
-import { PermutationService } from '../services/permutation-service';
-import { SettingService } from '../services/setting-service';
+import { SolutionService } from 'services/solution-service';
+import { PentominoService } from 'services/pentomino-service';
+import { PermutationService } from 'services/permutation-service';
+import { SettingService } from 'services/setting-service';
 
 @inject(BindingSignaler, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
 

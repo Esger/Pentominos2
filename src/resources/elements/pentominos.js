@@ -2,9 +2,9 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import { PentominoService } from '../services/pentomino-service';
-import { SettingService } from '../services/setting-service';
-import { DragService } from '../services/drag-service';
+import { PentominoService } from 'services/pentomino-service';
+import { SettingService } from 'services/setting-service';
+import { DragService } from 'services/drag-service';
 
 @inject(PentominoService, SettingService, DragService)
 export class PentominosCustomElement {

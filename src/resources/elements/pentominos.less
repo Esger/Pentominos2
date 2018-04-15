@@ -1,0 +1,64 @@
+.pentominosWrapper {
+    position: absolute;
+    left    : 0;
+    right   : 0;
+    top     : 0;
+    bottom  : 0;
+}
+
+.pentomino {
+    position      : absolute;
+    left          : 0;
+    top           : 0;
+    pointer-events: none;
+    z-index       : 0;
+}
+
+.inheritBgColor {
+    background-color: inherit;
+}
+
+.part {
+    position        : absolute;
+    left            : 0;
+    top             : 0;
+    width           : 40px;
+    height          : 40px;
+    text-align      : center;
+    color           : white;
+    background-color: inherit;
+    border          : 1px solid rgba(211, 211, 211, .2);
+    box-sizing      : border-box;
+    pointer-events  : auto;
+    cursor          : grab;
+    line-height     : 38px;
+
+    & > span {
+        line-height: 40px;
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    &::before {
+        line-height: 38px;
+        opacity    : .5;
+    }
+}
+
+.block_n, .block_t, .block_v, .block_y {
+    .part::before {
+        opacity: .6;
+    }
+}
+
+.pentomino.active, .pentomino:hover {
+    .part::before {
+        opacity: 1;
+    }
+}
+
+.pentomino.transparent .part {
+    opacity: .7;
+}

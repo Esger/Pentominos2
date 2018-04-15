@@ -5,7 +5,7 @@ import {
 import { BoardService } from './board-service';
 import { PermutationService } from './permutation-service';
 import { DataService } from './data-service';
-import { SettingService } from '../services/setting-service';
+import { SettingService } from './setting-service';
 
 @inject(BoardService, PermutationService, DataService, SettingService)
 

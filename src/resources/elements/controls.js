@@ -6,10 +6,10 @@ import {
     EventAggregator
 } from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
-import { BoardService } from '../services/board-service';
-import { SettingService } from '../services/setting-service';
-import { PentominoService } from '../services/pentomino-service';
-import { SolutionService } from '../services/solution-service';
+import { BoardService } from 'services/board-service';
+import { SettingService } from 'services/setting-service';
+import { PentominoService } from 'services/pentomino-service';
+import { SolutionService } from 'services/solution-service';
 
 @inject(BindingSignaler, BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
 

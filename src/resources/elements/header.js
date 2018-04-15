@@ -2,7 +2,7 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
-import { BoardService } from '../services/board-service';
+import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
 
 @inject(BoardService, EventAggregator)

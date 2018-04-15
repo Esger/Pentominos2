@@ -4,6 +4,10 @@
     display        : flex;
     justify-content: center;
     align-items    : center;
+
+    & [class*='fa-step-'] {
+        vertical-align: 0;
+    }
 }
 
 .button, .indicator {
@@ -18,26 +22,22 @@
     padding         : 0 10px;
     transition      : all .3s ease;
     cursor          : pointer;
+
+    icon {
+        line-height: 30px;
+    }
 }
 
 .indicator {
     margin-left: 5px;
-}
 
-.indicator.solved {
-    border: 1px dotted lime;
+    &.solved {
+        border: 1px dotted lime;
+    }
 }
 
 .button.small {
     width      : 40px;
     height     : 30px;
     line-height: 30px;
-}
-
-.button icon {
-    line-height: 30px;
-}
-
-.controls [class*='fa-step-'] {
-    vertical-align: 0;
 }
