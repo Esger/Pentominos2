@@ -26,15 +26,15 @@ export class PentominosCustomElement {
 
     getPartClasses(pentomino, partIndex, face) {
         let classes = ['fa', 'part'];
-        // C and T blocks don't need mirrorring around symmetric direction
-        let flipH = !(pentomino.index === 1 &&
-            pentomino.dimensions[0] > pentomino.dimensions[1] ||
-            pentomino.index === 6 &&
-            pentomino.face % 2 === 0);
-        let flipV = !(pentomino.index === 1 &&
-            pentomino.dimensions[0] < pentomino.dimensions[1] ||
-            pentomino.index === 6 &&
-            pentomino.face % 2 === 1);
+        // C and T blocks don't need mirrorring around symmetric axis
+        let flipH = !(
+            pentomino.index == 1 && pentomino.face % 2 == 0 ||
+            pentomino.index == 6 && pentomino.face % 2 == 0
+        );
+        let flipV = !(
+            pentomino.index === 1 && pentomino.face % 2 === 1 ||
+            pentomino.index === 6 && pentomino.face % 2 === 1
+        );
         if (partIndex === 0 && pentomino.type < 5) {
             classes.push('fa-refresh');
             classes.push('rotate');

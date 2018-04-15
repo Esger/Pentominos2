@@ -11,7 +11,7 @@ export class PermutationService {
     constructor(boardService) {
         this.bs = boardService;
         this.rotable = [
-            [ // rotate
+            [ // rotate clockwise
                 [1, 2, 3, 0, 5, 6, 7, 4], // blyfn
                 [1, 2, 3, 0], // vw
                 [1, 2, 3, 0], // tu
@@ -34,13 +34,30 @@ export class PermutationService {
                 [2, 3, 0, 1], // z
                 [0, 1], // i not necessary
                 [0] // xo not necessary
+            ],
+            [ // rotate counter clockwise
+                [3, 0, 1, 2, 7, 4, 5, 6], // blyfn
+                [3, 0, 1, 2], // vw
+                [3, 0, 1, 2], // tu
+                [0, 1, 2, 3], // z
+                [1, 0], // i
+                [0] // xo not necessary
             ]
         ];
     }
 
     // Returns the new face index for a given face, action and blocktype
     flipRotate(pentomino, part) {
-        if (part == undefined) { part = pentomino.activePart; }
+        let partTranslations = [
+            [0, 1, 2, 3, 3],
+            [0, 1, 2, 3, 3],
+            [0, 1, 2, 3, 3],
+            [0, 1, 2, 3, 3],
+            [0, 0, 0, 0, 0]
+        ];
+        if (part == undefined) {
+            part = partTranslations[pentomino.type][pentomino.activePart];
+        }
         pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
         if (part === 0) {
@@ -86,6 +103,13 @@ export class PermutationService {
             return pentomino.position.y;
         }));
         this.shiftPieces(pentominos, 0, -topMostY);
+    }
+
+    // Thanks Ben Nierop, for the idea
+    adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
+        let dx = oldActivePartPosition[0] - newActivePartPosition[0];
+        let dy = oldActivePartPosition[1] - newActivePartPosition[1];
+        this.shiftPieces([pentomino], dx, dy);
     }
 
     rotateBoard(pentominos) {

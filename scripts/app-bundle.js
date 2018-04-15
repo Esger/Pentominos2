@@ -539,8 +539,8 @@ define('components/pentominos',['exports', 'aurelia-framework', '../services/pen
         PentominosCustomElement.prototype.getPartClasses = function getPartClasses(pentomino, partIndex, face) {
             var classes = ['fa', 'part'];
 
-            var flipH = !(pentomino.index === 1 && pentomino.dimensions[0] > pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 0);
-            var flipV = !(pentomino.index === 1 && pentomino.dimensions[0] < pentomino.dimensions[1] || pentomino.index === 6 && pentomino.face % 2 === 1);
+            var flipH = !(pentomino.index == 1 && pentomino.face % 2 == 0 || pentomino.index == 6 && pentomino.face % 2 == 0);
+            var flipV = !(pentomino.index === 1 && pentomino.face % 2 === 1 || pentomino.index === 6 && pentomino.face % 2 === 1);
             if (partIndex === 0 && pentomino.type < 5) {
                 classes.push('fa-refresh');
                 classes.push('rotate');
@@ -1070,9 +1070,11 @@ define('services/drag-service',['exports', 'aurelia-framework', 'aurelia-event-a
             if (pentomino) {
                 this.alignToGrid();
                 if (!this.isDragged()) {
-                    if (pentomino.type < 4 && pentomino.activePart < 3 || pentomino.type == 4 && pentomino.activePart < 1) {
-                        this.ps.adjustPosition();
+                    if (pentomino.type == 4 && pentomino.activePart < 1 || pentomino.type == 3 && pentomino.activePart < 3 || pentomino.type == 2 && pentomino.activePart < 3 || pentomino.type < 3) {
+                        var oldActivePartPosition = this.ps.getActivePartPosition();
                         this.prms.flipRotate(pentomino);
+                        var newActivePartPosition = this.ps.getActivePartPosition();
+                        this.prms.adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition);
                         this.ea.publish('move', 1);
                     }
                 } else {
@@ -1235,12 +1237,12 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             return true;
         };
 
-        PentominoService.prototype.getActivePentomino = function getActivePentomino() {
-            return this.activePentomino;
-        };
-
         PentominoService.prototype.getFields = function getFields() {
             return this.fields;
+        };
+
+        PentominoService.prototype.getActivePentomino = function getActivePentomino() {
+            return this.activePentomino;
         };
 
         PentominoService.prototype.setActivePentomino = function setActivePentomino(pentomino, index) {
@@ -1260,6 +1262,11 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
             this.activePentomino.position.y = newY;
         };
 
+        PentominoService.prototype.getActivePartPosition = function getActivePartPosition() {
+            var pentomino = this.activePentomino;
+            return [pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0], pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]];
+        };
+
         PentominoService.prototype.signalViewUpdate = function signalViewUpdate() {
             this.bnds.signal('position-signal');
         };
@@ -1269,26 +1276,6 @@ define('services/pentomino-service',['exports', 'aurelia-framework', 'aurelia-te
                 return a.index - b.index;
             });
             return pentos;
-        };
-
-        PentominoService.prototype.adjustPosition = function adjustPosition() {
-            var pentomino = this.activePentomino;
-            var partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
-            var partAbsPosition = [pentomino.position.x + partRelPosition[0], pentomino.position.y + partRelPosition[1]];
-            var partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
-            var partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
-            switch (pentomino.activePart) {
-                case 0:
-                    pentomino.position.x = partAbsPosition[0] - partToBottom;
-                    pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
-                    break;
-                case 1:
-                    pentomino.position.x = partAbsPosition[0] - partToRight;
-                    break;
-                case 2:
-                    pentomino.position.y = partAbsPosition[1] - partToBottom;
-                    break;
-            }
         };
 
         PentominoService.prototype.registerPiece = function registerPiece(pentomino, onOff) {
@@ -1459,12 +1446,13 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
             _classCallCheck(this, PermutationService);
 
             this.bs = boardService;
-            this.rotable = [[[1, 2, 3, 0, 5, 6, 7, 4], [1, 2, 3, 0], [1, 2, 3, 0], [1, 0, 3, 2], [1, 0], [0]], [[4, 7, 6, 5, 0, 3, 2, 1], [3, 2, 1, 0], [0, 3, 2, 1], [2, 3, 0, 1], [0, 1], [0]], [[6, 5, 4, 7, 2, 1, 0, 3], [1, 0, 3, 2], [2, 1, 0, 3], [2, 3, 0, 1], [0, 1], [0]]];
+            this.rotable = [[[1, 2, 3, 0, 5, 6, 7, 4], [1, 2, 3, 0], [1, 2, 3, 0], [1, 0, 3, 2], [1, 0], [0]], [[4, 7, 6, 5, 0, 3, 2, 1], [3, 2, 1, 0], [0, 3, 2, 1], [2, 3, 0, 1], [0, 1], [0]], [[6, 5, 4, 7, 2, 1, 0, 3], [1, 0, 3, 2], [2, 1, 0, 3], [2, 3, 0, 1], [0, 1], [0]], [[3, 0, 1, 2, 7, 4, 5, 6], [3, 0, 1, 2], [3, 0, 1, 2], [0, 1, 2, 3], [1, 0], [0]]];
         }
 
         PermutationService.prototype.flipRotate = function flipRotate(pentomino, part) {
+            var partTranslations = [[0, 1, 2, 3, 3], [0, 1, 2, 3, 3], [0, 1, 2, 3, 3], [0, 1, 2, 3, 3], [0, 0, 0, 0, 0]];
             if (part == undefined) {
-                part = pentomino.activePart;
+                part = partTranslations[pentomino.type][pentomino.activePart];
             }
             pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
 
@@ -1510,6 +1498,12 @@ define('services/permutation-service',['exports', 'aurelia-framework', './board-
                 return pentomino.position.y;
             }));
             this.shiftPieces(pentominos, 0, -topMostY);
+        };
+
+        PermutationService.prototype.adjustPosition = function adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
+            var dx = oldActivePartPosition[0] - newActivePartPosition[0];
+            var dy = oldActivePartPosition[1] - newActivePartPosition[1];
+            this.shiftPieces([pentomino], dx, dy);
         };
 
         PermutationService.prototype.rotateBoard = function rotateBoard(pentominos) {
@@ -4846,6 +4840,681 @@ define('aurelia-templating-resources/dynamic-element',['exports', 'aurelia-templ
     return DynamicElement;
   }
 });
+define('data/colors',[], function () {
+    "use strict";
+
+    colors = [{
+        "name": "b",
+        "color": "midnightblue"
+    }, {
+        "name": "c",
+        "color": "darkviolet"
+    }, {
+        "name": "f",
+        "color": "darkorange"
+    }, {
+        "name": "i",
+        "color": "maroon"
+    }, {
+        "name": "l",
+        "color": "darkgreen"
+    }, {
+        "name": "n",
+        "color": "magenta"
+    }, {
+        "name": "t",
+        "color": "limegreen"
+    }, {
+        "name": "v",
+        "color": "deepskyblue"
+    }, {
+        "name": "w",
+        "color": "teal"
+    }, {
+        "name": "x",
+        "color": "red"
+    }, {
+        "name": "y",
+        "color": "gold"
+    }, {
+        "name": "z",
+        "color": "mediumblue"
+    }, {
+        "name": "o",
+        "color": "darkslategray"
+    }];
+});
+define('data/pentominos',[], function () {
+    "use strict";
+
+    pentominos = [{
+        "name": "b",
+        "type": 0,
+        "faces": [[[1, 0], [1, 1], [0, 0], [2, 0], [0, 1]], [[1, 1], [1, 0], [0, 1], [0, 0], [1, 2]], [[1, 1], [1, 0], [0, 1], [2, 0], [2, 1]], [[0, 1], [0, 0], [1, 1], [0, 2], [1, 2]], [[1, 0], [1, 1], [0, 0], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 1], [0, 2], [1, 2]], [[1, 1], [1, 0], [0, 1], [0, 0], [2, 1]], [[0, 1], [0, 0], [1, 1], [0, 2], [1, 0]]],
+        "dimensions": [3, 2],
+        "parts": 5
+    }, {
+        "name": "c",
+        "type": 2,
+        "faces": [[[1, 0], [0, 1], [0, 0], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 0], [1, 2], [0, 2]], [[1, 1], [0, 0], [0, 1], [2, 1], [2, 0]], [[0, 1], [0, 0], [1, 0], [0, 2], [1, 2]]],
+        "dimensions": [3, 2],
+        "parts": 5
+    }, {
+        "name": "f",
+        "type": 0,
+        "faces": [[[1, 1], [1, 0], [0, 1], [2, 0], [1, 2]], [[1, 1], [1, 0], [0, 1], [2, 1], [2, 2]], [[1, 1], [1, 0], [2, 1], [0, 2], [1, 2]], [[1, 1], [1, 2], [0, 1], [0, 0], [2, 1]], [[1, 1], [1, 0], [2, 1], [0, 0], [1, 2]], [[1, 1], [1, 2], [0, 1], [2, 0], [2, 1]], [[1, 1], [1, 0], [0, 1], [1, 2], [2, 2]], [[1, 1], [1, 0], [0, 1], [2, 1], [0, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "i",
+        "type": 4,
+        "faces": [[[2, 0], [0, 0], [1, 0], [3, 0], [4, 0]], [[0, 2], [0, 0], [0, 1], [0, 3], [0, 4]]],
+        "dimensions": [5, 1],
+        "parts": 5
+    }, {
+        "name": "l",
+        "type": 0,
+        "faces": [[[0, 0], [0, 1], [1, 0], [2, 0], [3, 0]], [[1, 0], [1, 1], [0, 0], [1, 2], [1, 3]], [[3, 1], [3, 0], [2, 1], [0, 1], [1, 1]], [[0, 3], [0, 2], [1, 3], [0, 0], [0, 1]], [[3, 0], [3, 1], [2, 0], [0, 0], [1, 0]], [[1, 3], [1, 2], [0, 3], [1, 0], [1, 1]], [[0, 1], [0, 0], [1, 1], [2, 1], [3, 1]], [[0, 0], [0, 1], [1, 0], [0, 2], [0, 3]]],
+        "dimensions": [4, 2],
+        "parts": 5
+    }, {
+        "name": "n",
+        "type": 0,
+        "faces": [[[2, 0], [2, 1], [1, 0], [0, 0], [3, 1]], [[1, 2], [1, 1], [0, 2], [1, 0], [0, 3]], [[1, 1], [1, 0], [2, 1], [0, 0], [3, 1]], [[0, 1], [0, 2], [1, 1], [1, 0], [0, 3]], [[1, 0], [1, 1], [2, 0], [0, 1], [3, 0]], [[1, 1], [1, 2], [0, 1], [0, 0], [1, 3]], [[2, 1], [2, 0], [1, 1], [0, 1], [3, 0]], [[0, 2], [0, 1], [1, 2], [0, 0], [1, 3]]],
+        "dimensions": [4, 2],
+        "parts": 5
+    }, {
+        "name": "t",
+        "type": 2,
+        "faces": [[[1, 0], [1, 1], [0, 0], [2, 0], [1, 2]], [[2, 1], [2, 0], [1, 1], [0, 1], [2, 2]], [[1, 2], [1, 1], [0, 2], [1, 0], [2, 2]], [[0, 1], [0, 0], [1, 1], [2, 1], [0, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "v",
+        "type": 1,
+        "faces": [[[0, 2], [0, 1], [1, 2], [0, 0], [2, 2]], [[0, 0], [0, 1], [1, 0], [0, 2], [2, 0]], [[2, 0], [2, 1], [1, 0], [0, 0], [2, 2]], [[2, 2], [2, 1], [1, 2], [0, 2], [2, 0]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "w",
+        "type": 1,
+        "faces": [[[1, 1], [1, 2], [0, 1], [0, 0], [2, 2]], [[1, 1], [1, 0], [0, 1], [0, 2], [2, 0]], [[1, 1], [1, 0], [2, 1], [0, 0], [2, 2]], [[1, 1], [1, 2], [2, 1], [0, 2], [2, 0]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "x",
+        "type": 5,
+        "faces": [[[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "y",
+        "type": 0,
+        "faces": [[[0, 1], [0, 0], [1, 1], [0, 2], [0, 3]], [[2, 0], [2, 1], [1, 0], [0, 0], [3, 0]], [[1, 2], [1, 1], [0, 2], [1, 0], [1, 3]], [[1, 1], [1, 0], [0, 1], [2, 1], [3, 1]], [[1, 1], [1, 0], [0, 1], [1, 2], [1, 3]], [[2, 1], [2, 0], [1, 1], [0, 1], [3, 1]], [[0, 2], [0, 1], [1, 2], [0, 0], [0, 3]], [[1, 0], [1, 1], [0, 0], [2, 0], [3, 0]]],
+        "dimensions": [2, 4],
+        "parts": 5
+    }, {
+        "name": "z",
+        "type": 3,
+        "faces": [[[1, 1], [2, 2], [0, 1], [2, 1], [0, 0]], [[1, 1], [1, 2], [0, 2], [1, 0], [2, 0]], [[1, 1], [0, 2], [0, 1], [2, 0], [2, 1]], [[1, 1], [1, 2], [0, 0], [1, 0], [2, 2]]],
+        "dimensions": [3, 3],
+        "parts": 5
+    }, {
+        "name": "o",
+        "type": 5,
+        "faces": [[[0, 0], [1, 0], [0, 1], [1, 1]]],
+        "dimensions": [2, 2],
+        "parts": 4
+    }];
+});
+define('data/start-beam',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 4,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 7,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 9,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 5
+        }
+    }];
+});
+define('data/start-dozen',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 6,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }];
+});
+define('data/start-rectangle',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 3,
+            "y": 1
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 1
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 4
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": -1,
+            "y": 1
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 5
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 0,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 5
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 3,
+            "y": 6
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 2
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 0,
+            "y": 2
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 1
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": -1,
+            "y": 6
+        }
+    }];
+});
+define('data/start-square',[], function () {
+    "use strict";
+
+    squareStart = [{
+        "name": "b",
+        "face": 7,
+        "position": {
+            "x": 1,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 2,
+        "position": {
+            "x": 4,
+            "y": 5
+        }
+    }, {
+        "name": "f",
+        "face": 1,
+        "position": {
+            "x": 2,
+            "y": 1
+        }
+    }, {
+        "name": "i",
+        "face": 0,
+        "position": {
+            "x": 1,
+            "y": 9
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 5,
+            "y": 0
+        }
+    }, {
+        "name": "n",
+        "face": 4,
+        "position": {
+            "x": 2,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 4,
+            "y": 7
+        }
+    }, {
+        "name": "v",
+        "face": 2,
+        "position": {
+            "x": 1,
+            "y": 3
+        }
+    }, {
+        "name": "w",
+        "face": 2,
+        "position": {
+            "x": 3,
+            "y": 0
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 4,
+            "y": 3
+        }
+    }, {
+        "name": "y",
+        "face": 6,
+        "position": {
+            "x": 1,
+            "y": 5
+        }
+    }, {
+        "name": "z",
+        "face": 3,
+        "position": {
+            "x": 1,
+            "y": 4
+        }
+    }, {
+        "name": "o",
+        "face": 0,
+        "position": {
+            "x": 3,
+            "y": 10
+        }
+    }];
+});
+define('data/start-stick',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 7,
+        "position": {
+            "x": 5,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 5
+        }
+    }, {
+        "name": "f",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 1
+        }
+    }, {
+        "name": "i",
+        "face": 0,
+        "position": {
+            "x": 5,
+            "y": 9
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 0
+        }
+    }, {
+        "name": "n",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 7
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 7
+        }
+    }, {
+        "name": "v",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 3
+        }
+    }, {
+        "name": "w",
+        "face": 2,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 8,
+            "y": 3
+        }
+    }, {
+        "name": "y",
+        "face": 6,
+        "position": {
+            "x": 5,
+            "y": 5
+        }
+    }, {
+        "name": "z",
+        "face": 3,
+        "position": {
+            "x": 5,
+            "y": 4
+        }
+    }, {
+        "name": "o",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 10
+        }
+    }];
+});
+define('data/start-twig',[], function () {
+    "use strict";
+
+    [{
+        "name": "b",
+        "face": 4,
+        "position": {
+            "x": 10,
+            "y": 0
+        }
+    }, {
+        "name": "c",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 0
+        }
+    }, {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 3
+        }
+    }, {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 0
+        }
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 12,
+            "y": 4
+        }
+    }, {
+        "name": "n",
+        "face": 6,
+        "position": {
+            "x": 7,
+            "y": 6
+        }
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 4
+        }
+    }, {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 10,
+            "y": 5
+        }
+    }, {
+        "name": "w",
+        "face": 0,
+        "position": {
+            "x": 10,
+            "y": 1
+        }
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 1
+        }
+    }, {
+        "name": "y",
+        "face": 2,
+        "position": {
+            "x": 12,
+            "y": 0
+        }
+    }, {
+        "name": "z",
+        "face": 2,
+        "position": {
+            "x": 6,
+            "y": 5
+        }
+    }];
+});
 define('text!app.css', ['module'], function(module) { module.exports = ".dragArea, body, html {\n    width                : 100%;\n    height               : 100%;\n    background-color     : #222;\n    font-family          : TrebuchetMS, sans-serif;\n    color                : #fff;\n    -webkit-touch-callout: none;\n    -webkit-user-select  : none;\n    -khtml-user-select   : none;\n    -moz-user-select     : none;\n    -ms-user-select      : none;\n    user-select          : none;\n}\n\n.dragArea {\n    flex           : 1 0 auto;\n    display        : flex;\n    flex-direction : column;\n    justify-content: flex-start;\n    align-items    : center;\n    overflow       : hidden;\n}\n\n.r {\n    float: right;\n}\n\n.l {\n    float: left;\n}\n\n.relContainer {\n    position: relative;\n}\n\n.rounded {\n    border-radius: 100px;\n}\n\n.clearFix {\n    clear: both;\n}\n\n.hidden {\n    display: none;\n}\n\n.invisible {\n    visibility: hidden;\n}\n\n.pushTop {\n    margin-top: 12px;\n}\n\n.pushLeft {\n    margin-left: 12px;\n}\n\n.pushBottom {\n    margin-bottom: 12px;\n}\n\n.pushBottomMore {\n    margin-bottom: 24px;\n}\n\n.textAlignLeft {\n    text-align: left;\n}\n\n*[disabled], :disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    opacity       : .2;\n}\n"; });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/header\"></require>\n    <require from=\"components/board\"></require>\n    <require from=\"components/controls\"></require>\n    <require from=\"components/solving\"></require>\n    <require from=\"components/footer.html\"></require>\n    <div class=\"dragArea\"\n         mousemove.delegate=\"ds.doDrag($event)\"\n         touchmove.delegate=\"ds.doDrag($event)\"\n         mouseup.delegate=\"ds.stopDrag($event)\"\n         touchend.delegate=\"ds.stopDrag($event)\">\n        <header></header>\n        <board></board>\n        <controls></controls>\n        <solving></solving>\n        <footer></footer>\n    </div>\n</template>"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/\n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed,\nfigure, figcaption, footer, header, hgroup,\nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure,\nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}\n"; });
@@ -4859,8 +5528,8 @@ define('text!components/header.html', ['module'], function(module) { module.expo
 define('text!components/header.css', ['module'], function(module) { module.exports = "header {\n    position: relative;\n    height  : 40px;\n}\n\nh1 {\n    font-family   : inherit;\n    font-size     : 21px;\n    letter-spacing: 1px;\n    text-align    : center;\n    line-height   : 0;\n    margin        : 20px 0 -20px;\n}\n\nh1 .moves {\n    float    : right;\n    font-size: 14px;\n    cursor   : pointer;\n}\n"; });
 define('text!components/menu.html', ['module'], function(module) { module.exports = "<template class=\"hamburger\">\n    <require from=\"components/menu.css\"></require>\n    <i class=\"fa fa-bars\"\n       class.bind=\"menuDisabled ? 'disabled' : ''\"\n       click.delegate=\"showTheMenu()\"\n       touchstart.delegate=\"showTheMenu()\"></i>\n\n    <ul id=\"menu\"\n        if.bind=\"settings.menuVisible\">\n\n        <li click.delegate=\"hideTheMenu()\"\n            touchstart.delegate=\"hideTheMenu()\">\n            <i class=\"fa fa-times\"></i></li>\n\n        <li class.bind=\"disableBoardSwitch ? 'disabled' : ''\"\n            mouseenter.trigger=\"toggleSubmenuBoards()\"\n            mouseleave.trigger=\"toggleSubmenuBoards()\"\n            touchend.delegate=\"toggleSubmenuBoards()\">\n            Board sizes&nbsp;&nbsp;<i class=\"fa fa-angle-right\"></i>\n            <ul if.bind=\"settings.submenuBoardsVisible\"\n                class=\"subMenu\">\n                <li repeat.for=\"boardType of boardTypes\"\n                    if.bind=\"showThisBoard(boardType)\"\n                    class.bind=\"getActiveBoardClass(boardType)\"\n                    click.delegate=\"setStartPosition(boardType)\"\n                    touchstart.delegate=\"setStartPosition(boardType)\"\n                    innerhtml.bind=\"getBoardDimensions(boardType)\"></li>\n            </ul>\n        </li>\n\n        <li click.delegate=\"rotateBoard()\"\n            touchstart.delegate=\"rotateBoard()\">Rotate&nbsp;Blocks</li>\n\n        <li click.delegate=\"flipBoardYAxis()\"\n            touchstart.delegate=\"flipBoardYAxis()\">Flip Blocks</li>\n\n        <li if.bind=\"screenIsLargeEnough()\"\n            click.delegate=\"mixBoard()\"\n            touchstart.delegate=\"mixBoard()\">Shuffle</li>\n\n        <li class.bind=\"solverDisabled ? 'disabled' : ''\"\n            click.delegate=\"showSolvingPanel()\"\n            touchstart.delegate=\"showSolvingPanel()\">Spoiler</li>\n    </ul>\n\n</template>"; });
 define('text!components/menu.css', ['module'], function(module) { module.exports = ".hamburger {\n    position: absolute;\n    left    : 2px;\n    top     : 2px;\n    z-index : 9999999999;\n}\n\n.hamburger .fa-bars {\n    height     : 40px;\n    line-height: 40px;\n    padding    : 0 10px;\n    margin-top : -1px;\n    cursor     : pointer;\n}\n\nmenu ul#menu {\n    position: absolute;\n    left    : -5px;\n    top     : 0;\n}\n\nmenu ul {\n    background-color: rgba(34, 34, 34, .7);\n    border          : 1px solid rgba(34, 34, 34, .7);\n}\n\nmenu ul li {\n    position        : relative;\n    font-size       : 14px;\n    color           : #333;\n    background-color: ghostwhite;\n    line-height     : 20px;\n    padding         : 10px 20px 10px 15px;\n    margin          : 1px;\n    cursor          : pointer;\n}\n\nmenu ul li li {\n    text-align: center;\n}\n\nmenu ul li:hover {\n    background-color: gainsboro;\n}\n\nmenu ul li.active {\n    background-color: silver;\n}\n\n.hamburger > .fa-bars.disabled, menu ul li.disabled {\n    pointer-events: none;\n    cursor        : not-allowed;\n    color         : rgba(255,255,255,.2);\n}\n\nmenu ul li.disabled {\n    color: rgba(51,51,51,.2);\n}\n\nmenu ul.subMenu {\n    position: absolute;\n    left    : 99%;\n    top     : -2px;\n    z-index : 1;\n}\n"; });
-define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.position.x},${pentomino.position.y} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
-define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n    z-index       : 0;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .5;\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
+define('text!components/pentominos.html', ['module'], function(module) { module.exports = "<template class=\"pentominosWrapper\">\n    <require from=\"components/pentominos.css\"></require>\n    <require from=\"resources/value-converters/pento-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/part-pos-value-converter\"></require>\n    <require from=\"resources/value-converters/pento-face-value-converter\"></require>\n    <div repeat.for=\"pentomino of ps.pentominos\"\n         class.bind=\"getPentominoClasses(pentomino)\"\n         css.bind=\"pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'\">\n        <div class=\"relContainer inheritBgColor\">\n            <div repeat.for=\"part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'\"\n                 class.bind=\"getPartClasses(pentomino, $index, pentomino.face)\"\n                 css.bind=\"part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'\"\n                 mousedown.delegate=\"ds.startDrag(pentomino, $index, $event)\"\n                 touchstart.delegate=\"ds.startDrag(pentomino, $index, $event)\">\n                <!-- ${pentomino.position.x},${pentomino.position.y} -->\n                <!-- ${pentomino.type} -->\n                <!-- ${$index == 3 ? \"f\"+pentomino.face : ''} -->\n            </div>\n        </div>\n    </div>\n</template>"; });
+define('text!components/pentominos.css', ['module'], function(module) { module.exports = ".pentominosWrapper {\n    position: absolute;\n    left    : 0;\n    right   : 0;\n    top     : 0;\n    bottom  : 0;\n}\n\n.pentomino {\n    position      : absolute;\n    left          : 0;\n    top           : 0;\n    pointer-events: none;\n    z-index       : 0;\n}\n\n.inheritBgColor {\n    background-color: inherit;\n}\n\n.part {\n    position          : absolute;\n    left              : 0;\n    top               : 0;\n    width             : 40px;\n    height            : 40px;\n    text-align        : center;\n    color             : white;\n    background-color  : inherit;\n    border            : 1px solid rgba(211, 211, 211, .2);\n    -webkit-box-sizing: border-box;\n    box-sizing        : border-box;\n    pointer-events    : auto;\n    cursor            : move;\n    cursor            : -webkit-grab;\n    cursor            : grab;\n    line-height       : 38px;\n}\n\n.part > span {\n    line-height: 40px;\n}\n\n.part:active {\n    cursor: -webkit-grabbing;\n    cursor: grabbing;\n}\n\n.part::before {\n    line-height: 38px;\n    opacity    : .5;\n}\n\n.block_n .part::before, .block_y .part::before {\n    opacity: .4;\n}\n\n.block_t .part::before, .block_v .part::before {\n    opacity: .3;\n}\n\n.pentomino.active .part::before, .pentomino:hover .part::before {\n    opacity: 1;\n}\n\n.pentomino.transparent .part {\n    opacity: .7;\n}\n"; });
 define('text!components/solving.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/solving.css\"></require>\n    <require from=\"resources/value-converters/thousands-value-converter\"></require>\n    <div show.bind=\"solvingPanelVisible\">\n        <div class=\"buttonRow\">\n            <button class=\"button\"\n                    title=\"shuffle\"\n                    click.delegate=\"mixBoard()\"\n                    touchstart.delegate=\"mixBoard()\">\n                    <icon class=\"fa fa-random fa-lg\"></icon>\n            </button>\n            <button class=\"button\"\n                    title=\"find all solutions\"\n                    click.delegate=\"autoSolve()\"\n                    touchstart.delegate=\"autoSolve()\">\n                    <icon class=\"fa fa-fast-forward fa-lg\"></icon>\n            </button>\n            <button class=\"button\"\n                    disabled.bind=\"!canStop\"\n                    title=\"stop solutions worker\"\n                    click.delegate=\"stop()\"\n                    touchstart.delegate=\"stop()\">\n                    <icon class=\"fa fa-stop fa-lg\"></icon>\n            </button>\n            <button class=\"button\"\n                    disabled.bind=\"canStop || solutionsInQueue || noSolutions\"\n                    title=\"delete these solutions\"\n                    click.delegate=\"delete()\"\n                    touchstart.delegate=\"delete()\">\n                    <icon class=\"fa fa-trash fa-lg\"></icon>\n            </button>\n            <button class=\"button\"\n                    disabled.bind=\"canStop\"\n                    title=\"close panel\"\n                    click.delegate=\"close()\"\n                    touchstart.delegate=\"close()\">\n                    <icon class=\"fa fa-close fa-lg\"></icon>\n            </button>\n        </div>\n        <p class=\"count\"\n           if.bind=\"positionsTried > 0\">Tried ${positionsTried | thousands} positions</p>\n        <p class=\"message\"\n           if.bind=\"message\">${message}</p>\n    </div>\n</template>"; });
 define('text!components/solving.css', ['module'], function(module) { module.exports = ".buttonRow {\n    margin-bottom: 10px;\n}\n\n.count, .message {\n    text-align : center;\n    font-size  : 14px;\n    height     : 30px;\n    line-height: 30px;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
