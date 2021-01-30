@@ -73,7 +73,9 @@ export class MenuCustomElement {
     }
 
     hideTheMenu() {
-        this.settings.menuVisible = false;
+        setTimeout(() => {
+            this.settings.menuVisible = false;
+        }, 250);
     }
 
     showThisBoard(key) {
