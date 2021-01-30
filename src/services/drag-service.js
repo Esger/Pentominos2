@@ -33,14 +33,14 @@ export class DragService {
     }
 
     startDrag(pentomino, partIndex, event) {
-        if (this.container == null) {
+        if (this._container == null) {
             let clientPos = this.getClientPos(event);
             this.ps.setActivePentomino(pentomino, partIndex);
             this.ps.registerPiece(pentomino, -1);
-            this.container = event.target.offsetParent.offsetParent;
-            this.container.style.zIndex = this.lastZindex++;
-            this.startX = clientPos.x - this.container.offsetLeft;
-            this.startY = clientPos.y - this.container.offsetTop;
+            this._container = event.target.offsetParent.offsetParent;
+            this._container.style.zIndex = this.lastZindex++;
+            this.startX = clientPos.x - this._container.offsetLeft;
+            this.startY = clientPos.y - this._container.offsetTop;
             this.x = clientPos.x - this.startX;
             this.y = clientPos.y - this.startY;
             this.dragStartPos.x = this.x;
@@ -54,8 +54,10 @@ export class DragService {
         if (this.ps.getActivePentomino()) {
             this.x = clientPos.x - this.startX;
             this.y = clientPos.y - this.startY;
-            this.container.style.left = this.x + 'px';
-            this.container.style.top = this.y + 'px';
+            if (this._container) {
+                this._container.style.left = this.x + 'px';
+                this._container.style.top = this.y + 'px';
+            }
         }
     }
 
@@ -88,17 +90,20 @@ export class DragService {
 
     releasePentomino() {
         if (this.container) {
-            this.container = null;
-        }
-        this.ps.resetActivePentomino();
+            if (this._container) {
+                this._container = null;
+            }
+            this.ps.resetActivePentomino();
     }
 
     alignToGrid() {
         let newX = Math.round(this.x / this.ss.partSize);
         let newY = Math.round(this.y / this.ss.partSize);
         this.ps.setActivePentominoPosition(newX, newY);
-        this.container.style.left = newX * this.ss.partSize + 'px';
-        this.container.style.top = newY * this.ss.partSize + 'px';
+        if (this._container) {
+            this._container.style.left = newX * this.ss.partSize + 'px';
+            this._container.style.top = newY * this.ss.partSize + 'px';
+        }
     }
 
     isDragged() {
