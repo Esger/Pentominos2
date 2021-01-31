@@ -20,7 +20,7 @@ export class PentominoService {
         this.pentominos = [];
         this.offBoardPentominos = [];
         this.fields = [];
-        this.activePentomino = null;
+        this._activePentomino = null;
         this.oBlock = null;
         this.start();
     }
@@ -68,28 +68,28 @@ export class PentominoService {
     }
 
     getActivePentomino() {
-        return this.activePentomino;
+        return this._activePentomino;
     }
 
     setActivePentomino(pentomino, index) {
-        this.activePentomino = pentomino;
-        this.activePentomino.activePart = index;
+        this._activePentomino = pentomino;
+        this._activePentomino.activePart = index;
     }
 
     resetActivePentomino() {
-        if (this.activePentomino) {
-            this.activePentomino.activePart = null;
+        if (this._activePentomino) {
+            this._activePentomino.activePart = null;
         }
-        this.activePentomino = null;
+        this._activePentomino = null;
     }
 
     setActivePentominoPosition(newX, newY) {
-        this.activePentomino.position.x = newX;
-        this.activePentomino.position.y = newY;
+        this._activePentomino.position.x = newX;
+        this._activePentomino.position.y = newY;
     }
 
     getActivePartPosition() {
-        let pentomino = this.activePentomino;
+        let pentomino = this._activePentomino;
         return [
             pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0],
             pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]
