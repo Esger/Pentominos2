@@ -14,15 +14,15 @@ export class HeaderCustomElement {
         this.title = 'Pentomino';
         this.moves = 0;
         this.ea.subscribe('move', (result) => {
-            (result > 0) ? this.moves++ : this.moves = 0;
+            this.moves = (result > 0) ? this.moves + 1 : 0;
         });
     }
 
     getHeaderSizeCss(shape) {
         let boardType = this.bs.boardTypes[shape];
         let css = {
-            width: boardType.w * this.bs.partSize + 'px',
-        }
+            width: boardType.w * this.bs.partSize + 'px'
+        };
         return css;
     }
 

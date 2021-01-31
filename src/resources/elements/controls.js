@@ -110,7 +110,10 @@ export class ControlsCustomElement {
         });
         this.ea.subscribe('move', response => {
             if (response == 1) {
-                setTimeout(() => { this.sls.setPossibleSolutions(this.ps.onBoards); });
+                setTimeout(_ => {
+                    const onBoards = JSON.parse(JSON.stringify(this.ps.onBoards));
+                    this.sls.setPossibleSolutions(onBoards);
+                });
             }
         });
         this.ea.subscribe('keyPressed', response => {

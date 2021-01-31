@@ -16,7 +16,7 @@ export class SolutionService {
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
-        this.possibleSolutions = [];
+        this._possibleSolutions = [];
         this.currentSolution = -1;
         this.getSolutions();
     }
@@ -55,13 +55,13 @@ export class SolutionService {
                 return result;
             });
         };
-        this.possibleSolutions = solutions.filter(solution => {
+        this._possibleSolutions = solutions.filter(solution => {
             return containsAll(solution);
         });
     }
 
     getPossibleSolutionsCount() {
-        return this.possibleSolutions.length;
+        return this._possibleSolutions.length;
     }
 
     deleteSolutions() {

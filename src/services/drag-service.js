@@ -89,11 +89,10 @@ export class DragService {
     }
 
     releasePentomino() {
-        if (this.container) {
-            if (this._container) {
-                this._container = null;
-            }
-            this.ps.resetActivePentomino();
+        if (this._container) {
+            this._container = null;
+        }
+        this.ps.resetActivePentomino();
     }
 
     alignToGrid() {
