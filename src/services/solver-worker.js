@@ -395,6 +395,7 @@ let sendFeedBack = function (message) {
             workerData.onBoards = pentominos.concat(offBoardPentominos);
             postMessage(workerData);
             close();
+            break;
         default:
             close();
             break;
