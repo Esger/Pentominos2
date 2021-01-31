@@ -20,7 +20,7 @@ export class PentominoService {
         this.pentominos = [];
         this.offBoardPentominos = [];
         this.fields = [];
-        this.activePentomino = null;
+        this._activePentomino = null;
         this.oBlock = null;
         this.start();
     }
@@ -63,29 +63,37 @@ export class PentominoService {
         return true;
     }
 
-    getActivePentomino() {
-        return this.activePentomino;
-    }
-
     getFields() {
         return this.fields;
     }
 
+    getActivePentomino() {
+        return this._activePentomino;
+    }
+
     setActivePentomino(pentomino, index) {
-        this.activePentomino = pentomino;
-        this.activePentomino.activePart = index;
+        this._activePentomino = pentomino;
+        this._activePentomino.activePart = index;
     }
 
     resetActivePentomino() {
-        if (this.activePentomino) {
-            this.activePentomino.activePart = null;
+        if (this._activePentomino) {
+            this._activePentomino.activePart = null;
         }
-        this.activePentomino = null;
+        this._activePentomino = null;
     }
 
     setActivePentominoPosition(newX, newY) {
-        this.activePentomino.position.x = newX;
-        this.activePentomino.position.y = newY;
+        this._activePentomino.position.x = newX;
+        this._activePentomino.position.y = newY;
+    }
+
+    getActivePartPosition() {
+        let pentomino = this._activePentomino;
+        return [
+            pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0],
+            pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]
+        ];
     }
 
     signalViewUpdate() {
@@ -97,29 +105,6 @@ export class PentominoService {
             return a.index - b.index;
         });
         return pentos;
-    }
-
-    adjustPosition() {  // Thanks Ben Nierop, for the idea
-        let pentomino = this.activePentomino;
-        let partRelPosition = pentomino.faces[pentomino.face][pentomino.activePart];
-        let partAbsPosition = [
-            pentomino.position.x + partRelPosition[0],
-            pentomino.position.y + partRelPosition[1]
-        ];
-        let partToBottom = pentomino.dimensions[1] - partRelPosition[1] - 1;
-        let partToRight = pentomino.dimensions[0] - partRelPosition[0] - 1;
-        switch (pentomino.activePart) {
-            case 0:
-                pentomino.position.x = partAbsPosition[0] - partToBottom;
-                pentomino.position.y = partAbsPosition[1] - partRelPosition[0];
-                break;
-            case 1:
-                pentomino.position.x = partAbsPosition[0] - partToRight;
-                break;
-            case 2:
-                pentomino.position.y = partAbsPosition[1] - partToBottom;
-                break;
-        }
     }
 
     registerPiece(pentomino, onOff) {
@@ -165,10 +150,6 @@ export class PentominoService {
         this.pentominos = pentos;
     }
 
-    setOffBoardPentominos(pentos) {
-        this.offBoardPentominos = pentos;
-    }
-
     start() {
         this.getPentominoData().then((response) => {
             this.pentominos = response;
@@ -209,7 +190,7 @@ export class PentominoService {
     boardHas60Squares() {
         let shape = this.bs.boardType;
         return !(shape === 'square' || shape === 'stick');
-    };
+    }
 
     // Remove or add the Oblock as needed for current boardType
     toggleOblock() {

@@ -1,5 +1,4 @@
 <template>
-    <require from="components/controls.css"></require>
     <div class="controls"
          if.bind="solutionCount">
         <button class="button small"
@@ -11,7 +10,7 @@
         </button>
         <button class.bind="getIndicatorClass(bs.solved)"
                 disabled.bind="disabledButtons"
-                innerhtml.bind="getIndicatorText(sls.currentSolution, sls.solutions[bs.boardType].length)"
+                innerhtml="${indicatorText}"
                 click.delegate="showFirstSolution()"
                 touchstart.delegate="showFirstSolution()">
         </button>

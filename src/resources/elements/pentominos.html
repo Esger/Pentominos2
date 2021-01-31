@@ -1,5 +1,4 @@
 <template class="pentominosWrapper">
-    <require from="components/pentominos.css"></require>
     <require from="resources/value-converters/pento-pos-value-converter"></require>
     <require from="resources/value-converters/part-pos-value-converter"></require>
     <require from="resources/value-converters/pento-face-value-converter"></require>
@@ -13,6 +12,8 @@
                  mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
                  touchstart.delegate="ds.startDrag(pentomino, $index, $event)">
                 <!-- ${pentomino.position.x},${pentomino.position.y} -->
+                <!-- ${pentomino.type} -->
+                <!-- ${$index == 3 ? "f"+pentomino.face : ''} -->
             </div>
         </div>
     </div>

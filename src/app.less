@@ -1,0 +1,75 @@
+body, html {
+    overscroll-behavior: contain;
+}
+
+.dragArea, body, html {
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    font-family: TrebuchetMS, sans-serif;
+    color: #fff;
+    user-select: none;
+}
+
+.dragArea {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow: hidden;
+}
+
+.r {
+    float: right;
+}
+
+.l {
+    float: left;
+}
+
+.relContainer {
+    position: relative;
+}
+
+.rounded {
+    border-radius: 100px;
+}
+
+.clearFix {
+    clear: both;
+}
+
+.hidden {
+    display: none;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.pushTop {
+    margin-top: 12px;
+}
+
+.pushLeft {
+    margin-left: 12px;
+}
+
+.pushBottom {
+    margin-bottom: 12px;
+}
+
+.pushBottomMore {
+    margin-bottom: 24px;
+}
+
+.textAlignLeft {
+    text-align: left;
+}
+
+*[disabled], :disabled {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: .2;
+}
