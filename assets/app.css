@@ -198,6 +198,7 @@ menu ul li.disabled {
 menu ul {
   background-color: rgba(34, 34, 34, 0.7);
   border: 1px solid rgba(34, 34, 34, 0.7);
+  min-width: 100px;
 }
 menu ul#menu {
   position: absolute;
@@ -206,12 +207,22 @@ menu ul#menu {
 }
 menu ul li {
   position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
   font-size: 14px;
   color: #333;
   background-color: ghostwhite;
   line-height: 20px;
-  padding: 10px 20px 10px 15px;
+  padding: 10px;
   margin: 1px;
+  white-space: nowrap;
   cursor: pointer;
 }
 menu ul li li {
