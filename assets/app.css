@@ -8,7 +8,6 @@ body,
 html {
   width: 100%;
   height: 100%;
-  background-color: #222;
   font-family: TrebuchetMS, sans-serif;
   color: #fff;
   -webkit-user-select: none;
@@ -34,6 +33,9 @@ html {
       -ms-flex-align: center;
           align-items: center;
   overflow: hidden;
+  background-color: #222222fc;
+  background-image: url(/assets/salamander.gif);
+  background-blend-mode: multiply;
 }
 .r {
   float: right;
