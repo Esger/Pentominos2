@@ -13,15 +13,17 @@
     }
 }
 
-.hamburger > .fa-bars.disabled, menu ul li.disabled {
+.hamburger>.fa-bars.disabled,
+menu ul li.disabled {
     pointer-events: none;
     cursor        : not-allowed;
-    color         : rgba(255,255,255,.2);
+    color         : rgba(255, 255, 255, .2);
 }
 
 menu ul {
     background-color: rgba(34, 34, 34, .7);
     border          : 1px solid rgba(34, 34, 34, .7);
+    min-width       : 100px;
 
     &#menu {
         position: absolute;
@@ -31,12 +33,16 @@ menu ul {
 
     li {
         position        : relative;
+        display         : flex;
+        align-items     : center;
+        justify-content : space-between;
         font-size       : 14px;
         color           : #333;
         background-color: ghostwhite;
         line-height     : 20px;
-        padding         : 10px 20px 10px 15px;
+        padding         : 10px;
         margin          : 1px;
+        white-space     : nowrap;
         cursor          : pointer;
 
         li {
@@ -52,8 +58,10 @@ menu ul {
         }
 
         &.disabled {
-            color: rgba(51,51,51,.2);
+            color: rgba(51, 51, 51, .2);
         }
+
+        .fa-angle-right {}
     }
 
     .subMenu {

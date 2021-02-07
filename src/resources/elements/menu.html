@@ -9,13 +9,14 @@
 
         <li click.delegate="hideTheMenu()"
             touchstart.delegate="hideTheMenu()">
-            <i class="fa fa-times"></i></li>
+            <i class="fa fa-times"></i>
+        </li>
 
         <li class.bind="disableBoardSwitch ? 'disabled' : ''"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
             touchend.delegate="toggleSubmenuBoards()">
-            Board sizes&nbsp;&nbsp;<i class="fa fa-angle-right"></i>
+            Boards&nbsp;<i class="fa fa-angle-right"></i>
             <ul if.bind="settings.submenuBoardsVisible"
                 class="subMenu">
                 <li repeat.for="boardType of boardTypes"
@@ -28,10 +29,10 @@
         </li>
 
         <li click.delegate="rotateBoard()"
-            touchstart.delegate="rotateBoard()">Rotate&nbsp;Blocks</li>
+            touchstart.delegate="rotateBoard()">Rotate</li>
 
         <li click.delegate="flipBoardYAxis()"
-            touchstart.delegate="flipBoardYAxis()">Flip Blocks</li>
+            touchstart.delegate="flipBoardYAxis()">Flip</li>
 
         <li if.bind="screenIsLargeEnough()"
             click.delegate="mixBoard()"
