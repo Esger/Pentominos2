@@ -116,9 +116,9 @@ export class ControlsCustomElement {
                 });
             }
         });
-        this.ea.subscribe('keyPressed', response => {
+        this.ea.subscribe('keyPressed', keyName => {
             if (!this.disabledButtons) {
-                switch (response) {
+                switch (keyName) {
                     case 'ArrowRight': this.showNextSolution();
                         break;
                     case 'ArrowLeft': this.showPreviousSolution();
@@ -130,8 +130,6 @@ export class ControlsCustomElement {
                     case ' ': this.ea.publish('pause');
                         break;
                 }
-
-
             }
         });
     }
