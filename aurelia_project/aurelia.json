@@ -139,6 +139,11 @@
                         "path": "../node_modules/aurelia-testing/dist/amd",
                         "main": "aurelia-testing",
                         "env": "dev"
+                    },
+                    {
+                        "name": "p5",
+                        "path": "../node_modules/p5",
+                        "main": "/lib/p5.js"
                     }
                 ]
             }
