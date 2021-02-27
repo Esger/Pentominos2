@@ -21,7 +21,7 @@ export class BoardCustomElement {
     }
 
     getBoardClasses(newSolution) {
-        let classes = ['board'];
+        let classes = ['board', 'confetti-button'];
         let solvedClass = (newSolution) ? 'solved' : '';
         classes.push(solvedClass);
         return classes.join(' ');
