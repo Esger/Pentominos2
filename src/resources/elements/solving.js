@@ -56,7 +56,7 @@ export class SolvingCustomElement {
 
     autoSolve() {
         this.backupPentominos = this.ps.pentominos.slice();
-        this.slvrWrkr = new Worker('./src/services/solver-worker.js');
+        this.slvrWrkr = new Worker('assets/worker/solver-worker.js');
         this.canStop = true;
         this.boardWidth = this.bs.getWidth();
         this.boardHeight = this.bs.getHeight();
