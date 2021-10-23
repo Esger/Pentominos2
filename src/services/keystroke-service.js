@@ -10,7 +10,7 @@ export class KeystrokeService {
         this.ea = eventAggregator;
         this.acceptMoves = true;
         this.myKeypressCallback = this.keypressInput.bind(this);
-        this.setSubscribers();
+        this._setSubscribers();
     }
 
     keysOff() {
@@ -21,7 +21,7 @@ export class KeystrokeService {
         this.acceptMoves = true;
     }
 
-    setSubscribers() {
+    _setSubscribers() {
         document.addEventListener('keydown', this.myKeypressCallback, false);
         this.ea.subscribe('keysOff', response => {
             this.keysOff();

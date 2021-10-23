@@ -23,7 +23,8 @@ export class ControlsCustomElement {
         this.ps = pentominoService;
         this.sls = solutionService;
         this.disabledButtons = false;
-        this.setSubscribers();
+        this._setSubscribers();
+        this._publishPossibleSolutions();
     }
 
     get solutionCount() {
@@ -38,17 +39,17 @@ export class ControlsCustomElement {
     }
 
     get indicatorText() {
-        let currentSolution = this.sls.currentSolution;
+        let currentSolution = !this._boardIsEmpty && this.sls.currentSolution;
         let solutionCount = '(' + this.sls.solutions[this.bs.boardType].length + ') ';
         let possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
         let possible = (possibleSolutionsCount > 0) ? possibleSolutionsCount + ' ' : '0 ';
         // console.log('possible solutions: ', possibleSolutionsCount);
-        let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+        let current = (this.onBoards.length && currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
         let text = current + possible + solutionCount;
         return text;
     }
 
-    showSolution() {
+    _showSolution() {
         let pentominos = this.ps.pentominos;
         let solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
         let splitString = solutionString.substr(1).split('#');
@@ -74,29 +75,34 @@ export class ControlsCustomElement {
 
     showFirstSolution() {
         this.sls.currentSolution = 0;
-        this.showSolution();
+        this._showSolution();
     }
 
     showLastSolution() {
         this.sls.currentSolution = this.solutionCount - 1;
-        this.showSolution();
+        this._showSolution();
     }
 
     showPreviousSolution() {
         if (this.sls.currentSolution > 0) {
             this.sls.currentSolution--;
-            this.showSolution();
+            this._showSolution();
         }
     }
 
     showNextSolution() {
         if (!this.disableNextButton(this.sls.currentSolution, this.sls.solutions[this.bs.boardType].length)) {
             this.sls.currentSolution++;
-            this.showSolution();
+            this._showSolution();
         }
     }
 
-    setSubscribers() {
+    _publishPossibleSolutions() {
+        this.onBoards = JSON.parse(JSON.stringify(this.ps.onBoards)); // clone array
+        this.sls.setPossibleSolutions(this.onBoards);
+    }
+
+    _setSubscribers() {
         let direction = 0;
         let newDirection = 0;
         let directions = {
@@ -105,18 +111,17 @@ export class ControlsCustomElement {
             'ArrowLeft': 2,
             'ArrowUp': 3
         };
-        this.ea.subscribe('solving', response => {
+        this._solvingSubscriber = this.ea.subscribe('solving', response => {
             this.disabledButtons = response;
         });
-        this.ea.subscribe('move', response => {
+        this._moveSubscriber = this.ea.subscribe('move', response => {
             if (response == 1) {
                 setTimeout(_ => {
-                    const onBoards = JSON.parse(JSON.stringify(this.ps.onBoards));
-                    this.sls.setPossibleSolutions(onBoards);
+                    this._publishPossibleSolutions();
                 });
             }
         });
-        this.ea.subscribe('keyPressed', response => {
+        this._keyPressedSubscriber = this.ea.subscribe('keyPressed', response => {
             if (!this.disabledButtons) {
                 switch (response) {
                     case 'ArrowRight': this.showNextSolution();
@@ -130,11 +135,13 @@ export class ControlsCustomElement {
                     case ' ': this.ea.publish('pause');
                         break;
                 }
-
-
             }
         });
     }
 
-
+    detached() {
+        this._solvingSubscriber.dispose();
+        this._moveSubscriber.dispose();
+        this._keyPressedSubscriber.dispose();
+    }
 }

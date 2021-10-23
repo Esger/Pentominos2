@@ -32,6 +32,7 @@ export class SolvingCustomElement {
         this.solutionsBuffer = [];
         this.backupPentominos = this.ps.pentominos.slice();
         this.alert = '';
+        this.shuffled = false;
     }
 
     get solutionsInQueue() {
@@ -136,6 +137,7 @@ export class SolvingCustomElement {
     }
 
     mixBoard() {
+        this.shuffled = true;
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
         this.bnds.signal('position-signal');

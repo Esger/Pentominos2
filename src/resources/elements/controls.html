@@ -9,6 +9,7 @@
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
         <button class.bind="getIndicatorClass(bs.solved)"
+                title="Show first solution"
                 disabled.bind="disabledButtons"
                 innerhtml="${indicatorText}"
                 click.delegate="showFirstSolution()"

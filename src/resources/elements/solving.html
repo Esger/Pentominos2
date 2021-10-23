@@ -9,6 +9,7 @@
                     <icon class="fa fa-random fa-lg"></icon>
             </button>
             <button class="button"
+                    disabled.bind="!shuffled"
                     title="find all solutions"
                     click.delegate="autoSolve()"
                     touchstart.delegate="autoSolve()">
