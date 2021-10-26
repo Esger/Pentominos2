@@ -48,7 +48,7 @@ export class PermutationService {
 
     // Returns the new face index for a given face, action and blocktype
     flipRotate(pentomino, part) {
-        let partTranslations = [
+        const partTranslations = [
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
@@ -77,7 +77,7 @@ export class PermutationService {
     // 90° clockwise rotation
     rotateSquareBoard(pentominos) {
         let pentomino;
-        let origin = {};
+        const origin = {};
         for (let i = 0; i < pentominos.length; i++) {
             pentomino = pentominos[i];
             // bottom left of current rectangle occupied by pentomino
@@ -99,7 +99,7 @@ export class PermutationService {
     }
 
     shiftPiecesToTop(pentominos) {
-        let topMostY = Math.min(...pentominos.map(pentomino => {
+        const topMostY = Math.min(...pentominos.map(pentomino => {
             return pentomino.position.y;
         }));
         this.shiftPieces(pentominos, 0, -topMostY);
@@ -107,8 +107,8 @@ export class PermutationService {
 
     // Thanks Ben Nierop, for the idea
     adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
-        let dx = oldActivePartPosition[0] - newActivePartPosition[0];
-        let dy = oldActivePartPosition[1] - newActivePartPosition[1];
+        const dx = oldActivePartPosition[0] - newActivePartPosition[0];
+        const dy = oldActivePartPosition[1] - newActivePartPosition[1];
         this.shiftPieces([pentomino], dx, dy);
     }
 
@@ -123,12 +123,12 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        let clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-        let clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-        let maxX = clientWidth - 4;
-        let maxY = clientHeight - 4;
+        const clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+        const clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+        const maxX = clientWidth - 4;
+        const maxY = clientHeight - 4;
         // offset values in positions
-        let offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+        const offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
 
         const count = pentominos.length;
         for (let i = 0; i < count; i++) {

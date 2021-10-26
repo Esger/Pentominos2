@@ -71,9 +71,9 @@ export class SolutionService {
 
     saveSolution(pentominos) {
         if (pentominos) {
-            let solutionResult = this.isNewSolution(pentominos);
+            const solutionResult = this.isNewSolution(pentominos);
             // A number indicates an existing solution
-            // A string indicate a new solution
+            // A string indicates a new solution
             if (!isNaN(solutionResult)) {
                 // show this solution
                 this.currentSolution = solutionResult;
@@ -126,7 +126,7 @@ export class SolutionService {
     }
 
     pentomino2string(pentomino) {
-        let parts = [];
+        const parts = [];
         if (pentomino) {
             parts.push('#' + pentomino.name);
             parts.push(pentomino.face);

@@ -18,8 +18,14 @@ export class DragService {
         this.ss = settingService;
         this.ps = pentominoService;
         this.prms = permutationService;
-        this.dragStartPos = {};
-        this.dragEndPos = {};
+        this.dragStartPos = {
+            x: undefined,
+            y: undefined
+        };
+        this.dragEndPos = {
+            x: undefined,
+            y: undefined
+        };
         this.lastZindex = 1;
     }
 

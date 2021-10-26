@@ -44,7 +44,7 @@ export class ControlsCustomElement {
         let possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
         let possible = (possibleSolutionsCount > 0) ? possibleSolutionsCount + ' ' : '0 ';
         // console.log('possible solutions: ', possibleSolutionsCount);
-        let current = (this.onBoards.length && currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
+        let current = (this.ps.boardIsFull() && currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
         let text = current + possible + solutionCount;
         return text;
     }
