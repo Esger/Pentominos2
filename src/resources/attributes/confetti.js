@@ -1,5 +1,6 @@
-import { inject } from "aurelia-framework";
-import { p5 } from "p5";
+import { p5 } from 'p5';
+import { inject } from 'aurelia-framework';
+
 @inject(Element)
 export class ConfettiCustomAttribute {
     constructor(element) {
@@ -10,14 +11,14 @@ export class ConfettiCustomAttribute {
         this.ancienne = undefined;
         this.pression = undefined;
 
-        let themeCouleur = [
+        this.themeCouleur = [
             '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
             '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
             '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
             '#FF5722'
         ];
-
     }
+
     attached() {
         this.setup();
     }
@@ -62,8 +63,9 @@ export class ConfettiCustomAttribute {
     }
 }
 
+// @inject(P5)
 export class ParticuleService {
-    constructor(parent) {
+    constructor(parent, p5) {
         this.parent = parent;
         this.gravite = parent.gravite;
         this.reinit();

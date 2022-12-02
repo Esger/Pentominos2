@@ -1,5 +1,6 @@
 <template class.bind="getBoardClasses(bs.newSolution)"
           css.bind="getBoardSizeCSS(bs.boardType)">
     <require from="./pentominos"></require>
-    <pentominos></pentominos>
+    <require from="src/resources/attributes/confetti.js"></require>
+    <pentominos confetti></pentominos>
 </template>
