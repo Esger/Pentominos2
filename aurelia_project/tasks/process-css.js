@@ -22,5 +22,5 @@ export default function processCSS() {
         .pipe(concat('app.less'))
         .pipe(less())
         .pipe(postcss(processors))
-        .pipe(gulp.dest('assets/'));
+        .pipe(gulp.dest('assets/css/'));
 } 

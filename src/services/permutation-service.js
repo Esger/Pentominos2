@@ -92,10 +92,10 @@ export class PermutationService {
     }
 
     shiftPieces(pentominos, dx, dy) {
-        for (let i = 0; i < pentominos.length; i++) {
-            pentominos[i].position.x += dx;
-            pentominos[i].position.y += dy;
-        }
+        pentominos.forEach(pentomino => {
+            pentomino.position.x += dx;
+            pentomino.position.y += dy;
+        });
     }
 
     shiftPiecesToTop(pentominos) {
