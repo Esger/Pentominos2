@@ -10,7 +10,7 @@ export class PermutationService {
 
     constructor(boardService) {
         this.bs = boardService;
-        this.rotable = [
+        this._rotable = [
             [ // rotate clockwise
                 [1, 2, 3, 0, 5, 6, 7, 4], // blyfn
                 [1, 2, 3, 0], // vw
@@ -44,21 +44,21 @@ export class PermutationService {
                 [0] // xo not necessary
             ]
         ];
-    }
-
-    // Returns the new face index for a given face, action and blocktype
-    flipRotate(pentomino, part) {
-        let partTranslations = [
+        this._partTranslations = [
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
             [0, 1, 2, 3, 3],
             [0, 0, 0, 0, 0]
         ];
-        if (part == undefined) {
-            part = partTranslations[pentomino.type][pentomino.activePart];
+    }
+
+    // Returns the new face index for a given face, action and blocktype
+    flipRotate(pentomino, part) {
+        if (part == undefined) { // user action
+            part = this._partTranslations[pentomino.type][pentomino.activePart];
         }
-        pentomino.face = this.rotable[part][pentomino.type][pentomino.face];
+        pentomino.face = this._rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
         if (part === 0) {
             pentomino.dimensions.reverse();
