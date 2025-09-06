@@ -15,6 +15,8 @@ export class PentominosCustomElement {
         this.ds = dragService;
     }
 
+    // Todo use value converters instead of getters
+
     getPentominoClasses(pentomino) {
         let classes = ['pentomino'];
         classes.push('pentomino block_' + pentomino.name);
