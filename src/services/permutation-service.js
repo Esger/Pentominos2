@@ -66,12 +66,10 @@ export class PermutationService {
     }
 
     flipBoardYAxis(pentominos) {
-        let pentomino;
-        for (let i = 0; i < pentominos.length; i++) {
-            pentomino = pentominos[i];
+        pentominos.forEach(pentomino => {
             this.flipRotate(pentomino, 1);
             pentomino.position.x = this.bs.getWidth() - pentomino.position.x - pentomino.dimensions[0];
-        }
+        });
     }
 
     // 90° clockwise rotation
