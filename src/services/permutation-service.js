@@ -74,11 +74,9 @@ export class PermutationService {
 
     // 90° clockwise rotation
     rotateSquareBoard(pentominos) {
-        let pentomino;
-        let origin = {};
-        for (let i = 0; i < pentominos.length; i++) {
-            pentomino = pentominos[i];
+        pentominos.forEach(pentomino => {
             // bottom left of current rectangle occupied by pentomino
+            const origin = {};
             origin.x = pentomino.position.x;
             origin.y = pentomino.position.y + pentomino.dimensions[1];
             // rotated position on board
@@ -86,7 +84,7 @@ export class PermutationService {
             pentomino.position.y = origin.x;
             // rotated pentomino
             this.flipRotate(pentomino, 0);
-        }
+        });
     }
 
     shiftPieces(pentominos, dx, dy) {
