@@ -127,7 +127,7 @@ export class PermutationService {
             pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
             // find random off board position
             do {
-                const xPos = Math.floor(Math.random() * maxX);
+                let xPos = Math.floor(Math.random() * maxX);
                 xPos -= offsetX;
                 const yPos = Math.floor(Math.random() * maxY);
 
