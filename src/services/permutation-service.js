@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject, bindable } from 'aurelia-framework';
 import { BoardService } from './board-service';
 
 @inject(BoardService)
@@ -88,14 +85,14 @@ export class PermutationService {
     }
 
     shiftPieces(pentominos, dx, dy) {
-        for (let i = 0; i < pentominos.length; i++) {
-            pentominos[i].position.x += dx;
-            pentominos[i].position.y += dy;
-        }
+        pentominos.forEach(pentomino => {
+            pentomino.position.x += dx;
+            pentomino.position.y += dy;
+        });
     }
 
     shiftPiecesToTop(pentominos) {
-        let topMostY = Math.min(...pentominos.map(pentomino => {
+        const topMostY = Math.min(...pentominos.map(pentomino => {
             return pentomino.position.y;
         }));
         this.shiftPieces(pentominos, 0, -topMostY);
@@ -103,8 +100,8 @@ export class PermutationService {
 
     // Thanks Ben Nierop, for the idea
     adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
-        let dx = oldActivePartPosition[0] - newActivePartPosition[0];
-        let dy = oldActivePartPosition[1] - newActivePartPosition[1];
+        const dx = oldActivePartPosition[0] - newActivePartPosition[0];
+        const dy = oldActivePartPosition[1] - newActivePartPosition[1];
         this.shiftPieces([pentomino], dx, dy);
     }
 
@@ -119,29 +116,26 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        let clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-        let clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-        let maxX = clientWidth - 4;
-        let maxY = clientHeight - 4;
+        const clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
+        const clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
+        const maxX = clientWidth - 4;
+        const maxY = clientHeight - 4;
         // offset values in positions
-        let offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+        const offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
 
-        const count = pentominos.length;
-        for (let i = 0; i < count; i++) {
-            const pentomino = pentominos[i];
-            const face = Math.floor(Math.random() * pentomino.faces.length);
-            pentomino.face = face;
+        pentominos.forEach(pentomino => {
+            pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
             // find random off board position
             do {
-                let xPos = Math.floor(Math.random() * maxX);
+                const xPos = Math.floor(Math.random() * maxX);
                 xPos -= offsetX;
-                let yPos = Math.floor(Math.random() * maxY);
+                const yPos = Math.floor(Math.random() * maxY);
 
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;
             } while (this.bs.touchesBoard(pentomino));
             pentomino.onBoard = false;
-        }
+        })
     }
 
 
