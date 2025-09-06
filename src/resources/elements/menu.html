@@ -1,17 +1,14 @@
 <template class="hamburger">
-    <i class="fa fa-bars"
+    <button class="fa fa-bars"
        class.bind="menuDisabled ? 'disabled' : ''"
-       click.delegate="showTheMenu()"
-       touchstart.delegate="showTheMenu()"></i>
+       popovertarget="menu"></button>
 
-    <ul id="menu"
-        if.bind="settings.menuVisible">
-
-        <li click.delegate="hideTheMenu()"
-            touchstart.delegate="hideTheMenu()">
-            <i class="fa fa-times"></i>
+    <ul popover="auto"
+        id="menu">
+        <li><button class="fa fa-times"
+                   class.bind="menuDisabled ? 'disabled' : ''"
+                   popovertarget="menu"></button>
         </li>
-
         <li class.bind="disableBoardSwitch ? 'disabled' : ''"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
