@@ -7,6 +7,7 @@
         background: none;
         border    : none;
         color     : ghostwhite;
+        cursor    : pointer;
 
         &.fa-times {
             color: #333;
@@ -33,6 +34,10 @@ menu ul {
     background-color: rgba(34, 34, 34, .7);
     border          : 1px solid rgba(34, 34, 34, .7);
     min-width       : 100px;
+
+    ul {
+        border-left-color: transparent;
+    }
 
     &#menu[popover] {
         position: absolute;
@@ -63,7 +68,7 @@ menu ul {
             text-align: center;
         }
 
-        &:hover {
+        &:not(:has(.fa-times)):hover {
             background-color: gainsboro;
         }
 
@@ -75,12 +80,11 @@ menu ul {
             color: rgba(51, 51, 51, .2);
         }
 
-        .fa-angle-right {}
     }
 
     .subMenu {
         position: absolute;
-        left    : 99%;
+        left    : 100%;
         top     : -2px;
         z-index : 1;
     }
