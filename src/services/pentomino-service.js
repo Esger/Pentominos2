@@ -163,10 +163,11 @@ export class PentominoService {
     }
 
     adjustDimensions(pentomino) {
-        if (pentomino && pentomino.initialDimensions) {
+        if (!pentomino) return;
+        if (pentomino.initialDimensions) {
             pentomino.dimensions = pentomino.initialDimensions.slice();
         }
-        if (pentomino && pentomino.face % 2 == 1) {
+        if (pentomino.face % 2 == 1) {
             pentomino.dimensions.reverse();
         }
     }
