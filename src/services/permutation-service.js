@@ -57,7 +57,7 @@ export class PermutationService {
         }
         pentomino.face = this._rotable[part][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
-        if (part === 0) {
+        if (part !== 1 && part !== 2) {
             pentomino.dimensions.reverse();
         }
     }
