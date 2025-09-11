@@ -11,7 +11,7 @@ export class PermutationService {
             [ // rotate clockwise
                 [1, 2, 3, 0, 5, 6, 7, 4], // blyfn
                 [1, 2, 3, 0], // vw
-                [1, 2, 3, 0], // tu
+                [1, 2, 3, 0], // tc
                 [1, 0, 3, 2], // z
                 [1, 0], // i
                 [0] // xo not necessary
@@ -19,7 +19,7 @@ export class PermutationService {
             [ // flip around yAxis
                 [4, 7, 6, 5, 0, 3, 2, 1], // blyfn
                 [3, 2, 1, 0], // vw
-                [0, 3, 2, 1], // tu
+                [0, 3, 2, 1], // tc
                 [2, 3, 0, 1], // z
                 [0, 1], // i not necessary
                 [0] // xo not necessary
@@ -27,7 +27,7 @@ export class PermutationService {
             [ // flip around xAxis
                 [6, 5, 4, 7, 2, 1, 0, 3], // blyfn
                 [1, 0, 3, 2], // vw
-                [2, 1, 0, 3], // tu
+                [2, 1, 0, 3], // tc
                 [2, 3, 0, 1], // z
                 [0, 1], // i not necessary
                 [0] // xo not necessary
@@ -35,7 +35,7 @@ export class PermutationService {
             [ // rotate counter clockwise
                 [3, 0, 1, 2, 7, 4, 5, 6], // blyfn
                 [3, 0, 1, 2], // vw
-                [3, 0, 1, 2], // tu
+                [3, 0, 1, 2], // tc
                 [0, 1, 2, 3], // z
                 [1, 0], // i
                 [0] // xo not necessary
@@ -137,6 +137,5 @@ export class PermutationService {
             pentomino.onBoard = false;
         })
     }
-
 
 }
