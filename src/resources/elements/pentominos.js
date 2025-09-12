@@ -26,15 +26,6 @@ export class PentominosCustomElement {
 
     // Todo use value converters instead of getters
 
-    getPentominoClasses(pentomino) {
-        let classes = ['pentomino'];
-        classes.push('pentomino block_' + pentomino.name);
-        if (pentomino.active) {
-            classes.push('active');
-        }
-        return classes.join(' ');
-    }
-
     getPentominoCSS(x, y, color) {
         let css = {
             left: x * this.ss.partSize + 'px',

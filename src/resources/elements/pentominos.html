@@ -3,7 +3,7 @@
     <require from="resources/value-converters/part-pos-value-converter"></require>
     <require from="resources/value-converters/pento-face-value-converter"></require>
     <div repeat.for="pentomino of ps.pentominos"
-         class.bind="getPentominoClasses(pentomino)"
+         class="pentomino block_${pentomino.name} ${pentomino.active ? 'active' : ''}"
          css.bind="pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'">
         <div class="relContainer inheritBgColor">
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
