@@ -12,6 +12,7 @@ export class PentominosCustomElement {
         this.ps = pentominoService;
         this.ss = settingService;
         this.ds = dragService;
+        this.isSolving = false;
     }
 
     attached() {

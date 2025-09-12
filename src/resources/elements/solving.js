@@ -94,7 +94,6 @@ export class SolvingCustomElement {
                 case 'finish':
                     this.alert = 'No more solutions found!';
                     this.canStop = false;
-                    this.ea.publish('solving', false);
                     break;
                 case 'noSolution':
                     this.alert = 'No solutions found';
@@ -132,6 +131,7 @@ export class SolvingCustomElement {
             requestAnimationFrame(() => { self.handleSolutions() });
         } else {
             self.sls.saveSolution();
+            this.ea.publish('solving', false);
         }
     }
 
@@ -143,7 +143,6 @@ export class SolvingCustomElement {
 
     stop() {
         this.canStop = false;
-        this.ea.publish('solving', false);
         if (this.slvrWrkr) {
             this.slvrWrkr.terminate();
             this.ps.setPentominos(this.backupPentominos);
