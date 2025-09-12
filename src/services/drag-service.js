@@ -64,18 +64,19 @@ export class DragService {
     stopDrag(event) {
         this.dragEndPos.x = this.x;
         this.dragEndPos.y = this.y;
-        let pentomino = this.ps.getActivePentomino();
+        const pentomino = this.ps.getActivePentomino();
         if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
+                // the pentomino is rotated or flipped
                 // todo no if here; compensate in prms
                 if (((pentomino.type == 4) && (pentomino.activePart < 1)) ||
                     ((pentomino.type == 3) && (pentomino.activePart < 3)) ||
                     ((pentomino.type == 2) && (pentomino.activePart < 3)) ||
                     (pentomino.type < 3)) {
-                    let oldActivePartPosition = this.ps.getActivePartPosition();
+                    const oldActivePartPosition = this.ps.getActivePartPosition();
                     this.prms.flipRotate(pentomino);
-                    let newActivePartPosition = this.ps.getActivePartPosition();
+                    const newActivePartPosition = this.ps.getActivePartPosition();
                     this.prms.adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition);
                     this.ea.publish('move', 1);
                 }
