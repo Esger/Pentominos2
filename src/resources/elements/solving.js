@@ -1,20 +1,15 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { PentominoService } from 'services/pentomino-service';
 import { PermutationService } from 'services/permutation-service';
 import { SolutionService } from 'services/solution-service';
 
-@inject(BindingSignaler, BoardService, EventAggregator, PentominoService, PermutationService, SolutionService)
+@inject(BoardService, EventAggregator, PentominoService, PermutationService, SolutionService)
 export class SolvingCustomElement {
 
-    constructor(bindingSignaler, boardService, eventAggregator, pentominoService, permutationService, solutionService) {
+    constructor(boardService, eventAggregator, pentominoService, permutationService, solutionService) {
         this.ea = eventAggregator;
-        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ps = pentominoService;
         this.sls = solutionService;
@@ -94,7 +89,6 @@ export class SolvingCustomElement {
                 case 'finish':
                     this.alert = 'No more solutions found!';
                     this.canStop = false;
-                    this.ea.publish('solving', false);
                     break;
                 case 'noSolution':
                     this.alert = 'No solutions found';
@@ -132,18 +126,17 @@ export class SolvingCustomElement {
             requestAnimationFrame(() => { self.handleSolutions() });
         } else {
             self.sls.saveSolution();
+            this.ea.publish('solving', false);
         }
     }
 
     mixBoard() {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.bnds.signal('position-signal');
     }
 
     stop() {
         this.canStop = false;
-        this.ea.publish('solving', false);
         if (this.slvrWrkr) {
             this.slvrWrkr.terminate();
             this.ps.setPentominos(this.backupPentominos);

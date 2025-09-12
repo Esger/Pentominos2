@@ -1,8 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { SolutionService } from 'services/solution-service';
@@ -10,12 +6,12 @@ import { PentominoService } from 'services/pentomino-service';
 import { PermutationService } from 'services/permutation-service';
 import { SettingService } from 'services/setting-service';
 
-@inject(BindingSignaler, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
+@inject(Element, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
 
 export class MenuCustomElement {
 
-    constructor(bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
-        this.bnds = bindingSignaler;
+    constructor(element, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
+        this._element = element;
         this.bs = boardService;
         this.ea = eventAggregator;
         this.sls = solutionService;
@@ -24,12 +20,22 @@ export class MenuCustomElement {
         this.ss = settingService;
         this.boardTypes = Object.keys(this.bs.boardTypes);
         this.settings = {
-            menuVisible: false,
             menuDisabled: false,
             submenuBoardsVisible: false,
         };
         this.ea.subscribe('solving', response => {
             this.settings.menuDisabled = response;
+        });
+    }
+
+    attached() {
+        this._popover = this._element.querySelectorAll('[popover]')[0];
+        this._popover.addEventListener('beforetoggle', event => {
+            if (event.newState === 'open') {
+                const rect = this._element.getBoundingClientRect();
+                this._popover.style = '--left: ' + rect.left + 'px; --top: ' + rect.top + 'px;';
+                this.settings.submenuBoardsVisible = false;
+            }
         });
     }
 
@@ -48,34 +54,17 @@ export class MenuCustomElement {
     rotateBoard() {
         this.prms.rotateBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.settings.menuVisible = false;
-        this.bnds.signal('position-signal');
     }
 
     flipBoardYAxis() {
         this.prms.flipBoardYAxis(this.ps.pentominos);
         this.ps.registerPieces();
-        this.settings.menuVisible = false;
-        this.bnds.signal('position-signal');
-    }
-
-    showTheMenu() {
-        this.settings.menuVisible = true;
-        this.settings.submenuBoardsVisible = false;
     }
 
     mixBoard() {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.settings.menuVisible = false;
-        this.bnds.signal('position-signal');
         this.ea.publish('move', 0);
-    }
-
-    hideTheMenu() {
-        setTimeout(() => {
-            this.settings.menuVisible = false;
-        }, 250);
     }
 
     showThisBoard(key) {
@@ -128,7 +117,6 @@ export class MenuCustomElement {
         this.bs.unsetSolved();
         this.bs.unsetNewSolution();
         this.settings.submenuBoardsVisible = false;
-        this.settings.menuVisible = false;
     }
 
     workersSupported() {
@@ -140,7 +128,6 @@ export class MenuCustomElement {
 
     showSolvingPanel() {
         this.ea.publish('showSolvingPanel', true);
-        this.settings.menuVisible = false;
     }
 
 }

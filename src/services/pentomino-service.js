@@ -1,18 +1,12 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject, bindable } from 'aurelia-framework';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(BindingSignaler, DataService, BoardService, SolutionService)
+@inject(DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(bindingSignaler, dataService, boardService, solutionService) {
-
-        this.bnds = bindingSignaler;
+    constructor(dataService, boardService, solutionService) {
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
@@ -96,10 +90,6 @@ export class PentominoService {
         ];
     }
 
-    signalViewUpdate() {
-        this.bnds.signal('position-signal');
-    }
-
     sortPentominos(pentos) {
         pentos.sort((a, b) => {
             return a.index - b.index;
@@ -108,29 +98,27 @@ export class PentominoService {
     }
 
     registerPiece(pentomino, onOff) {
-        if (pentomino) {
-            let onBoardParts = 0;
-            let partsCount = pentomino.faces[pentomino.face].length;
-            for (let i = 0; i < partsCount; i++) {
-                let x = pentomino.faces[pentomino.face][i][0] + pentomino.position.x;
-                let y = pentomino.faces[pentomino.face][i][1] + pentomino.position.y;
-                if (this.bs.onBoard(x, y)) {
-                    this.fields[y][x] += onOff;
-                    onBoardParts += 1;
-                }
-                pentomino.onBoard = (onBoardParts == partsCount);
+        if (!pentomino) return;
+
+        let onBoardParts = 0;
+        const partsCount = pentomino.faces[pentomino.face].length;
+        pentomino.faces[pentomino.face].forEach(part => {
+            const x = part[0] + pentomino.position.x;
+            const y = part[1] + pentomino.position.y;
+            if (this.bs.onBoard(x, y)) {
+                this.fields[y][x] += onOff;
+                onBoardParts += 1;
             }
-        }
+            pentomino.onBoard = (onBoardParts == partsCount);
+        });
     }
 
     registerPieces() {
         this.fields = this.setBoardFields(0);
-        for (var i = 0; i < this.pentominos.length; i++) {
-            let pentomino = this.pentominos[i];
+        this.pentominos.forEach(pentomino => {
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
-        }
-        this.signalViewUpdate();
+        });
     }
 
     setBoardFields(content) {
@@ -151,9 +139,10 @@ export class PentominoService {
     }
 
     start() {
-        this.getPentominoData().then((response) => {
+        this.ds.getPentominos().then((response) => {
             this.pentominos = response;
-            this.getPentominoColors().then(() => {
+            this.ds.getColors().then((response) => {
+                this.pentominos.forEach((pentomino, i) => pentomino.color = response[i].color);
                 this.getStartPosition().then(() => {
                     this.registerPieces();
                     this.bs.unsetSolved();
@@ -162,27 +151,12 @@ export class PentominoService {
         });
     }
 
-    // Get the pentomino blocks
-    getPentominoData() {
-        return this.ds.getPentominos().then((response) => {
-            return response;
-        });
-    }
-
-    // Get the colors for the pentominos
-    getPentominoColors() {
-        return this.ds.getColors().then((response) => {
-            for (let i = 0; i < this.pentominos.length; i++) {
-                this.pentominos[i].color = response[i].color;
-            }
-        });
-    }
-
     adjustDimensions(pentomino) {
-        if (pentomino && pentomino.initialDimensions) {
+        if (!pentomino) return;
+        if (pentomino.initialDimensions) {
             pentomino.dimensions = pentomino.initialDimensions.slice();
         }
-        if (pentomino && pentomino.face % 2 == 1) {
+        if (pentomino.face % 2 == 1) {
             pentomino.dimensions.reverse();
         }
     }

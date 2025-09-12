@@ -1,23 +1,16 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import {
-    EventAggregator
-} from 'aurelia-event-aggregator';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 import { BoardService } from 'services/board-service';
 import { SettingService } from 'services/setting-service';
 import { PentominoService } from 'services/pentomino-service';
 import { SolutionService } from 'services/solution-service';
 
-@inject(BindingSignaler, BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
+@inject(BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
 
 export class ControlsCustomElement {
 
-    constructor(bindingSignaler, boardService, eventAggregator, settingService, pentominoService, solutionService) {
+    constructor(boardService, eventAggregator, settingService, pentominoService, solutionService) {
         this.ea = eventAggregator;
-        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ss = settingService;
         this.ps = pentominoService;
@@ -59,7 +52,6 @@ export class ControlsCustomElement {
             pentomino.position.x = parseInt(props[2], 10);
             pentomino.position.y = parseInt(props[3], 10);
         }
-        this.bnds.signal('position-signal');
         this.ps.registerPieces();
         this.bs.unsetNewSolution();
     }
