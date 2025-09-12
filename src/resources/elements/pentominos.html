@@ -6,8 +6,17 @@
          class.bind="getPentominoClasses(pentomino)"
          css.bind="pentomino | pentoPos:{ x:pentomino.position.x, y:pentomino.position.y, color:pentomino.color, partSize:ss.partSize } & signal:'position-signal'">
         <div class="relContainer inheritBgColor">
+            <!-- C and T blocks don't need mirrorring around symmetric axis -->
+            <let flip-h.bind="!(
+                pentomino.index == 1 && pentomino.face % 2 == 0 ||
+                pentomino.index == 6 && pentomino.face % 2 == 0)"></let>
+            <let flip-v.bind="!(
+                pentomino.index === 1 && pentomino.face % 2 === 1 ||
+                pentomino.index === 6 && pentomino.face % 2 === 1)"></let>
             <div repeat.for="part of pentomino | pentoFace:{ faces:pentomino.faces, face:pentomino.face } & signal:'position-signal'"
-                 class.bind="getPartClasses(pentomino, $index, pentomino.face)"
+                 class="fa part ${$index === 0 && pentomino.type < 5 ? 'fa-refresh rotate' : ''}
+                 ${$index === 1 && pentomino.type < 4 && flipH ? 'fa-arrows-h flipH' : ''}
+                 ${$index === 2 && pentomino.type < 4 && flipV ? 'fa-arrows-v flipV' : ''}"
                  css.bind="part | partPos:{ x:part[0], y:part[1], partSize:ss.partSize } & signal:'position-signal'"
                  mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
                  touchstart.delegate="ds.startDrag(pentomino, $index, $event)">
