@@ -33,7 +33,7 @@
     cursor          : grab;
     line-height     : 38px;
 
-    & > span {
+    &>span {
         line-height: 40px;
     }
 
@@ -43,22 +43,26 @@
 
     &::before {
         line-height: 38px;
-        opacity    : .5;
+        opacity    : .3;
     }
 }
 
-.block_n, .block_t, .block_v, .block_y {
+.block_n,
+.block_t,
+.block_v,
+.block_y {
     .part::before {
         opacity: .6;
     }
 }
 
-.pentomino.active, .pentomino:hover {
+.pentomino.active,
+.pentomino:hover {
     .part::before {
         opacity: 1;
     }
 }
 
 .pentomino.transparent .part {
-    opacity: .7;
+    opacity: .3;
 }

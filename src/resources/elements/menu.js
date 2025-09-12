@@ -1,5 +1,4 @@
-import { inject, bindable } from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { SolutionService } from 'services/solution-service';
@@ -7,13 +6,12 @@ import { PentominoService } from 'services/pentomino-service';
 import { PermutationService } from 'services/permutation-service';
 import { SettingService } from 'services/setting-service';
 
-@inject(Element, BindingSignaler, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
+@inject(Element, BoardService, EventAggregator, SolutionService, PentominoService, PermutationService, SettingService)
 
 export class MenuCustomElement {
 
-    constructor(element, bindingSignaler, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
+    constructor(element, boardService, eventAggregator, solutionService, pentominoService, permutationService, settingService) {
         this._element = element;
-        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ea = eventAggregator;
         this.sls = solutionService;
@@ -56,19 +54,16 @@ export class MenuCustomElement {
     rotateBoard() {
         this.prms.rotateBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.bnds.signal('position-signal');
     }
 
     flipBoardYAxis() {
         this.prms.flipBoardYAxis(this.ps.pentominos);
         this.ps.registerPieces();
-        this.bnds.signal('position-signal');
     }
 
     mixBoard() {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.bnds.signal('position-signal');
         this.ea.publish('move', 0);
     }
 
