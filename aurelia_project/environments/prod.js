@@ -1,4 +1,4 @@
 export default {
-  debug: false,
-  testing: false
+    debug: false,
+    testing: false
 };
