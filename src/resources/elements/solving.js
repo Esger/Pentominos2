@@ -1,20 +1,15 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { PentominoService } from 'services/pentomino-service';
 import { PermutationService } from 'services/permutation-service';
 import { SolutionService } from 'services/solution-service';
 
-@inject(BindingSignaler, BoardService, EventAggregator, PentominoService, PermutationService, SolutionService)
+@inject(BoardService, EventAggregator, PentominoService, PermutationService, SolutionService)
 export class SolvingCustomElement {
 
-    constructor(bindingSignaler, boardService, eventAggregator, pentominoService, permutationService, solutionService) {
+    constructor(boardService, eventAggregator, pentominoService, permutationService, solutionService) {
         this.ea = eventAggregator;
-        this.bnds = bindingSignaler;
         this.bs = boardService;
         this.ps = pentominoService;
         this.sls = solutionService;
@@ -138,7 +133,6 @@ export class SolvingCustomElement {
     mixBoard() {
         this.prms.mixBoard(this.ps.pentominos);
         this.ps.registerPieces();
-        this.bnds.signal('position-signal');
     }
 
     stop() {

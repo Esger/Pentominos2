@@ -1,18 +1,12 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
-import { BindingSignaler } from 'aurelia-templating-resources';
+import { inject, bindable } from 'aurelia-framework';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
 
-@inject(BindingSignaler, DataService, BoardService, SolutionService)
+@inject(DataService, BoardService, SolutionService)
 export class PentominoService {
 
-    constructor(bindingSignaler, dataService, boardService, solutionService) {
-
-        this.bnds = bindingSignaler;
+    constructor(dataService, boardService, solutionService) {
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
@@ -96,10 +90,6 @@ export class PentominoService {
         ];
     }
 
-    signalViewUpdate() {
-        this.bnds.signal('position-signal');
-    }
-
     sortPentominos(pentos) {
         pentos.sort((a, b) => {
             return a.index - b.index;
@@ -129,7 +119,6 @@ export class PentominoService {
             this.registerPiece(pentomino, 1);
             this.adjustDimensions(pentomino);
         });
-        this.signalViewUpdate();
     }
 
     setBoardFields(content) {
