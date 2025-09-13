@@ -5,34 +5,34 @@
             <button class="button"
                     title="shuffle"
                     click.delegate="mixBoard()"
-                    touchstart.delegate="mixBoard()">
+                    touchstart.trigger="mixBoard()">
                     <icon class="fa fa-random fa-lg"></icon>
             </button>
             <button class="button"
                     title="find all solutions"
                     click.delegate="autoSolve()"
-                    touchstart.delegate="autoSolve()">
+                    touchstart.trigger="autoSolve()">
                     <icon class="fa fa-fast-forward fa-lg"></icon>
             </button>
             <button class="button"
                     disabled.bind="!canStop"
                     title="stop solutions worker"
                     click.delegate="stop()"
-                    touchstart.delegate="stop()">
+                    touchstart.trigger="stop()">
                     <icon class="fa fa-stop fa-lg"></icon>
             </button>
             <button class="button"
                     disabled.bind="canStop || solutionsInQueue || noSolutions"
                     title="delete these solutions"
                     click.delegate="delete()"
-                    touchstart.delegate="delete()">
+                    touchstart.trigger="delete()">
                     <icon class="fa fa-trash fa-lg"></icon>
             </button>
             <button class="button"
                     disabled.bind="canStop"
                     title="close panel"
                     click.delegate="close()"
-                    touchstart.delegate="close()">
+                    touchstart.trigger="close()">
                     <icon class="fa fa-close fa-lg"></icon>
             </button>
         </div>

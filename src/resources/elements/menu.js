@@ -37,6 +37,8 @@ export class MenuCustomElement {
                 this.settings.submenuBoardsVisible = false;
             }
         });
+        this._element.querySelectorAll('button.fa-bars')[0].addEventListener('touchstart', _ => this._popover.togglePopover());
+        this._element.querySelectorAll('button.fa-times')[0].addEventListener('touchstart', _ => this._popover.togglePopover());
     }
 
     get disableBoardSwitch() {

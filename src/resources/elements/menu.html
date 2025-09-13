@@ -12,7 +12,7 @@
         <li class.bind="disableBoardSwitch ? 'disabled' : ''"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
-            touchend.delegate="toggleSubmenuBoards()">
+            touchend.trigger="toggleSubmenuBoards()">
             Boards&nbsp;<i class="fa fa-angle-right"></i>
             <ul if.bind="settings.submenuBoardsVisible"
                 class="subMenu">
@@ -20,24 +20,24 @@
                     if.bind="showThisBoard(boardType)"
                     class.bind="getActiveBoardClass(boardType)"
                     click.delegate="setStartPosition(boardType)"
-                    touchstart.delegate="setStartPosition(boardType)"
+                    touchstart.trigger="setStartPosition(boardType)"
                     innerhtml.bind="getBoardDimensions(boardType)"></li>
             </ul>
         </li>
 
         <li click.delegate="rotateBoard()"
-            touchstart.delegate="rotateBoard()">Rotate</li>
+            touchstart.trigger="rotateBoard()">Rotate</li>
 
         <li click.delegate="flipBoardYAxis()"
-            touchstart.delegate="flipBoardYAxis()">Flip</li>
+            touchstart.trigger="flipBoardYAxis()">Flip</li>
 
         <li if.bind="screenIsLargeEnough()"
             click.delegate="mixBoard()"
-            touchstart.delegate="mixBoard()">Shuffle</li>
+            touchstart.trigger="mixBoard()">Shuffle</li>
 
         <li class.bind="solverDisabled ? 'disabled' : ''"
             click.delegate="showSolvingPanel()"
-            touchstart.delegate="showSolvingPanel()">Spoiler</li>
+            touchstart.trigger="showSolvingPanel()">Spoiler</li>
     </ul>
 
 </template>
