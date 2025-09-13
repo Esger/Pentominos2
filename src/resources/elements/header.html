@@ -4,7 +4,7 @@
     <h1>${title}
         <span class="moves"
               click.delegate="resetMoves()"
-              touchstart.delegate="resetMoves()"
+              touchstart.trigger="resetMoves()"
               if.bind="moves > 0">${moves}</span>
     </h1>
 </template>
