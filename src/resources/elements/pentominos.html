@@ -16,7 +16,7 @@
                  ${!isSolving && $index === 2 && pentomino.type < 4 && flipV ? 'fa-arrows-v flipV' : ''}"
                  css.bind="{left: part[0] * ss.partSize + 'px', top: part[1] * ss.partSize + 'px'}"
                  mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
-                 touchstart.delegate="ds.startDrag(pentomino, $index, $event)">
+                 touchstart.trigger="ds.startDrag(pentomino, $index, $event)">
             </div>
         </div>
     </div>

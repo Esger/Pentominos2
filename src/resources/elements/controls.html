@@ -5,20 +5,20 @@
                 title="Show previous solution"
                 disabled.bind="disablePreviousButton(sls.currentSolution)"
                 click.delegate="showPreviousSolution()"
-                touchstart.delegate="showPreviousSolution()">
+                touchstart.trigger="showPreviousSolution()">
          <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
         <button class.bind="getIndicatorClass(bs.solved)"
                 disabled.bind="disabledButtons"
                 innerhtml="${indicatorText}"
                 click.delegate="showFirstSolution()"
-                touchstart.delegate="showFirstSolution()">
+                touchstart.trigger="showFirstSolution()">
         </button>
         <button class="button small"
                 title="Show next solution"
                 disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
                 click.delegate="showNextSolution()"
-                touchstart.delegate="showNextSolution()">
+                touchstart.trigger="showNextSolution()">
             <icon class="fa fa-step-forward fa-lg"></icon>
         </button>
     </div>
