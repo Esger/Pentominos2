@@ -1,18 +1,41 @@
 header {
-    position: relative;
-    height  : 40px;
+    position: absolute;
+    height: 60px;
+    margin-block: 40px 10px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px; // Space for the absolute hamburger
+    box-sizing: border-box;
+
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
     h1 {
-        font-family   : inherit;
-        font-size     : 21px;
-        letter-spacing: 1px;
-        text-align    : center;
-        line-height   : 40px;
+        margin: 0;
+        font-family: inherit;
+        font-size: 20px;
+        font-weight: 300;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        flex: 1;
 
         .moves {
-            float    : right;
-            font-size: 14px;
-            cursor   : pointer;
+            // position: absolute;
+            // right: 20px;
+            // top: 50%;
+            // transform: translateY(-50%);
+            font-size: 13px;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 14px;
+            border-radius: 20px;
+            cursor: pointer;
         }
     }
 }

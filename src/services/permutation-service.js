@@ -122,6 +122,7 @@ export class PermutationService {
         const maxY = clientHeight - 4;
         // offset values in positions
         const offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
+        const offsetY = Math.floor((clientHeight - this.bs.getHeight()) / 2);
 
         pentominos.forEach(pentomino => {
             pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
@@ -129,7 +130,8 @@ export class PermutationService {
             do {
                 let xPos = Math.floor(Math.random() * maxX);
                 xPos -= offsetX;
-                const yPos = Math.floor(Math.random() * maxY);
+                let yPos = Math.floor(Math.random() * maxY);
+                yPos -= offsetY;
 
                 pentomino.position.x = xPos;
                 pentomino.position.y = yPos;

@@ -1,10 +1,9 @@
 <template css.bind="getHeaderSizeCss(bs.boardType)">
     <require from="./menu"></require>
     <menu></menu>
-    <h1>${title}
-        <span class="moves"
-              click.delegate="resetMoves()"
-              touchstart.trigger="resetMoves()"
-              if.bind="moves > 0">${moves}</span>
-    </h1>
+    <h1>${title}</h1>
+    <h1 class="moves"
+        click.delegate="resetMoves()"
+        touchstart.trigger="resetMoves()"
+        if.bind="moves > 0">${moves}</h1>
 </template>

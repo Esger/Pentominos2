@@ -1,7 +1,7 @@
 <template class="pentominosWrapper">
     <div repeat.for="pentomino of ps.pentominos"
          class="pentomino block_${pentomino.name} ${pentomino.active ? 'active' : ''}"
-         css.bind="{left: pentomino.position.x * ss.partSize + 'px', top: pentomino.position.y * ss.partSize + 'px', backgroundColor: pentomino.color}">
+         css.bind="{left: pentomino.position.x * ss.partSize + 'px', top: pentomino.position.y * ss.partSize + 'px', '--pento-color': pentomino.color, color: pentomino.color}">
         <div class="relContainer inheritBgColor">
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
             <let flip-h.bind="!(

@@ -9,7 +9,7 @@
                    class.bind="menuDisabled ? 'disabled' : ''"
                    popovertarget="menu"></button>
         </li>
-        <li class.bind="disableBoardSwitch ? 'disabled' : ''"
+        <li class="boards ${disableBoardSwitch ? 'disabled' : ''}"
             mouseenter.trigger="toggleSubmenuBoards()"
             mouseleave.trigger="toggleSubmenuBoards()"
             touchend.trigger="toggleSubmenuBoards()">
@@ -25,17 +25,20 @@
             </ul>
         </li>
 
-        <li click.delegate="rotateBoard()"
+        <li class="rotate"
+            click.delegate="rotateBoard()"
             touchstart.trigger="rotateBoard()">Rotate</li>
 
-        <li click.delegate="flipBoardYAxis()"
+        <li class="flip"
+            click.delegate="flipBoardYAxis()"
             touchstart.trigger="flipBoardYAxis()">Flip</li>
 
         <li if.bind="screenIsLargeEnough()"
+            class="shuffle"
             click.delegate="mixBoard()"
             touchstart.trigger="mixBoard()">Shuffle</li>
 
-        <li class.bind="solverDisabled ? 'disabled' : ''"
+        <li class="spoiler ${solverDisabled ? 'disabled' : ''}"
             click.delegate="showSolvingPanel()"
             touchstart.trigger="showSolvingPanel()">Spoiler</li>
     </ul>
