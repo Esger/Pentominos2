@@ -28,7 +28,7 @@
         background-image:
             linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        background-size: 40px 40px; // Matching partSize
+        background-size: var(--part-size, 40px) var(--part-size, 40px); // Matching partSize
         pointer-events: none;
         z-index: -1;
     }

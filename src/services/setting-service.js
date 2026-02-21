@@ -2,14 +2,20 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { BoardService } from './board-service';
 
+@inject(BoardService)
 export class SettingService {
 
-    constructor() {
+    constructor(boardService) {
+        this.bs = boardService;
         this.opaqueBlocks = true;
         this.scale = 1;
-        this.partSize = 40;
         this.opaqueBlocks = false;
+    }
+
+    get partSize() {
+        return this.bs.partSize;
     }
 
     getScale() {
