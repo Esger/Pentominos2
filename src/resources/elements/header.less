@@ -6,7 +6,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 60px; // Space for the absolute hamburger
+    padding: 0 20px;
     box-sizing: border-box;
 
     background: rgba(255, 255, 255, 0.03);
@@ -14,7 +14,6 @@ header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
     h1 {
-        margin: 0;
         font-family: inherit;
         font-size: 20px;
         font-weight: 300;
@@ -22,13 +21,8 @@ header {
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.8);
         text-align: center;
-        flex: 1;
 
-        .moves {
-            // position: absolute;
-            // right: 20px;
-            // top: 50%;
-            // transform: translateY(-50%);
+        &.moves {
             font-size: 13px;
             letter-spacing: 1px;
             background: rgba(255, 255, 255, 0.05);
@@ -36,6 +30,10 @@ header {
             padding: 4px 14px;
             border-radius: 20px;
             cursor: pointer;
+        }
+
+        &.title {
+            margin: auto;
         }
     }
 }

@@ -1,7 +1,7 @@
 <template css.bind="getHeaderSizeCss(bs.boardType)">
     <require from="./menu"></require>
     <menu></menu>
-    <h1>${title}</h1>
+    <h1 class="title">${title}</h1>
     <h1 class="moves"
         click.delegate="resetMoves()"
         touchstart.trigger="resetMoves()"
