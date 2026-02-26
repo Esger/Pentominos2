@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
 import { SettingService } from './setting-service';

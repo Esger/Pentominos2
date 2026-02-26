@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { HttpClient } from 'aurelia-http-client';
 import { BoardService } from './board-service';
 
@@ -50,8 +47,8 @@ export class DataService {
 
     getSolutions() {
         let solutions;
-        if (localStorage.getItem("pentominos2")) {
-            solutions = JSON.parse(localStorage.getItem("pentominos2"));
+        if (localStorage.getItem('pentominos2')) {
+            solutions = JSON.parse(localStorage.getItem('pentominos2'));
         } else {
             solutions = {};
             let boardTypes = this.bs.boardTypes;
@@ -65,13 +62,13 @@ export class DataService {
     }
 
     sortSolutions(solutions) {
+        let sortedSolutions = solutions;
         if (Array.isArray(solutions)) {
-            return solutions.sort((a, b) => {
+            sortedSolutions = solutions.sort((a, b) => {
                 return a < b;
             });
-        } else {
-            return solutions;
         }
+        return sortedSolutions;
     }
 
     saveSolution(solutionString) {
@@ -89,7 +86,7 @@ export class DataService {
 
     saveToLocalStorage() {
         this.solutions[this.bs.boardType] = this.sortSolutions(this.solutions[this.bs.boardType]);
-        localStorage.setItem("pentominos2", JSON.stringify(this.solutions));
+        localStorage.setItem('pentominos2', JSON.stringify(this.solutions));
         clearTimeout(this.timeOutHandle);
     }
 }
