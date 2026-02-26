@@ -4,6 +4,5 @@
     <h1 class="title">${title}</h1>
     <h1 class="moves"
         click.delegate="resetMoves()"
-        touchstart.trigger="resetMoves()"
-        if.bind="moves > 0">${moves}</h1>
+        touchstart.trigger="resetMoves()">${moves || '0'}</h1>
 </template>
