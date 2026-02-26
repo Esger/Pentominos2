@@ -1,4 +1,4 @@
-import { inject, bindable } from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
@@ -141,8 +141,8 @@ export class PentominoService {
     start() {
         this.ds.getPentominos().then((response) => {
             this.pentominos = response;
-            this.ds.getColors().then((response) => {
-                this.pentominos.forEach((pentomino, i) => pentomino.color = response[i].color);
+            this.ds.getColors().then((resp) => {
+                this.pentominos.forEach((pentomino, i) => pentomino.color = resp[i].color);
                 this.getStartPosition().then(() => {
                     this.registerPieces();
                     this.bs.unsetSolved();

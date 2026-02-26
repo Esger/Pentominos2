@@ -1,4 +1,4 @@
-import { inject, bindable } from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { PentominoService } from 'services/pentomino-service';
 import { SettingService } from 'services/setting-service';
