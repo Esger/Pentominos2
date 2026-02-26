@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 
 @inject(BoardService)
