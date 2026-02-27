@@ -1,6 +1,9 @@
 import { inject } from 'aurelia-framework';
 import { HttpClient } from 'aurelia-http-client';
 import { BoardService } from './board-service';
+import { pentominos } from '../data/pentominos';
+import { colors } from '../data/colors';
+import { startSquare, startRectangle, startDozen, startBeam, startStick, startTwig } from '../data/start-positions';
 
 @inject(BoardService)
 
@@ -19,30 +22,38 @@ export class DataService {
     }
 
     getPentominos() {
-        let fileName = 'assets/data/pentominos.json';
-        return this.client.get(fileName)
-            .then((data) => {
-                let response = JSON.parse(data.response);
-                return response;
-            });
+        return Promise.resolve(pentominos);
     }
 
     getColors() {
-        let fileName = 'assets/data/colors.json';
-        return this.client.get(fileName)
-            .then(data => {
-                let response = JSON.parse(data.response);
-                return response;
-            });
+        return Promise.resolve(colors);
     }
 
     getStartPosition() {
-        let fileName = 'assets/data/start-' + this.bs.boardType + '.json';
-        return this.client.get(fileName)
-            .then(data => {
-                let response = JSON.parse(data.response);
-                return response;
-            });
+        let data;
+        switch (this.bs.boardType) {
+        case 'square':
+            data = startSquare;
+            break;
+        case 'rectangle':
+            data = startRectangle;
+            break;
+        case 'dozen':
+            data = startDozen;
+            break;
+        case 'beam':
+            data = startBeam;
+            break;
+        case 'stick':
+            data = startStick;
+            break;
+        case 'twig':
+            data = startTwig;
+            break;
+        default:
+            data = [];
+        }
+        return Promise.resolve(data);
     }
 
     getSolutions() {
