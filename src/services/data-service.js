@@ -22,6 +22,7 @@ export class DataService {
     }
 
     getPentominos() {
+        // Todo: kan synchroon, zonder promise
         return Promise.resolve(pentominos);
     }
 
@@ -32,26 +33,26 @@ export class DataService {
     getStartPosition() {
         let data;
         switch (this.bs.boardType) {
-        case 'square':
-            data = startSquare;
-            break;
-        case 'rectangle':
-            data = startRectangle;
-            break;
-        case 'dozen':
-            data = startDozen;
-            break;
-        case 'beam':
-            data = startBeam;
-            break;
-        case 'stick':
-            data = startStick;
-            break;
-        case 'twig':
-            data = startTwig;
-            break;
-        default:
-            data = [];
+            case 'square':
+                data = startSquare;
+                break;
+            case 'rectangle':
+                data = startRectangle;
+                break;
+            case 'dozen':
+                data = startDozen;
+                break;
+            case 'beam':
+                data = startBeam;
+                break;
+            case 'stick':
+                data = startStick;
+                break;
+            case 'twig':
+                data = startTwig;
+                break;
+            default:
+                data = [];
         }
         return Promise.resolve(data);
     }
