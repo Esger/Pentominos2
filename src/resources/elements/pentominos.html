@@ -1,7 +1,7 @@
 <template class="pentominosWrapper">
     <div repeat.for="pentomino of ps.pentominos"
          class="pentomino block_${pentomino.name} ${pentomino.active ? 'active' : ''}"
-         css.bind="{left: pentomino.position.x * ss.partSize + 'px', top: pentomino.position.y * ss.partSize + 'px', backgroundColor: pentomino.color}">
+         css.bind="{left: 'calc(' + pentomino.position.x + ' * var(--part-size, 40px))', top: 'calc(' + pentomino.position.y + ' * var(--part-size, 40px))', '--pento-color': pentomino.color, color: pentomino.color}">
         <div class="relContainer inheritBgColor">
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
             <let flip-h.bind="!(
@@ -14,7 +14,7 @@
                  class="fa part ${!isSolving && $index === 0 && pentomino.type < 5 ? 'fa-refresh rotate' : ''}
                  ${!isSolving && $index === 1 && pentomino.type < 4 && flipH ? 'fa-arrows-h flipH' : ''}
                  ${!isSolving && $index === 2 && pentomino.type < 4 && flipV ? 'fa-arrows-v flipV' : ''}"
-                 css.bind="{left: part[0] * ss.partSize + 'px', top: part[1] * ss.partSize + 'px'}"
+                 css.bind="{left: 'calc(' + part[0] + ' * var(--part-size, 40px))', top: 'calc(' + part[1] + ' * var(--part-size, 40px))'}"
                  mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
                  touchstart.trigger="ds.startDrag(pentomino, $index, $event)">
             </div>

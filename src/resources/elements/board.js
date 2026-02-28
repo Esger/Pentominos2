@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { BoardService } from 'services/board-service';
 
 @inject(BoardService)
@@ -14,8 +11,8 @@ export class BoardCustomElement {
     getBoardSizeCSS(shape) {
         let boardType = this.bs.boardTypes[shape];
         let css = {
-            width: boardType.w * this.bs.partSize + 'px',
-            flex: '0 0 ' + boardType.h * this.bs.partSize + 'px'
+            width: `calc(${boardType.w} * var(--part-size, 40px))`,
+            flex: `0 0 calc(${boardType.h} * var(--part-size, 40px))`
         };
         return css;
     }

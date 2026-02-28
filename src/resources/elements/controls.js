@@ -42,7 +42,6 @@ export class ControlsCustomElement {
     }
 
     showSolution() {
-        let pentominos = this.ps.pentominos;
         let solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
         let splitString = solutionString.substr(1).split('#');
         for (let i = 0; i < splitString.length; i++) {
@@ -89,14 +88,6 @@ export class ControlsCustomElement {
     }
 
     setSubscribers() {
-        let direction = 0;
-        let newDirection = 0;
-        let directions = {
-            'ArrowRight': 0,
-            'ArrowDown': 1,
-            'ArrowLeft': 2,
-            'ArrowUp': 3
-        };
         this.ea.subscribe('solving', response => {
             this.disabledButtons = response;
         });

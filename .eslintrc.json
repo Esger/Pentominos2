@@ -1,3 +1,11 @@
 {
-  "extends": "./node_modules/aurelia-tools/.eslintrc.json"
+  "extends": "./node_modules/aurelia-tools/.eslintrc.json",
+  "rules": {
+    "indent": [
+      "error",
+      4
+    ],
+    "eqeqeq": "off",
+    "no-eq-null": "off"
+  }
 }

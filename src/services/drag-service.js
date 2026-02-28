@@ -1,7 +1,4 @@
-import {
-    inject,
-    bindable
-} from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { BindingSignaler } from 'aurelia-templating-resources';
 import { SettingService } from './setting-service';
@@ -68,18 +65,8 @@ export class DragService {
         if (pentomino) {
             this.alignToGrid();
             if (!this.isDragged()) {
-                // the pentomino is rotated or flipped
-                // todo no if here; compensate in prms
-                if (((pentomino.type == 4) && (pentomino.activePart < 1)) ||
-                    ((pentomino.type == 3) && (pentomino.activePart < 3)) ||
-                    ((pentomino.type == 2) && (pentomino.activePart < 3)) ||
-                    (pentomino.type < 3)) {
-                    const oldActivePartPosition = this.ps.getActivePartPosition();
-                    this.prms.flipRotate(pentomino);
-                    const newActivePartPosition = this.ps.getActivePartPosition();
-                    this.prms.adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition);
-                    this.ea.publish('move', 1);
-                }
+                this.prms.permute(pentomino);
+                this.ea.publish('move', 1);
             } else {
                 this.ea.publish('move', 1);
             }

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Pentomino Pieces</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #080814;
+    background-image:
+      radial-gradient(ellipse at 25% 25%, rgba(50,70,200,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 75%, rgba(120,40,160,0.28) 0%, transparent 55%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  }
+
+  h1 {
+    color: rgba(255,255,255,0.8);
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .subtitle {
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    margin-bottom: 52px;
+    letter-spacing: 0.08em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 160px);
+    gap: 32px;
+    justify-items: center;
+    align-items: center;
+  }
+
+  .piece-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .piece-label {
+    color: rgba(255,255,255,0.28);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  svg.piece {
+    overflow: visible;
+    filter: drop-shadow(0 0 0px transparent); /* base, overridden per piece */
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  svg.piece:hover {
+    transform: scale(1.06) translateY(-3px);
+  }
+</style>
+</head>
+<body>
+
+<h1>Pentomino</h1>
+<p class="subtitle">Apple Glass Edition</p>
+
+<div class="grid" id="pieces"></div>
+
+<script>
+const S = 40; // cell size
+const R = 10; // corner radius for the whole piece
+
+const PIECES = {
+  F: { color: '#ff5fa0', cells: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
+  I: { color: '#0af',    cells: [[0,0],[0,1],[0,2],[0,3],[0,4]] },
+  L: { color: '#ff9f43', cells: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
+  N: { color: '#a29bfe', cells: [[1,0],[1,1],[0,2],[1,2],[0,3]] },
+  P: { color: '#00d2a0', cells: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
+  T: { color: '#ffd32a', cells: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
+  U: { color: '#f368e0', cells: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
+  V: { color: '#54a0ff', cells: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
+  W: { color: '#1dd1a1', cells: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
+  X: { color: '#ff6b6b', cells: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
+  Y: { color: '#a8e063', cells: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
+  Z: { color: '#ffeaa7', cells: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
+};
+
+// Build a path string from a set of cells, with rounded outer corners
+// Uses the marching-squares edge approach: collect all outer edges, trace outline
+function buildPath(cells) {
+  const cellSet = new Set(cells.map(([c,r]) => `${c},${r}`));
+  const has = (c,r) => cellSet.has(`${c},${r}`);
+
+  // Collect outline segments (edges between filled and empty)
+  // Each segment: from point to point
+  const segments = [];
+  for (const [c,r] of cells) {
+    // top edge
+    if (!has(c, r-1)) segments.push([[c*S, r*S],[c*S+S, r*S]]);
+    // bottom edge
+    if (!has(c, r+1)) segments.push([[c*S+S,(r+1)*S],[c*S,(r+1)*S]]);
+    // left edge
+    if (!has(c-1, r)) segments.push([[c*S,(r+1)*S],[c*S,r*S]]);
+    // right edge
+    if (!has(c+1, r)) segments.push([[c*S+S,r*S],[c*S+S,(r+1)*S]]);
+  }
+
+  // Chain segments into a polygon
+  const chain = [segments[0][0], segments[0][1]];
+  const used = new Set([0]);
+  while (true) {
+    const last = chain[chain.length-1];
+    let found = false;
+    for (let i = 0; i < segments.length; i++) {
+      if (used.has(i)) continue;
+      const [a,b] = segments[i];
+      if (a[0]===last[0] && a[1]===last[1]) { chain.push(b); used.add(i); found=true; break; }
+      if (b[0]===last[0] && b[1]===last[1]) { chain.push(a); used.add(i); found=true; break; }
+    }
+    if (!found) break;
+  }
+  chain.pop(); // last = first
+
+  // Build SVG path with rounded corners
+  const n = chain.length;
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const prev = chain[(i - 1 + n) % n];
+    const curr = chain[i];
+    const next = chain[(i + 1) % n];
+
+    // direction vectors
+    const dx1 = curr[0] - prev[0], dy1 = curr[1] - prev[1];
+    const dx2 = next[0] - curr[0], dy2 = next[1] - curr[1];
+    const len1 = Math.hypot(dx1,dy1), len2 = Math.hypot(dx2,dy2);
+    const r = Math.min(R, len1/2, len2/2);
+
+    // approach point (coming into corner)
+    const ax = curr[0] - (dx1/len1)*r;
+    const ay = curr[1] - (dy1/len1)*r;
+    // leave point
+    const lx = curr[0] + (dx2/len2)*r;
+    const ly = curr[1] + (dy2/len2)*r;
+
+    if (i === 0) {
+      d += `M ${ax} ${ay} `;
+    } else {
+      d += `L ${ax} ${ay} `;
+    }
+    d += `Q ${curr[0]} ${curr[1]} ${lx} ${ly} `;
+  }
+  d += 'Z';
+  return d;
+}
+
+const container = document.getElementById('pieces');
+
+for (const [name, piece] of Object.entries(PIECES)) {
+  const cells = piece.cells;
+  const maxC = Math.max(...cells.map(c=>c[0]));
+  const maxR = Math.max(...cells.map(c=>c[1]));
+  const w = (maxC+1)*S;
+  const h = (maxR+1)*S;
+  const pad = 24; // for glow overflow
+  const id = 'p' + name;
+
+  const path = buildPath(cells);
+
+  // Parse color to use in gradients
+  const col = piece.color;
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('width', w + pad*2);
+  svg.setAttribute('height', h + pad*2);
+  svg.setAttribute('viewBox', `${-pad} ${-pad} ${w+pad*2} ${h+pad*2}`);
+  svg.classList.add('piece');
+
+  svg.innerHTML = `
+    <defs>
+      <!-- Colored glow gradient across the whole piece -->
+      <radialGradient id="${id}-glow" cx="50%" cy="60%" r="65%" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="${col}" stop-opacity="0.75"/>
+        <stop offset="55%"  stop-color="${col}" stop-opacity="0.28"/>
+        <stop offset="100%" stop-color="${col}" stop-opacity="0.0"/>
+      </radialGradient>
+
+      <!-- Glass base gradient (dark to slightly lighter, very subtle) -->
+      <linearGradient id="${id}-base" x1="0" y1="0" x2="0.4" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.13)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.04)"/>
+      </linearGradient>
+
+      <!-- Top specular sheen gradient -->
+      <linearGradient id="${id}-sheen" x1="0.1" y1="0" x2="0.6" y2="0.55" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="rgba(255,255,255,0.62)"/>
+        <stop offset="40%"  stop-color="rgba(255,255,255,0.18)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/>
+      </linearGradient>
+
+      <!-- Clip to piece shape -->
+      <clipPath id="${id}-clip">
+        <path d="${path}"/>
+      </clipPath>
+
+      <!-- Outer glow filter -->
+      <filter id="${id}-shadow" x="-60%" y="-60%" width="220%" height="220%">
+        <feFlood flood-color="${col}" flood-opacity="0.7" result="color"/>
+        <feComposite in="color" in2="SourceGraphic" operator="in" result="colored"/>
+        <feGaussianBlur in="colored" stdDeviation="12" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    <!-- Outer colored glow (duplicate shape, blurred) -->
+    <g filter="url(#${id}-shadow)">
+      <!-- Glass base layer -->
+      <path d="${path}" fill="url(#${id}-base)" />
+    </g>
+
+    <!-- Colored fill glow inside -->
+    <path d="${path}" fill="url(#${id}-glow)" />
+
+    <!-- Specular sheen, clipped -->
+    <g clip-path="url(#${id}-clip)">
+      <!-- top-left highlight band -->
+      <path d="${path}" fill="url(#${id}-sheen)" />
+
+      <!-- small bright oval reflection top-left area -->
+      <ellipse cx="${w*0.28}" cy="${h*0.18}" rx="${Math.min(w,h)*0.22}" ry="${Math.min(w,h)*0.09}"
+               fill="rgba(255,255,255,0.38)" style="filter:blur(4px)"/>
+    </g>
+
+    <!-- Outline border: soft white -->
+    <path d="${path}" fill="none"
+          stroke="rgba(255,255,255,0.30)" stroke-width="1.2"/>
+    <!-- Thin bright top-left rim -->
+    <path d="${path}" fill="none"
+          stroke="rgba(255,255,255,0.55)" stroke-width="0.7"
+          stroke-dasharray="999" style=""/>
+  `;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'piece-wrapper';
+
+  const label = document.createElement('div');
+  label.className = 'piece-label';
+  label.textContent = name;
+
+  wrapper.appendChild(svg);
+  wrapper.appendChild(label);
+  container.appendChild(wrapper);
+}
+</script>
+</body>
+</html>

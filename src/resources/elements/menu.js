@@ -32,8 +32,6 @@ export class MenuCustomElement {
         this._popover = this._element.querySelectorAll('[popover]')[0];
         this._popover.addEventListener('beforetoggle', event => {
             if (event.newState === 'open') {
-                const rect = this._element.getBoundingClientRect();
-                this._popover.style = '--left: ' + rect.left + 'px; --top: ' + rect.top + 'px;';
                 this.settings.submenuBoardsVisible = false;
             }
         });

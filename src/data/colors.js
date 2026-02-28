@@ -1,4 +1,4 @@
-colors = [
+export const colors = [
     {
         "name": "b",
         "color": "midnightblue"

@@ -1,18 +1,41 @@
 footer.footer {
-    display   : block;
-    width     : 100%;
-    position  : absolute;
-    padding   : 0 10px;
-    bottom    : 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 15px 20px;
     box-sizing: border-box;
 
-    span {
-        color: #fff !important;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    span,
+    a {
+        color: rgba(255, 255, 255, 0.6) !important;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: color 0.3s;
+
+        &:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+
+            .fa-heart {
+                color: #ff4d4d;
+                transform: scale(1.2);
+            }
+        }
+
+        .fa-heart {
+            color: #ff6666;
+            margin: 0 2px;
+            transition: all 0.3s;
+        }
     }
 
     a {
-        color          : #f2f2f2;
         text-decoration: none;
-        font-size      : 12px;
+        margin-left: 5px;
     }
 }
