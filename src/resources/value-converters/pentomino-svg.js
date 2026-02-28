@@ -1,8 +1,12 @@
 export class PentominoSvgValueConverter {
     toView(pentomino, face) {
-        if (!pentomino || !pentomino.faces || (face === undefined && pentomino.face === undefined)) return null;
-
+        if (!pentomino) return null;
+        if (!pentomino.faces) {
+            console.error(`[SVG] Pentomino ${pentomino.name} is missing 'faces'!`, pentomino);
+            return null;
+        }
         const currentFace = face !== undefined ? face : pentomino.face;
+        if (currentFace === undefined) return null;
         const cells = pentomino.faces[currentFace];
         const S = 40; // cell size
         const R = 6; // corner radius

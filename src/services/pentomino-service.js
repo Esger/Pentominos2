@@ -135,7 +135,22 @@ export class PentominoService {
     }
 
     setPentominos(pentos) {
-        this.pentominos = pentos;
+        if (!pentos || !Array.isArray(pentos)) return;
+
+        // Update in-place to preserve Aurelia reactivity and existing observers
+        pentos.forEach(pData => {
+            const pentomino = this.pentominos.find(p => p.name === pData.name);
+            if (pentomino) {
+                // Update properties individually for maximum compatibility
+                pentomino.face = pData.face;
+                pentomino.position.x = pData.position.x;
+                pentomino.position.y = pData.position.y;
+                pentomino.onBoard = pData.onBoard;
+
+                // Ensure dimensions remain in sync with any face changes
+                this.adjustDimensions(pentomino);
+            }
+        });
     }
 
     start() {
