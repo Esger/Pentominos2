@@ -1,8 +1,116 @@
 <template class="pentominosWrapper">
+    <require from="../value-converters/pentomino-svg"></require>
+
     <div repeat.for="pentomino of ps.pentominos"
          class="pentomino block_${pentomino.name} ${pentomino.active ? 'active' : ''}"
          css.bind="{left: 'calc(' + pentomino.position.x + ' * var(--part-size, 40px))', top: 'calc(' + pentomino.position.y + ' * var(--part-size, 40px))', '--pento-color': pentomino.color, color: pentomino.color}">
         <div class="relContainer inheritBgColor">
+            <let svg.bind="pentomino | pentominoSvg:pentomino.face"></let>
+            <svg if.bind="svg"
+                 width.bind="svg.width"
+                 height.bind="svg.height"
+                 viewBox.bind="svg.viewBox"
+                 class="piece-svg">
+                <defs>
+                    <radialGradient id="${svg.id}-glow"
+                                    cx="50%"
+                                    cy="60%"
+                                    r="65%"
+                                    gradientUnits="objectBoundingBox">
+                        <stop offset="0%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.75" />
+                        <stop offset="55%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.28" />
+                        <stop offset="100%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.0" />
+                    </radialGradient>
+
+                    <linearGradient id="${svg.id}-base"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0.4"
+                                    y2="1"
+                                    gradientUnits="objectBoundingBox">
+                        <stop offset="0%"
+                              stop-color="rgba(255,255,255,0.13)" />
+                        <stop offset="100%"
+                              stop-color="rgba(255,255,255,0.04)" />
+                    </linearGradient>
+
+                    <linearGradient id="${svg.id}-sheen"
+                                    x1="0.1"
+                                    y1="0"
+                                    x2="0.6"
+                                    y2="0.55"
+                                    gradientUnits="objectBoundingBox">
+                        <stop offset="0%"
+                              stop-color="rgba(255,255,255,0.62)" />
+                        <stop offset="40%"
+                              stop-color="rgba(255,255,255,0.18)" />
+                        <stop offset="100%"
+                              stop-color="rgba(255,255,255,0.0)" />
+                    </linearGradient>
+
+                    <clipPath id="${svg.id}-clip">
+                        <path d.bind="svg.path" />
+                    </clipPath>
+
+                    <filter id="${svg.id}-shadow"
+                            x="-60%"
+                            y="-60%"
+                            width="220%"
+                            height="220%">
+                        <feFlood flood-color="${svg.color}"
+                                 flood-opacity="0.7"
+                                 result="color" />
+                        <feComposite in="color"
+                                     in2="SourceGraphic"
+                                     operator="in"
+                                     result="colored" />
+                        <feGaussianBlur in="colored"
+                                        stdDeviation="12"
+                                        result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <g filter="url(#${svg.id}-shadow)">
+                    <path d.bind="svg.path"
+                          fill="url(#${svg.id}-base)" />
+                </g>
+
+                <path d.bind="svg.path"
+                      fill="url(#${svg.id}-glow)" />
+
+                <!-- <g clip-path="url(#${svg.id}-clip)">
+                    <path d.bind="svg.path"
+                          fill="url(#${svg.id}-sheen)" />
+                    <ellipse cx.bind="svg.glowX"
+                             cy.bind="svg.glowY"
+                             rx.bind="svg.glowRX"
+                             ry.bind="svg.glowRY"
+                             fill="rgba(255,255,255,0.25)"
+                             style="filter:blur(4px)" />
+                </g> -->
+
+                <path d.bind="svg.path"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.30)"
+                      stroke-width="1.2" />
+                <!-- <path d.bind="svg.path"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.55)"
+                      stroke-width="0.7"
+                      stroke-dasharray="999" /> -->
+            </svg>
+
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
             <let flip-h.bind="!(
                 pentomino.index == 1 && pentomino.face % 2 == 0 ||
