@@ -121,13 +121,13 @@ export class PermutationService {
 
         // Fix for C and T (type 2) pieces shifting: if it's a flip action (1 or 2), 
         // we swap the active part 1 and 2 because their relative positions are switched on different faces.
-        if (pentomino.type === 2 && (permutationType === 1 || permutationType === 2)) {
-            if (pentomino.activePart === 1) {
-                pentomino.activePart = 2;
-            } else if (pentomino.activePart === 2) {
-                pentomino.activePart = 1;
-            }
-        }
+        // if (pentomino.type === 2 && (permutationType === 1 || permutationType === 2)) {
+        //     if (pentomino.activePart === 1) {
+        //         pentomino.activePart = 2;
+        //     } else if (pentomino.activePart === 2) {
+        //         pentomino.activePart = 1;
+        //     }
+        // }
 
         pentomino.face = this._rotable[permutationType][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
