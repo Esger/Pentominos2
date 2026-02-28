@@ -2,13 +2,10 @@ import { inject } from 'aurelia-framework';
 import { BoardService } from './board-service';
 
 @inject(BoardService)
-
 export class PermutationService {
 
-    // constructor(boardService, pentominoService) {
     constructor(boardService) {
         this.bs = boardService;
-        // this.ps = pentominoService;
 
         this._rotable = [
             // the numbers represent the new face index for a given face index after permuting
@@ -91,19 +88,46 @@ export class PermutationService {
     //         - flip both directions
     //         - b, l, y, f, n
 
-        if (part == undefined) { // user action
-            part = this._partTranslations[pentomino.type][pentomino.activePart];
+    permute(pentomino) {
+        const type = pentomino.type;
+        if (type == 5) return; // no permutation for type 5
+
+        if (((pentomino.type == 4) && (pentomino.activePart < 1)) ||
+            ((pentomino.type == 3) && (pentomino.activePart < 3)) ||
+            ((pentomino.type == 2) && (pentomino.activePart < 3)) ||
+            (pentomino.type < 3)) {
+
+            const oldActivePartPosition = [
+                pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0],
+                pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]
+            ];
+
+            this._flipRotate(pentomino);
+
+            const newActivePartPosition = [
+                pentomino.position.x + pentomino.faces[pentomino.face][pentomino.activePart][0],
+                pentomino.position.y + pentomino.faces[pentomino.face][pentomino.activePart][1]
+            ];
+
+            this._adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition);
         }
-        pentomino.face = this._rotable[part][pentomino.type][pentomino.face];
+    }
+
+    _flipRotate(pentomino, part) {
+        let permutationType = part;
+        if (part == undefined) { // user action
+            permutationType = this._permutationTypeLookup[pentomino.type][pentomino.activePart];
+        }
+        pentomino.face = this._rotable[permutationType][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
-        if (part !== 1 && part !== 2) {
+        if (permutationType !== 1 && permutationType !== 2) {
             pentomino.dimensions.reverse();
         }
     }
 
     flipBoardYAxis(pentominos) {
         pentominos.forEach(pentomino => {
-            this.flipRotate(pentomino, 1);
+            this._flipRotate(pentomino, 1);
             pentomino.position.x = this.bs.getWidth() - pentomino.position.x - pentomino.dimensions[0];
         });
     }
@@ -119,7 +143,7 @@ export class PermutationService {
             pentomino.position.x = this.bs.getWidth() - origin.y;
             pentomino.position.y = origin.x;
             // rotated pentomino
-            this.flipRotate(pentomino, 0);
+            this._flipRotate(pentomino, 0);
         });
     }
 
@@ -138,7 +162,7 @@ export class PermutationService {
     }
 
     // Thanks Ben Nierop, for the idea
-    adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
+    _adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
         const dx = oldActivePartPosition[0] - newActivePartPosition[0];
         const dy = oldActivePartPosition[1] - newActivePartPosition[1];
         this.shiftPieces([pentomino], dx, dy);
