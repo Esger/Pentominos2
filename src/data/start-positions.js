@@ -1,3 +1,6 @@
+// 8x8 board
+// 12 pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
+// 1 tetromino: o
 export const startSquare = [
     {
         "name": "b",
@@ -93,6 +96,9 @@ export const startSquare = [
     }
 ];
 
+// 10x6 board
+// 12 pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
+// no tetromino
 export const startRectangle = [
     {
         "name": "b",
@@ -192,101 +198,107 @@ export const startRectangle = [
     }
 ];
 
+// 12x5 board
+// 12 pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
+// no tetromino
 export const startStick = [
     {
-        "name" : "b",
-        "face" : 7,
-        "position" : {
-            "x" : 5,
-            "y" : 0
+        "name": "b",
+        "face": 7,
+        "position": {
+            "x": 5,
+            "y": 0
         }
-    },{
-        "name" : "c",
-        "face" : 2,
-        "position" : {
-            "x" : 8,
-            "y" : 5
+    }, {
+        "name": "c",
+        "face": 2,
+        "position": {
+            "x": 8,
+            "y": 5
         }
-    },{
-        "name" : "f",
-        "face" : 1,
-        "position" : {
-            "x" : 6,
-            "y" : 1
+    }, {
+        "name": "f",
+        "face": 1,
+        "position": {
+            "x": 6,
+            "y": 1
         }
-    },{
-        "name" : "i",
-        "face" : 0,
-        "position" : {
-            "x" : 5,
-            "y" : 9
+    }, {
+        "name": "i",
+        "face": 0,
+        "position": {
+            "x": 5,
+            "y": 9
         }
-    },{
-        "name" : "l",
-        "face" : 1,
-        "position" : {
-            "x" : 9,
-            "y" : 0
+    }, {
+        "name": "l",
+        "face": 1,
+        "position": {
+            "x": 9,
+            "y": 0
         }
-    },{
-        "name" : "n",
-        "face" : 4,
-        "position" : {
-            "x" : 6,
-            "y" : 7
+    }, {
+        "name": "n",
+        "face": 4,
+        "position": {
+            "x": 6,
+            "y": 7
         }
-    },{
-        "name" : "t",
-        "face" : 1,
-        "position" : {
-            "x" : 8,
-            "y" : 7
+    }, {
+        "name": "t",
+        "face": 1,
+        "position": {
+            "x": 8,
+            "y": 7
         }
-    },{
-        "name" : "v",
-        "face" : 2,
-        "position" : {
-            "x" : 5,
-            "y" : 3
+    }, {
+        "name": "v",
+        "face": 2,
+        "position": {
+            "x": 5,
+            "y": 3
         }
-    },{
-        "name" : "w",
-        "face" : 2,
-        "position" : {
-            "x" : 7,
-            "y" : 0
+    }, {
+        "name": "w",
+        "face": 2,
+        "position": {
+            "x": 7,
+            "y": 0
         }
-    },{
-        "name" : "x",
-        "face" : 0,
-        "position" : {
-            "x" : 8,
-            "y" : 3
+    }, {
+        "name": "x",
+        "face": 0,
+        "position": {
+            "x": 8,
+            "y": 3
         }
-    },{
-        "name" : "y",
-        "face" : 6,
-        "position" : {
-            "x" : 5,
-            "y" : 5
+    }, {
+        "name": "y",
+        "face": 6,
+        "position": {
+            "x": 5,
+            "y": 5
         }
-    },{
-        "name" : "z",
-        "face" : 3,
-        "position" : {
-            "x" : 5,
-            "y" : 4
+    }, {
+        "name": "z",
+        "face": 3,
+        "position": {
+            "x": 5,
+            "y": 4
         }
-    },{
-        "name" : "o",
-        "face" : 0,
-        "position" : {
-            "x" : 7,
-            "y" : 10
+    }, {
+        "name": "o",
+        "face": 0,
+        "position": {
+            "x": 7,
+            "y": 10
         }
     }
 ];
 
+// 15x4 board
+// 12 pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
+// no tetromino
 export const startDozen = [
     {
         "name": "b",
@@ -386,6 +398,8 @@ export const startDozen = [
     }
 ];
 
+// 20x3 board
+// 12 pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
 export const startBeam = [
     {
         "name": "b",

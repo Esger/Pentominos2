@@ -5,10 +5,14 @@ import { BoardService } from './board-service';
 
 export class PermutationService {
 
+    // constructor(boardService, pentominoService) {
     constructor(boardService) {
         this.bs = boardService;
+        // this.ps = pentominoService;
+
         this._rotable = [
-            [ // rotate clockwise
+            // the numbers represent the new face index for a given face index after permuting
+            [ // 0 - first square -> rotate clockwise
                 [1, 2, 3, 0, 5, 6, 7, 4], // blyfn
                 [1, 2, 3, 0], // vw
                 [1, 2, 3, 0], // tc
@@ -16,7 +20,7 @@ export class PermutationService {
                 [1, 0], // i
                 [0] // xo not necessary
             ],
-            [ // flip around yAxis
+            [ // 1 - second square -> flip around yAxis
                 [4, 7, 6, 5, 0, 3, 2, 1], // blyfn
                 [3, 2, 1, 0], // vw
                 [0, 3, 2, 1], // tc
@@ -24,7 +28,7 @@ export class PermutationService {
                 [0, 1], // i not necessary
                 [0] // xo not necessary
             ],
-            [ // flip around xAxis
+            [ // 2 - third square -> flip around xAxis
                 [6, 5, 4, 7, 2, 1, 0, 3], // blyfn
                 [1, 0, 3, 2], // vw
                 [2, 1, 0, 3], // tc
@@ -32,7 +36,7 @@ export class PermutationService {
                 [0, 1], // i not necessary
                 [0] // xo not necessary
             ],
-            [ // rotate counter clockwise
+            [ // 3 - any other square -> rotate counter clockwise
                 [3, 0, 1, 2, 7, 4, 5, 6], // blyfn
                 [3, 0, 1, 2], // vw
                 [3, 0, 1, 2], // tc
@@ -41,17 +45,52 @@ export class PermutationService {
                 [0] // xo not necessary
             ]
         ];
-        this._partTranslations = [
-            [0, 1, 2, 3, 3],
-            [0, 1, 2, 3, 3],
-            [0, 1, 2, 3, 3],
-            [0, 1, 2, 3, 3],
-            [0, 0, 0, 0, 0]
+        this._permutationTypeLookup = [
+            // the numbers represent the permutation type that must be applied for a given face index and block type
+            [0, 1, 2, 3, 3], // type 0 - b, l, y, f, n
+            [0, 1, 2, 3, 3], // type 1 - v, w
+            [0, 1, 2, 3, 3], // type 2 - c, t
+            [0, 1, 2, 3, 3], // type 3 - z
+            [0, 0, 0, 0, 0]  // type 4 - i
         ];
     }
 
     // Returns the new face index for a given face, action and blocktype
-    flipRotate(pentomino, part) {
+    //
+    // Rotation and flipping rules:
+    // Pentominos: b, c, f, i ,l, n, t, v, w, x, y, z
+    // Tetromino: only on 8x8 board - o
+    // Type 5: - 1 face,
+    //         - 1 appearance,
+    //         - no rotation
+    //         - no flip
+    //         - 4 squares
+    //         - o, x
+    // Type 4: - 1 face,
+    //         - 2 appearances,
+    //         - 90° or 270°
+    //         - i
+    // Type 3: - 2 faces,
+    //         - 4 appearances,
+    //         - 90° or 270°
+    //         - flip both directions
+    //         - z
+    // Type 2: - 1 face,
+    //         - 4 appearances,
+    //         - 90°, 180°  or 270°
+    //         - flip one direction
+    //         - c, t
+    // Type 1: - 1 face,
+    //         - 4 appearances,
+    //         - 90°, 180°  or 270°
+    //         - flip both directions
+    //         - v, w
+    // Type 0: - 2 faces
+    //         - 8 appearances,
+    //         - 90°, 180°  or 270°
+    //         - flip both directions
+    //         - b, l, y, f, n
+
         if (part == undefined) { // user action
             part = this._partTranslations[pentomino.type][pentomino.activePart];
         }
