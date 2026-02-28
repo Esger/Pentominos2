@@ -6,7 +6,7 @@ export class PentominoSvgValueConverter {
         const cells = pentomino.faces[currentFace];
         const S = 40; // cell size
         const R = 6; // corner radius
-        const pad = 24; // for glow overflow
+        const pad = 0;
 
         const maxC = Math.max(...cells.map(c => c[0]));
         const maxR = Math.max(...cells.map(c => c[1]));
@@ -14,20 +14,31 @@ export class PentominoSvgValueConverter {
         const h = (maxR + 1) * S;
 
         const path = this.buildPath(cells, S, R);
+        const cols = maxC + 1;
+        const rows = maxR + 1;
 
         return {
             id: 'p' + pentomino.name,
             color: pentomino.color,
             path: path,
-            width: w + pad * 2,
-            height: h + pad * 2,
-            viewBox: `${-pad} ${-pad} ${w + pad * 2} ${h + pad * 2}`,
+            cols: cols,
+            rows: rows,
+            width: w,
+            height: h,
+            // Pre-built responsive CSS for maximum reliability in bindings
+            widthCss: `calc(${cols} * var(--part-size, 40px))`,
+            heightCss: `calc(${rows} * var(--part-size, 40px))`,
+            viewBox: `0 0 ${w} ${h}`,
             glowWidth: w,
             glowHeight: h,
             glowX: w * 0.28,
             glowY: h * 0.18,
             glowRX: Math.min(w, h) * 0.22,
-            glowRY: Math.min(w, h) * 0.09
+            glowRY: Math.min(w, h) * 0.09,
+            // Lighting position (Top-Left of piece, but moved slightly inside)
+            lightX: S * 0.5,
+            lightY: S * 0.5,
+            lightZ: 20
         };
     }
 
