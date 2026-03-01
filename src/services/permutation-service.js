@@ -119,16 +119,6 @@ export class PermutationService {
             permutationType = this._permutationTypeLookup[pentomino.type][pentomino.activePart];
         }
 
-        // Fix for C and T (type 2) pieces shifting: if it's a flip action (1 or 2), 
-        // we swap the active part 1 and 2 because their relative positions are switched on different faces.
-        // if (pentomino.type === 2 && (permutationType === 1 || permutationType === 2)) {
-        //     if (pentomino.activePart === 1) {
-        //         pentomino.activePart = 2;
-        //     } else if (pentomino.activePart === 2) {
-        //         pentomino.activePart = 1;
-        //     }
-        // }
-
         pentomino.face = this._rotable[permutationType][pentomino.type][pentomino.face];
         // switch the dimensions if pentomino is rotated;
         if (permutationType !== 1 && permutationType !== 2) {
@@ -190,27 +180,55 @@ export class PermutationService {
     }
 
     mixBoard(pentominos) {
-        const clientWidth = Math.floor(document.querySelectorAll('.dragArea')[0].clientWidth / this.bs.partSize);
-        const clientHeight = Math.floor(document.querySelectorAll('.dragArea')[0].clientHeight / this.bs.partSize);
-        const maxX = clientWidth - 4;
-        const maxY = clientHeight - 4;
-        // offset values in positions
-        const offsetX = Math.floor((clientWidth - this.bs.getWidth()) / 2);
-        const offsetY = Math.floor((clientHeight - this.bs.getHeight()) / 2);
+        const dragArea = document.querySelector('.dragArea');
+        const partSize = this.bs.partSize;
+        const areaWidth = Math.floor(dragArea.clientWidth / partSize);
+        const areaHeight = Math.floor(dragArea.clientHeight / partSize);
+        const boardOffsetX = Math.floor((areaWidth - this.bs.getWidth()) / 2);
+        const boardOffsetY = Math.floor((areaHeight - this.bs.getHeight()) / 2);
+
+        // Initial reserved area for the board, including a 1-square gap
+        const occupiedRectangles = [{
+            x: boardOffsetX - 1,
+            y: boardOffsetY - 1,
+            width: this.bs.getWidth() + 2,
+            height: this.bs.getHeight() + 2
+        }];
 
         pentominos.forEach(pentomino => {
-            pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
-            // find random off board position
-            do {
-                let xPos = Math.floor(Math.random() * maxX);
-                xPos -= offsetX;
-                let yPos = Math.floor(Math.random() * maxY);
-                yPos -= offsetY;
+            for (let attempt = 0; attempt < 100; attempt++) {
+                pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
+                const face = pentomino.faces[pentomino.face];
+                const pieceWidth = Math.max(...face.map(part => part[0])) + 1;
+                const pieceHeight = Math.max(...face.map(part => part[1])) + 1;
 
-                pentomino.position.x = xPos;
-                pentomino.position.y = yPos;
-            } while (this.bs.touchesBoard(pentomino));
-            pentomino.onBoard = false;
+                // Attempt to find a random position, avoiding the top and bottom 2 rows
+                const screenX = Math.floor(Math.random() * (areaWidth - pieceWidth));
+                const screenY = Math.floor(Math.random() * (areaHeight - pieceHeight - 4)) + 2;
+
+                const overlaps = occupiedRectangles.some(rect =>
+                    screenX < rect.x + rect.width &&
+                    screenX + pieceWidth > rect.x &&
+                    screenY < rect.y + rect.height &&
+                    screenY + pieceHeight > rect.y
+                );
+
+                if (!overlaps) {
+                    Object.assign(pentomino.position, {
+                        x: screenX - boardOffsetX,
+                        y: screenY - boardOffsetY
+                    });
+                    pentomino.onBoard = false;
+                    // Add modern rectangle with 1-square gap for future checks
+                    occupiedRectangles.push({
+                        x: screenX - 1,
+                        y: screenY - 1,
+                        width: pieceWidth + 2,
+                        height: pieceHeight + 2
+                    });
+                    break;
+                }
+            }
         });
         this.bs.unsetSolved();
     }
