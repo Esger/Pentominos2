@@ -43,13 +43,20 @@ export class ControlsCustomElement {
 
     showSolution() {
         let solutionString = this.sls.solutions[this.bs.boardType][this.sls.currentSolution];
+        // The string format is #name_face_x_y#name_face_x_y...
         let splitString = solutionString.substr(1).split('#');
         for (let i = 0; i < splitString.length; i++) {
-            let pentomino = this.ps.pentominos[i];
             let props = splitString[i].split('_');
-            pentomino.face = parseInt(props[1], 10);
-            pentomino.position.x = parseInt(props[2], 10);
-            pentomino.position.y = parseInt(props[3], 10);
+            let name = props[0];
+            let pentomino = this.ps.pentominos.find(p => p.name === name);
+            if (pentomino) {
+                pentomino.face = parseInt(props[1], 10);
+                pentomino.position.x = parseInt(props[2], 10);
+                pentomino.position.y = parseInt(props[3], 10);
+
+                // Ensure dimensions are synced
+                this.ps.adjustDimensions(pentomino);
+            }
         }
         this.ps.registerPieces();
         this.bs.unsetNewSolution();
@@ -93,10 +100,26 @@ export class ControlsCustomElement {
         });
         this.ea.subscribe('move', response => {
             if (response == 1) {
-                setTimeout(_ => {
-                    const onBoards = JSON.parse(JSON.stringify(this.ps.onBoards));
-                    this.sls.setPossibleSolutions(onBoards);
-                });
+                // Use requestIdleCallback to offload heavy calculations from the interaction loop
+                const runSetPossible = (deadline) => {
+                    if (deadline.timeRemaining() > 0 || deadline.didTimeout) {
+                        // Create a lightweight, non-circular projection instead of expensive JSON clone
+                        const onBoardData = this.ps.onBoards.map(p => ({
+                            name: p.name,
+                            type: p.type,
+                            face: p.face,
+                            position: { x: p.position.x, y: p.position.y },
+                            dimensions: [p.dimensions[0], p.dimensions[1]]
+                        }));
+                        this.sls.setPossibleSolutions(onBoardData);
+                    }
+                };
+
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(runSetPossible, { timeout: 100 });
+                } else {
+                    setTimeout(() => runSetPossible({ timeRemaining: () => 10, didTimeout: true }), 1);
+                }
             }
         });
         this.ea.subscribe('keyPressed', response => {
@@ -113,8 +136,6 @@ export class ControlsCustomElement {
                     case ' ': this.ea.publish('pause');
                         break;
                 }
-
-
             }
         });
     }

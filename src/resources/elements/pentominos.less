@@ -20,6 +20,15 @@
     }
 }
 
+.piece-svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    overflow: visible;
+    transition: transform 0.3s ease;
+}
+
 .part {
     position: absolute;
     left: 0;
@@ -33,35 +42,6 @@
     cursor: grab;
     line-height: var(--part-size, 40px);
 
-    // iOS Button Glass Foundations
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--pento-color), transparent 60%);
-
-    // The "Magic" of Glass: Distortion & Blur
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.2) contrast(0.9);
-
-    // Realistic Glass Border (High-end rim light)
-    border: 0.5px solid rgba(255, 255, 255, 0.2);
-
-    // Multi-layered lighting
-    box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.3), // Top edge reflection
-        inset 0 -1px 1px rgba(0, 0, 0, 0.2), // Bottom depth
-        0 4px 12px rgba(0, 0, 0, 0.3); // Subtle lift
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: inherit;
-        // Subtle sheen gradient
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%, rgba(255, 255, 255, 0.05) 100%);
-        pointer-events: none;
-    }
-
     &::before {
         position: relative;
         z-index: 10;
@@ -74,13 +54,12 @@
 
 .pentomino:hover,
 .pentomino.active {
-    .part {
-        background: color-mix(in srgb, var(--pento-color), transparent 40%);
-        border-color: rgba(255, 255, 255, 0.45);
-        box-shadow:
-            inset 0 1px 2px rgba(255, 255, 255, 0.4),
-            0 8px 24px rgba(0, 0, 0, 0.4);
+    .piece-svg {
+        transform-origin: 50% 50%;
+        transform: scale(1.02);
+    }
 
+    .part {
         &::before {
             opacity: 1;
         }

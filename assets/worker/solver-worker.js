@@ -91,15 +91,21 @@ const allOffBoard = function () {
     return emptyBoard;
 };
 
-const copyBoardFields = function () {
-    const flds = [];
+let scratchBoard = [];
+
+const initScratchBoard = function () {
+    scratchBoard = [];
     for (let y = 0; y < boardHeight; y++) {
-        flds.push([]);
+        scratchBoard.push(new Int8Array(boardWidth));
+    }
+};
+
+const syncScratchBoard = function () {
+    for (let y = 0; y < boardHeight; y++) {
         for (let x = 0; x < boardWidth; x++) {
-            flds[y].push(fields[y][x]);
+            scratchBoard[y][x] = fields[y][x];
         }
     }
-    return flds;
 };
 
 const discard = function (misFits) {
@@ -146,11 +152,77 @@ const findFirstPartDown = function (pentomino) {
     return offsetDown;
 };
 
+/**
+ * Checks if all empty regions on the board can potentially be filled.
+ * For 60-square boards, every hole must be a multiple of 5.
+ * For 64-square boards (8x8, 16x4), exactly one hole must be 5n + 4 (for the 2x2 'o' piece),
+ * and all others must be 5n. If the 'o' piece is already placed, all holes must be 5n.
+ */
+const allHolesFit = function () {
+    syncScratchBoard();
+    let foundOContainer = false;
+    const needsOContainer = boardHas64Squares() && !oPentominoOnboard();
+
+    for (let y = 0; y < boardHeight; y++) {
+        for (let x = 0; x < boardWidth; x++) {
+            if (scratchBoard[y][x] === 0) {
+                const holeSize = floodFill(x, y);
+                if (holeSize % 5 === 0) {
+                    // Fits pentominoes
+                    continue;
+                } else if (needsOContainer && !foundOContainer && holeSize % 5 === 4) {
+                    // This hole can contain the 'o' piece
+                    foundOContainer = true;
+                } else {
+                    // Impossible hole
+                    return false;
+                }
+            }
+        }
+    }
+
+    // If we need a spot for 'o' but didn't find any 5n+4 hole, it's invalid
+    if (needsOContainer && !foundOContainer) return false;
+
+    return true;
+};
+
+const floodFill = function (x, y) {
+    let size = 0;
+    const stack = [[x, y]];
+    scratchBoard[y][x] = -1; // Mark as visited
+
+    while (stack.length > 0) {
+        const [cx, cy] = stack.pop();
+        size++;
+
+        // Neighbors
+        if (cx > 0 && scratchBoard[cy][cx - 1] === 0) {
+            scratchBoard[cy][cx - 1] = -1;
+            stack.push([cx - 1, cy]);
+        }
+        if (cx < boardWidth - 1 && scratchBoard[cy][cx + 1] === 0) {
+            scratchBoard[cy][cx + 1] = -1;
+            stack.push([cx + 1, cy]);
+        }
+        if (cy > 0 && scratchBoard[cy - 1][cx] === 0) {
+            scratchBoard[cy - 1][cx] = -1;
+            stack.push([cx, cy - 1]);
+        }
+        if (cy < boardHeight - 1 && scratchBoard[cy + 1][cx] === 0) {
+            scratchBoard[cy + 1][cx] = -1;
+            stack.push([cx, cy + 1]);
+        }
+    }
+    return size;
+};
+
 const findNextFit = function (offBoards) {
     const misFits = [];
     const firstEmptyPosition = findFirstEmptyPosition();
-    if (firstEmptyPosition) { // start trying other pentominos
-        if (holeFitsXPieces(firstEmptyPosition)) {
+    if (firstEmptyPosition) {
+        // Optimized: Only proceed if ALL holes on the board are valid
+        if (allHolesFit()) {
             while (offBoards.length) {
                 const pentomino = nextOnboard(offBoards);
                 if (pentomino) {
@@ -159,18 +231,31 @@ const findNextFit = function (offBoards) {
                         positionsTried++;
                         movePentomino(pentomino, face, firstEmptyPosition, true);
                         if (isFitting() && proceed) {
-                            // sendFeedBack('draw');
-                            findNextFit(sortPentominos(misFits.concat(offBoards)));
+                            findNextFit(misFits.concat(offBoards));
                         }
                     }
                     discard(misFits);
-                    // sendFeedBack('draw');
-                } // else next pentomino
+                }
             }
         }
     } else {
         sendFeedBack('solution');
     }
+};
+
+const boardHas64Squares = function () {
+    return boardWidth * boardHeight === 64;
+};
+
+const initVariables = function (data) {
+    boardType = data.boardType;
+    boardWidth = data.boardWidth;
+    boardHeight = data.boardHeight;
+    rotatedBoard = boardHeight < boardWidth;
+    fields = data.fields;
+    pentominos = data.onBoards;
+    offBoardPentominos = data.offBoards.sort((a, b) => a.index - b.index);
+    initScratchBoard();
 };
 
 const findPentominoByName = function (set, name) {
@@ -190,88 +275,6 @@ const getXBlockPosition = function () {
     } else {
         return false;
     }
-};
-
-// find out if open region at x,y is large enough for a pentomino by recursion counting
-// xy has to be the most upper left open spot
-const holeFitsXPieces = function (xy) {
-    let holeSize = 0;
-    const label = 'a';
-    const board = copyBoardFields();
-
-    const countDown = (xy) => {
-        let y = xy[1];
-        const x = xy[0];
-        while ((y < boardHeight) && (board[y][x] === 0)) {
-            board[y][x] = label;
-            holeSize++;
-            // console.table(board);
-            countLeft([x - 1, y]);
-            countRight([x + 1, y]);
-            y++;
-        }
-    };
-
-    const countUp = (xy) => {
-        let y = xy[1];
-        const x = xy[0];
-        while ((y >= 0) && (board[y][x] === 0)) {
-            board[y][x] = label;
-            holeSize++;
-            // console.table(board);
-            countRight([x + 1, y]);
-            countLeft([x - 1, y]);
-            y--;
-        }
-    };
-
-    const countRight = (xy) => {
-        let x = xy[0];
-        const y = xy[1];
-        while ((x < boardWidth) && (board[y][x] === 0)) {
-            board[y][x] = label;
-            holeSize++;
-            // console.table(board);
-            countDown([x, y + 1]);
-            countUp([x, y - 1]);
-            x++;
-        }
-    };
-
-    const countLeft = (xy) => {
-        let x = xy[0];
-        const y = xy[1];
-        while ((x >= 0) && (board[y][x] === 0)) {
-            board[y][x] = label;
-            holeSize++;
-            // console.table(board);
-            countDown([x, y + 1]);
-            countUp([x, y - 1]);
-            x--;
-        }
-    };
-
-    countRight(xy);
-    return holeFits(holeSize);
-};
-
-const boardHas60Squares = function () {
-    return !(boardType === 'square' || boardType === 'stick');
-};
-
-const holeFits = function (sum) {
-    const compensation = (oPentominoOnboard() || boardHas60Squares()) ? 0 : 4;
-    return ((sum - compensation) % 5 === 0);
-};
-
-const initVariables = function (data) {
-    boardType = data.boardType;
-    boardWidth = data.boardWidth;
-    boardHeight = data.boardHeight;
-    rotatedBoard = boardHeight < boardWidth;
-    fields = data.fields;
-    pentominos = data.onBoards;
-    offBoardPentominos = data.offBoards;
 };
 
 // Return true if no overlapping pieces and all pieces are completely on the board
