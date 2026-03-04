@@ -1,6 +1,14 @@
+* {
+    touch-action: none !important; // Disables all browser touch behaviors globally
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none !important;
+    user-select: none;
+}
+
 body,
 html {
-    overscroll-behavior: contain;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: none;
 }
 
 .dragArea,
