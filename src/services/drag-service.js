@@ -18,6 +18,7 @@ export class DragService {
         this.dragStartPos = {};
         this.dragEndPos = {};
         this.lastZindex = 1;
+        this.hasMoved = false;
     }
 
     getClientPos(event) {
@@ -43,6 +44,7 @@ export class DragService {
             this.y = clientPos.y - this.startY;
             this.dragStartPos.x = this.x;
             this.dragStartPos.y = this.y;
+            this.hasMoved = false; // Reset on start
         }
         return false;
     }
@@ -53,6 +55,12 @@ export class DragService {
         if (this.ps.getActivePentomino()) {
             this.x = clientPos.x - this.startX;
             this.y = clientPos.y - this.startY;
+
+            // Track if significant movement has occurred once
+            if (!this.hasMoved && (Math.abs(this.x - this.dragStartPos.x) > 5 || Math.abs(this.y - this.dragStartPos.y) > 5)) {
+                this.hasMoved = true;
+            }
+
             if (this._container) {
                 this._container.style.left = this.x + 'px';
                 this._container.style.top = this.y + 'px';
@@ -67,7 +75,9 @@ export class DragService {
         const pentomino = this.ps.getActivePentomino();
         if (pentomino) {
             this.alignToGrid();
-            if (!this.isDragged()) {
+
+            // Use the accumulated hasMoved flag
+            if (!this.hasMoved) {
                 this.prms.permute(pentomino);
                 this.ea.publish('move', 1);
             } else {
@@ -84,6 +94,7 @@ export class DragService {
             this._container = null;
         }
         this.ps.resetActivePentomino();
+        this.hasMoved = false;
     }
 
     alignToGrid() {
@@ -94,9 +105,5 @@ export class DragService {
             this._container.style.left = newX * this.ss.partSize + 'px';
             this._container.style.top = newY * this.ss.partSize + 'px';
         }
-    }
-
-    isDragged() {
-        return ((Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 5) || (Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 5));
     }
 }
