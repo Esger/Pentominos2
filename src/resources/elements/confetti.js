@@ -31,31 +31,44 @@ export class ConfettiCustomElement {
     launchConfetti() {
         if (!this.confettiInstance) return;
 
-        const duration = 3 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const boardElement = document.querySelector('.board');
+        if (!boardElement) return;
 
-        const randomInRange = (min, max) => Math.random() * (max - min) + min;
+        const rect = boardElement.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
 
-        const interval = setInterval(() => {
-            const timeLeft = animationEnd - Date.now();
+        // Points within the board (relative to the viewport)
+        const points = [
+            { x: (rect.left + rect.width * 0.25) / vw, y: (rect.top + rect.height * 0.25) / vh },
+            { x: (rect.left + rect.width * 0.75) / vw, y: (rect.top + rect.height * 0.25) / vh },
+            { x: (rect.left + rect.width * 0.25) / vw, y: (rect.top + rect.height * 0.75) / vh },
+            { x: (rect.left + rect.width * 0.75) / vw, y: (rect.top + rect.height * 0.75) / vh },
+            { x: (rect.left + rect.width * 0.5) / vw, y: (rect.top + rect.height * 0.5) / vh }
+        ];
 
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
+        const defaults = {
+            zIndex: -1,
+            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'],
+            scalar: 1.2,
+            gravity: 0.35, // Even slower motion
+            ticks: 600,
+            decay: 0.96,
+            startVelocity: 20,
+            spread: 90
+        };
 
-            const particleCount = 50 * (timeLeft / duration);
-            // since particles fall down, start a bit higher than random
-            this.confettiInstance({
-                ...defaults,
-                particleCount,
-                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-            });
-            this.confettiInstance({
-                ...defaults,
-                particleCount,
-                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-            });
-        }, 250);
+        // Launch a slightly randomized burst from each point
+        points.forEach((point, index) => {
+            setTimeout(() => {
+                this.confettiInstance({
+                    ...defaults,
+                    origin: point,
+                    particleCount: 40,
+                    startVelocity: 15 + Math.random() * 15,
+                    spread: 70 + Math.random() * 60
+                });
+            }, index * 150); // Staggered bursts for a more organic feel
+        });
     }
 }
