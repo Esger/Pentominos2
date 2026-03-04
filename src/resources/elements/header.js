@@ -18,14 +18,6 @@ export class HeaderCustomElement {
         });
     }
 
-    getHeaderSizeCss(shape) {
-        let boardType = this.bs.boardTypes[shape];
-        let css = {
-            width: boardType.w * this.bs.partSize + 'px'
-        };
-        return css;
-    }
-
     resetMoves() {
         this.ea.publish('move', 0);
     }

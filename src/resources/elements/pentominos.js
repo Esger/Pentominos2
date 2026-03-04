@@ -1,4 +1,4 @@
-import { inject, bindable } from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { PentominoService } from 'services/pentomino-service';
 import { SettingService } from 'services/setting-service';
@@ -29,8 +29,8 @@ export class PentominosCustomElement {
 
     getPentominoCSS(x, y, color) {
         let css = {
-            left: x * this.ss.partSize + 'px',
-            top: y * this.ss.partSize + 'px',
+            left: `calc(${x} * var(--part-size, 40px))`,
+            top: `calc(${y} * var(--part-size, 40px))`,
             backgroundColor: color
         };
         return css;
@@ -38,8 +38,8 @@ export class PentominosCustomElement {
 
     getPartCSS(part) {
         let css = {
-            'left': part[0] * this.ss.partSize + 'px',
-            'top': part[1] * this.ss.partSize + 'px'
+            'left': `calc(${part[0]} * var(--part-size, 40px))`,
+            'top': `calc(${part[1]} * var(--part-size, 40px))`
         };
         return css;
     }

@@ -1,8 +1,135 @@
 <template class="pentominosWrapper">
+    <require from="../value-converters/pentomino-svg"></require>
+
     <div repeat.for="pentomino of ps.pentominos"
          class="pentomino block_${pentomino.name} ${pentomino.active ? 'active' : ''}"
-         css.bind="{left: pentomino.position.x * ss.partSize + 'px', top: pentomino.position.y * ss.partSize + 'px', backgroundColor: pentomino.color}">
-        <div class="relContainer inheritBgColor">
+         css.bind="{
+            left: 'calc(' + pentomino.position.x + ' * var(--part-size, 40px))',
+            top: 'calc(' + pentomino.position.y + ' * var(--part-size, 40px))',
+            '--pento-color': pentomino.color,
+            color: pentomino.color,
+            zIndex: pentomino.active ? 10 : 1
+         }">
+        <let svg.bind="pentomino | pentominoSvg:pentomino.face"></let>
+        <div class="relContainer inheritBgColor"
+             if.bind="svg"
+             css.bind="{ width: svg.widthCss, height: svg.heightCss }">
+            <svg view-box.bind="svg.viewBox"
+                 class="piece-svg"
+                 width="100%"
+                 height="100%"
+                 style="overflow: visible; display: block; position: absolute; left: 0; top: 0;">
+                <defs>
+                    <!-- Glass Refraction & Lighting Filter -->
+                    <filter id="${svg.id}-glass"
+                            x="-50%"
+                            y="-50%"
+                            width="200%"
+                            height="200%">
+                        <feGaussianBlur in="SourceAlpha"
+                                        stdDeviation="1.5"
+                                        result="blur" />
+                        <feSpecularLighting in="blur"
+                                            surfaceScale="5"
+                                            specularConstant="1.2"
+                                            specularExponent="35"
+                                            lighting-color="#fff"
+                                            result="specOut">
+                            <feDistantLight azimuth="225"
+                                            elevation="45" />
+                        </feSpecularLighting>
+                        <feComposite in="specOut"
+                                     in2="SourceAlpha"
+                                     operator="in"
+                                     result="specIn" />
+                        <feTurbulence type="fractalNoise"
+                                      baseFrequency="0.02"
+                                      numOctaves="3"
+                                      result="noise" />
+                        <feDisplacementMap in="SourceGraphic"
+                                           in2="noise"
+                                           scale="4"
+                                           xChannelSelector="R"
+                                           yChannelSelector="G"
+                                           result="refracted" />
+                        <feMerge>
+                            <feMergeNode in="refracted" />
+                            <feMergeNode in="specIn" />
+                        </feMerge>
+                        <feDropShadow dx="1"
+                                      dy="2"
+                                      stdDeviation="4"
+                                      flood-color="${svg.color}"
+                                      flood-opacity="0.3" />
+                    </filter>
+
+                    <radialGradient id="${svg.id}-glow"
+                                    cx="50%"
+                                    cy="60%"
+                                    r="65%"
+                                    gradientUnits="objectBoundingBox">
+                        <stop offset="0%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.6" />
+                        <stop offset="60%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.2" />
+                        <stop offset="100%"
+                              stop-color="${svg.color}"
+                              stop-opacity="0.0" />
+                    </radialGradient>
+
+                    <linearGradient id="${svg.id}-base"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                    gradientUnits="objectBoundingBox">
+                        <stop offset="0%"
+                              stop-color="rgba(255,255,255,0.08)" />
+                        <stop offset="100%"
+                              stop-color="rgba(255,255,255,0.02)" />
+                    </linearGradient>
+
+                    <clipPath id="${svg.id}-clip">
+                        <path d.bind="svg.path" />
+                    </clipPath>
+                </defs>
+
+                <!-- 1. Background Refraction (Backdrop Filter) -->
+                <rect clip-path="url(#${svg.id}-clip)"
+                      width="100%"
+                      height="100%"
+                      fill="white"
+                      fill-opacity="0.01"
+                      style="backdrop-filter: blur(12px) saturate(160%)" />
+
+                <!-- 2. Main Glass Body with Advanced Filter -->
+                <g filter="url(#${svg.id}-glass)">
+                    <path d.bind="svg.path"
+                          fill="url(#${svg.id}-base)" />
+                    <path d.bind="svg.path"
+                          fill="url(#${svg.id}-glow)" />
+                </g>
+
+                <!-- 3. Precise Rim Outline -->
+                <path d.bind="svg.path"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.2)"
+                      stroke-width="1.2" />
+
+                <!-- 4. Inner Reflection Softening Overlay -->
+                <g clip-path="url(#${svg.id}-clip)"
+                   opacity="0.35">
+                    <ellipse cx.bind="svg.glowX"
+                             cy.bind="svg.glowY"
+                             rx.bind="svg.glowRX"
+                             ry.bind="svg.glowRY"
+                             fill="rgba(255,255,255,0.15)"
+                             style="filter:blur(4px)" />
+                </g>
+            </svg>
+
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
             <let flip-h.bind="!(
                 pentomino.index == 1 && pentomino.face % 2 == 0 ||
@@ -14,9 +141,8 @@
                  class="fa part ${!isSolving && $index === 0 && pentomino.type < 5 ? 'fa-refresh rotate' : ''}
                  ${!isSolving && $index === 1 && pentomino.type < 4 && flipH ? 'fa-arrows-h flipH' : ''}
                  ${!isSolving && $index === 2 && pentomino.type < 4 && flipV ? 'fa-arrows-v flipV' : ''}"
-                 css.bind="{left: part[0] * ss.partSize + 'px', top: part[1] * ss.partSize + 'px'}"
-                 mousedown.delegate="ds.startDrag(pentomino, $index, $event)"
-                 touchstart.trigger="ds.startDrag(pentomino, $index, $event)">
+                 css.bind="{left: 'calc(' + part[0] + ' * var(--part-size, 40px))', top: 'calc(' + part[1] + ' * var(--part-size, 40px))'}"
+                 pointerdown.trigger="ds.startDrag(pentomino, $index, $event)">
             </div>
         </div>
     </div>

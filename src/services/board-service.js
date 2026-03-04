@@ -42,6 +42,29 @@ export class BoardService {
         };
         this.solved = false;
         this.newSolution = false;
+
+        window.addEventListener('resize', () => this.calculatePartSize());
+        setTimeout(() => this.calculatePartSize(), 10);
+    }
+
+    calculatePartSize() {
+        const boardW = this.getWidth();
+        const boardH = this.getHeight();
+
+        // 1/3 viewport sizes
+        const maxW = window.innerWidth / 3;
+        const maxH = window.innerHeight / 3;
+
+        const sizeW = maxW / boardW;
+        const sizeH = maxH / boardH;
+
+        let newSize = Math.floor(Math.min(sizeW, sizeH));
+
+        // ensure minimum is 40
+        this.partSize = Math.max(40, newSize);
+
+        // Sync CSS variable for LESS files
+        document.documentElement.style.setProperty('--part-size', this.partSize + 'px');
     }
 
     setSolved() {
@@ -62,6 +85,7 @@ export class BoardService {
 
     setBoardType(shape) {
         this.boardType = shape;
+        this.calculatePartSize();
     }
 
     getWidth() {

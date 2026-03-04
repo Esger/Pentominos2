@@ -1,4 +1,4 @@
-import { inject, bindable } from 'aurelia-framework';
+import { inject } from 'aurelia-framework';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
@@ -37,7 +37,7 @@ export class PentominoService {
         let boardIsFull = this.boardIsFull();
         if (boardIsFull) {
             this.bs.setSolved();
-            this.sls.saveSolution(this.pentominos);
+            this.sls.saveSolution(this.pentominos, true);
         } else {
             this.bs.unsetNewSolution();
             this.bs.unsetSolved();
@@ -135,14 +135,29 @@ export class PentominoService {
     }
 
     setPentominos(pentos) {
-        this.pentominos = pentos;
+        if (!pentos || !Array.isArray(pentos)) return;
+
+        // Update in-place to preserve Aurelia reactivity and existing observers
+        pentos.forEach(pData => {
+            const pentomino = this.pentominos.find(p => p.name === pData.name);
+            if (pentomino) {
+                // Update properties individually for maximum compatibility
+                pentomino.face = pData.face;
+                pentomino.position.x = pData.position.x;
+                pentomino.position.y = pData.position.y;
+                pentomino.onBoard = pData.onBoard;
+
+                // Ensure dimensions remain in sync with any face changes
+                this.adjustDimensions(pentomino);
+            }
+        });
     }
 
     start() {
         this.ds.getPentominos().then((response) => {
             this.pentominos = response;
-            this.ds.getColors().then((response) => {
-                this.pentominos.forEach((pentomino, i) => pentomino.color = response[i].color);
+            this.ds.getColors().then((resp) => {
+                this.pentominos.forEach((pentomino, i) => pentomino.color = resp[i].color);
                 this.getStartPosition().then(() => {
                     this.registerPieces();
                     this.bs.unsetSolved();

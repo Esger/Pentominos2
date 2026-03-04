@@ -4,14 +4,15 @@
     <require from="resources/elements/controls"></require>
     <require from="resources/elements/solving"></require>
     <require from="resources/elements/footer.html"></require>
+    <require from="resources/elements/confetti"></require>
     <div class="dragArea"
-         mousemove.delegate="ds.doDrag($event)"
-         mouseup.delegate="ds.stopDrag($event)"
-         touchend.delegate="ds.stopDrag($event)">
+         pointermove.delegate="ds.doDrag($event)"
+         pointerup.delegate="ds.stopDrag($event)">
+        <confetti></confetti>
         <header></header>
-        <board></board>
-        <controls></controls>
-        <solving></solving>
-        <footer></footer>
+        <board class="glassy"></board>
+        <solving class="glassy"></solving>
+        <controls class="glassy"></controls>
+        <footer class="glassy"></footer>
     </div>
 </template>

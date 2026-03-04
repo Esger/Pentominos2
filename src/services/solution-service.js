@@ -2,20 +2,22 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 import { BoardService } from './board-service';
 import { PermutationService } from './permutation-service';
 import { DataService } from './data-service';
 import { SettingService } from './setting-service';
 
-@inject(BoardService, PermutationService, DataService, SettingService)
+@inject(BoardService, PermutationService, DataService, SettingService, EventAggregator)
 
 export class SolutionService {
 
-    constructor(boardService, permutationService, dataService, settingService) {
+    constructor(boardService, permutationService, dataService, settingService, eventAggregator) {
         this.bs = boardService;
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
+        this.ea = eventAggregator;
         this._possibleSolutions = [];
         this.currentSolution = -1;
         this.getSolutions();
@@ -26,37 +28,36 @@ export class SolutionService {
     }
 
     setPossibleSolutions(onBoardPentominos) {
-        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
         let solutions = this.solutions[this.bs.boardType];
+
+        // 1. Efficiently pre-process solutions into sets of parts for faster lookup
+        // We only do this if the underlying solutions array changed or we haven't done it yet
+        if (!this._solutionSets || this._solutionSets.source !== solutions) {
+            this._solutionSets = solutions.map(s => new Set(s.substr(1).split('#')));
+            this._solutionSets.source = solutions;
+        }
+
+        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
         let flipRotatedOnboardStrings = [];
 
-        // Mirror
+        // 2. Generate all 4 or 8 board orientations
         for (let flip = 0; flip < 2; flip++) {
-            // Rotate
             for (let rotation = 0; rotation < rotations; rotation++) {
-                let onBoardStrings = onBoardPentominos.map(pentomino => {
-                    return this.pentomino2string(pentomino);
-                });
+                let onBoardStrings = onBoardPentominos.map(p => this.pentomino2string(p));
                 flipRotatedOnboardStrings.push(onBoardStrings);
                 this.prms.rotateBoard(onBoardPentominos);
             }
             this.prms.flipBoardYAxis(onBoardPentominos);
         }
 
-        let containsAll = (solution) => {
-            let results = flipRotatedOnboardStrings.map(onBoardStringsArr => {
-                let result = true;
-                onBoardStringsArr.forEach(str => {
-                    result = solution.includes(str) && result;
-                });
-                return result;
+        // 3. Match against pre-parsed sets (O(1) lookup instead of O(N) string search)
+        this._possibleSolutions = solutions.filter((solution, idx) => {
+            const solSet = this._solutionSets[idx];
+            // Check if any of our 8 board orientations matches this solution's parts
+            return flipRotatedOnboardStrings.some(onBoardStrings => {
+                // All current pieces must be present in the solution
+                return onBoardStrings.every(str => solSet.has(str));
             });
-            return results.some(result => {
-                return result;
-            });
-        };
-        this._possibleSolutions = solutions.filter(solution => {
-            return containsAll(solution);
         });
     }
 
@@ -69,7 +70,7 @@ export class SolutionService {
         this.getSolutions();
     }
 
-    saveSolution(pentominos) {
+    saveSolution(pentominos, isUser = false) {
         if (pentominos) {
             let solutionResult = this.isNewSolution(pentominos);
             // A number indicates an existing solution
@@ -78,11 +79,17 @@ export class SolutionService {
                 // show this solution
                 this.currentSolution = solutionResult;
                 this.bs.unsetNewSolution();
+                if (isUser) {
+                    this.ea.publish('user-solution-found');
+                }
             } else {
                 this.solutions[this.bs.boardType].push(solutionResult);
                 this.currentSolution = this.solutions[this.bs.boardType].length - 1;
                 this.bs.setNewSolution();
                 this.ds.saveSolution(solutionResult);
+                if (isUser) {
+                    this.ea.publish('user-solution-found');
+                }
             }
         } else {
             this.ds.saveSolution();

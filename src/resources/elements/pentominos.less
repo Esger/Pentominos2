@@ -1,68 +1,82 @@
 .pentominosWrapper {
     position: absolute;
-    left    : 0;
-    right   : 0;
-    top     : 0;
-    bottom  : 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .pentomino {
-    position      : absolute;
-    left          : 0;
-    top           : 0;
+    position: absolute;
+    left: 0;
+    top: 0;
     pointer-events: none;
-    z-index       : 0;
+    z-index: 1;
+    transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
+
+    &.active {
+        z-index: 10;
+        transform: scale(1.02);
+    }
 }
 
-.inheritBgColor {
-    background-color: inherit;
+.piece-svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    overflow: visible;
+    transition: transform 0.3s ease;
 }
 
 .part {
-    position        : absolute;
-    left            : 0;
-    top             : 0;
-    width           : 40px;
-    height          : 40px;
-    text-align      : center;
-    color           : white;
-    background-color: inherit;
-    border          : 1px solid rgba(211, 211, 211, .2);
-    box-sizing      : border-box;
-    pointer-events  : auto;
-    cursor          : grab;
-    line-height     : 38px;
-
-    &>span {
-        line-height: 40px;
-    }
-
-    &:active {
-        cursor: grabbing;
-    }
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--part-size, 40px);
+    height: var(--part-size, 40px);
+    text-align: center;
+    color: white;
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: grab;
+    line-height: var(--part-size, 40px);
+    touch-action: none;
+    /* Disables all browser touch behaviors including zoom */
+    -webkit-touch-callout: none;
+    /* Disables the link context menu on iOS */
+    -webkit-user-select: none;
+    user-select: none;
 
     &::before {
-        line-height: 38px;
-        opacity    : .3;
+        position: relative;
+        z-index: 10;
+        line-height: var(--part-size, 40px);
+        opacity: 0.4;
+        transition: opacity 0.2s;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 }
 
-.block_n,
-.block_t,
-.block_v,
-.block_y {
-    .part::before {
-        opacity: .6;
+.pentomino:hover,
+.pentomino.active {
+    .piece-svg {
+        transform-origin: 50% 50%;
+        transform: scale(1.02);
+    }
+
+    .part {
+        &::before {
+            opacity: 1;
+        }
     }
 }
 
-.pentomino.active,
-.pentomino:hover {
-    .part::before {
-        opacity: 1;
-    }
+.inheritBgColor {
+    background-color: transparent !important;
 }
 
-.pentomino.transparent .part {
-    opacity: .3;
+.pentomino.transparent {
+    opacity: 0.4;
+    filter: saturate(50%);
 }

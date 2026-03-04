@@ -1,13 +1,45 @@
 .board {
-    display         : flex;
-    flex-direction  : column;
-    position        : relative;
-    background-color: lightgray;
-    border          : 5px solid darkgray;
-    transition      : all .3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin-block: auto;
+
+    // Glassmorphism effect
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px) saturate(120%);
+
+    // Modern glass border: semi-transparent outer with inner highlight
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+    border-radius: 4px;
+    z-index: 1;
+    transition: all .4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // Subtle Grid pattern
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: var(--part-size, 40px) var(--part-size, 40px); // Matching partSize
+        pointer-events: none;
+        z-index: -1;
+    }
 }
 
-.board.solved, .solved {
-    border-color: lime;
-    box-shadow  : 0 0 30px 0 rgba(0, 255, 0, .5);
+.board.solved,
+.solved {
+    border-color: rgba(0, 255, 127, 0.5);
+    box-shadow:
+        0 0 40px 0 rgba(0, 255, 127, 0.5),
+        inset 0 0 20px 0 rgba(0, 255, 127, 0.1);
+    background: rgba(0, 255, 127, 0.05);
 }

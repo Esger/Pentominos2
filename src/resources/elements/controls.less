@@ -1,27 +1,36 @@
+controls {
+    margin-bottom: 10px;
+}
+
 .controls {
-    width          : 320px;
-    height         : 40px;
-    display        : flex;
+    width: 320px;
+    height: 40px;
+    display: flex;
     justify-content: center;
-    align-items    : center;
+    align-items: center;
 
     & [class*='fa-step-'] {
         vertical-align: 0;
     }
 }
 
-.button, .indicator {
-    height          : 30px;
-    line-height     : 30px;
-    font-family     : inherit;
+.button,
+.indicator {
+    height: 30px;
+    line-height: 30px;
+    font-family: inherit;
     background-color: transparent;
-    border          : none;
-    outline         : none;
-    color           : white;
-    font-size       : 14px;
-    padding         : 0 10px;
-    transition      : all .3s ease;
-    cursor          : pointer;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 14px;
+    padding: 0 10px;
+    transition: all .3s ease;
+    cursor: pointer;
+    touch-action: manipulation; // This isUsually enough for buttons
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 
     icon {
         line-height: 30px;
@@ -37,7 +46,7 @@
 }
 
 .button.small {
-    width      : 40px;
-    height     : 30px;
+    width: 40px;
+    height: 30px;
     line-height: 30px;
 }
