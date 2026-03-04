@@ -41,6 +41,12 @@
     pointer-events: auto;
     cursor: grab;
     line-height: var(--part-size, 40px);
+    touch-action: none;
+    /* Disables all browser touch behaviors including zoom */
+    -webkit-touch-callout: none;
+    /* Disables the link context menu on iOS */
+    -webkit-user-select: none;
+    user-select: none;
 
     &::before {
         position: relative;

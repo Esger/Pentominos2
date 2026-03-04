@@ -30,6 +30,7 @@ export class DragService {
     }
 
     startDrag(pentomino, partIndex, event) {
+        event.preventDefault();
         if (this._container == null) {
             let clientPos = this.getClientPos(event);
             this.ps.setActivePentomino(pentomino, partIndex);
@@ -47,6 +48,7 @@ export class DragService {
     }
 
     doDrag(event) {
+        event.preventDefault();
         let clientPos = this.getClientPos(event);
         if (this.ps.getActivePentomino()) {
             this.x = clientPos.x - this.startX;
@@ -59,6 +61,7 @@ export class DragService {
     }
 
     stopDrag(event) {
+        event.preventDefault();
         this.dragEndPos.x = this.x;
         this.dragEndPos.y = this.y;
         const pentomino = this.ps.getActivePentomino();

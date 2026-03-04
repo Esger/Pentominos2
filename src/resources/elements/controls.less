@@ -27,6 +27,10 @@ controls {
     padding: 0 10px;
     transition: all .3s ease;
     cursor: pointer;
+    touch-action: manipulation; // This isUsually enough for buttons
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 
     icon {
         line-height: 30px;
