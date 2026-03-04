@@ -59,33 +59,16 @@ export class DragService {
     }
 
     stopDrag(event) {
+        this.dragEndPos.x = this.x;
+        this.dragEndPos.y = this.y;
         const pentomino = this.ps.getActivePentomino();
         if (pentomino) {
-            this.dragEndPos.x = this.x;
-            this.dragEndPos.y = this.y;
-
-            const isDragged = this.isDragged();
-
-            if (isDragged) {
-                // Definite move -> Snap to the nearest grid cell instantly
-                this.alignToGrid();
+            this.alignToGrid();
+            if (!this.isDragged()) {
+                this.prms.permute(pentomino);
                 this.ea.publish('move', 1);
             } else {
-                // Small movement or click
-                // First, force an instant snap to the current model position 
-                // to clear any manual dragging offset.
-                this.alignToGrid();
-
-                // Only rotate/flip if it was a very precise click (minimal movement)
-                if (this.isClick()) {
-                    this.prms.permute(pentomino);
-                    this.ea.publish('move', 1);
-                    // Re-snap because face/position likely changed after permutation
-                    this.alignToGrid();
-                } else {
-                    // It was a tiny drag (< 19px), just snap it back.
-                    this.ea.publish('move', 1);
-                }
+                this.ea.publish('move', 1);
             }
             this.ps.registerPiece(pentomino, 1);
             this.ps.isSolved();
@@ -111,10 +94,6 @@ export class DragService {
     }
 
     isDragged() {
-        return ((Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 19) || (Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 19));
-    }
-
-    isClick() {
-        return ((Math.abs(this.dragEndPos.x - this.dragStartPos.x) < 5) && (Math.abs(this.dragEndPos.y - this.dragStartPos.y) < 5));
+        return ((Math.abs(this.dragEndPos.x - this.dragStartPos.x) > 5) || (Math.abs(this.dragEndPos.y - this.dragStartPos.y) > 5));
     }
 }
