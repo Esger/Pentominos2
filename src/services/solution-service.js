@@ -2,20 +2,22 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 import { BoardService } from './board-service';
 import { PermutationService } from './permutation-service';
 import { DataService } from './data-service';
 import { SettingService } from './setting-service';
 
-@inject(BoardService, PermutationService, DataService, SettingService)
+@inject(BoardService, PermutationService, DataService, SettingService, EventAggregator)
 
 export class SolutionService {
 
-    constructor(boardService, permutationService, dataService, settingService) {
+    constructor(boardService, permutationService, dataService, settingService, eventAggregator) {
         this.bs = boardService;
         this.ds = dataService;
         this.ss = settingService;
         this.prms = permutationService;
+        this.ea = eventAggregator;
         this._possibleSolutions = [];
         this.currentSolution = -1;
         this.getSolutions();
@@ -68,7 +70,7 @@ export class SolutionService {
         this.getSolutions();
     }
 
-    saveSolution(pentominos) {
+    saveSolution(pentominos, isUser = false) {
         if (pentominos) {
             let solutionResult = this.isNewSolution(pentominos);
             // A number indicates an existing solution
@@ -77,11 +79,17 @@ export class SolutionService {
                 // show this solution
                 this.currentSolution = solutionResult;
                 this.bs.unsetNewSolution();
+                if (isUser) {
+                    this.ea.publish('user-solution-found');
+                }
             } else {
                 this.solutions[this.bs.boardType].push(solutionResult);
                 this.currentSolution = this.solutions[this.bs.boardType].length - 1;
                 this.bs.setNewSolution();
                 this.ds.saveSolution(solutionResult);
+                if (isUser) {
+                    this.ea.publish('user-solution-found');
+                }
             }
         } else {
             this.ds.saveSolution();

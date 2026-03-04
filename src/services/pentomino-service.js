@@ -37,7 +37,7 @@ export class PentominoService {
         let boardIsFull = this.boardIsFull();
         if (boardIsFull) {
             this.bs.setSolved();
-            this.sls.saveSolution(this.pentominos);
+            this.sls.saveSolution(this.pentominos, true);
         } else {
             this.bs.unsetNewSolution();
             this.bs.unsetSolved();
