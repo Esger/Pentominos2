@@ -36,6 +36,11 @@
                     <icon class="fa fa-close fa-lg"></icon>
             </button>
         </div>
+        <div class="progressRow"
+             if.bind="canStop || solutionsInQueue">
+            <progress value.bind="progress"
+                      max.bind="total"></progress>
+        </div>
         <p class="count"
            if.bind="positionsTried > 0">Tried ${positionsTried | thousands} positions</p>
         <p class="message"

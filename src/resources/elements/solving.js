@@ -27,6 +27,39 @@ export class SolvingCustomElement {
         this.solutionsBuffer = [];
         this.backupPentominos = this.ps.pentominos.slice();
         this.alert = '';
+        this.currentCount = 0;
+
+        this.ea.subscribe('solving', isSolving => {
+            if (isSolving) {
+                this.updateCount();
+            }
+        });
+
+        this.ea.subscribe('solution-processed', () => {
+            this.updateCount();
+        });
+
+        this.ea.subscribe('board-type-changed', () => {
+            this.updateCount();
+        });
+    }
+
+    updateCount() {
+        if (this.sls.solutions && this.sls.solutions[this.bs.boardType]) {
+            this.currentCount = this.sls.solutions[this.bs.boardType].length;
+        } else {
+            this.currentCount = 0;
+        }
+    }
+
+    get total() {
+        const board = this.bs.boardTypes[this.bs.boardType];
+        return board ? board.totalSolutions : 0;
+    }
+
+    get progress() {
+        if (!this.total) return 0;
+        return this.currentCount;
     }
 
     get solutionsInQueue() {
@@ -87,7 +120,6 @@ export class SolvingCustomElement {
                     setTimeout(() => { this.bufferSolution(pentominos) });
                     break;
                 case 'finish':
-                    this.alert = 'No more solutions found!';
                     this.canStop = false;
                     break;
                 case 'noSolution':
@@ -127,6 +159,7 @@ export class SolvingCustomElement {
         } else {
             self.sls.saveSolution();
             this.ea.publish('solving', false);
+            this.alert = `${this.currentCount} solutions found!`;
         }
     }
 
