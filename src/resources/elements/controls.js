@@ -31,14 +31,17 @@ export class ControlsCustomElement {
     }
 
     get indicatorText() {
-        let currentSolution = this.sls.currentSolution;
-        let solutionCount = '(' + this.sls.solutions[this.bs.boardType].length + ') ';
-        let possibleSolutionsCount = this.sls.getPossibleSolutionsCount();
-        let possible = (possibleSolutionsCount > 0) ? possibleSolutionsCount + ' ' : '0 ';
-        // console.log('possible solutions: ', possibleSolutionsCount);
-        let current = (currentSolution >= 0) ? 'Solution&nbsp;&nbsp;' + (currentSolution + 1) + ' / ' : 'Solutions: ';
-        let text = current + possible + solutionCount;
-        return text;
+        const currentSolution = this.sls.currentSolution;
+        const totalCount = this.sls.solutions[this.bs.boardType].length;
+
+        if (currentSolution >= 0) {
+            // Browsing mode: Show which solution is active
+            return `Solution&nbsp;&nbsp;${currentSolution + 1} / ${totalCount}`;
+        } else {
+            // Playing mode: Show how many found solutions match current board
+            const possible = this.sls.getPossibleSolutionsCount();
+            return `Solutions: ${possible} / ${totalCount}`;
+        }
     }
 
     showSolution() {

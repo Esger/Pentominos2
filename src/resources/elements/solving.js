@@ -38,6 +38,10 @@ export class SolvingCustomElement {
         this.ea.subscribe('solution-processed', () => {
             this.updateCount();
         });
+
+        this.ea.subscribe('board-type-changed', () => {
+            this.updateCount();
+        });
     }
 
     updateCount() {

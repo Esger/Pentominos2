@@ -2,10 +2,13 @@ import {
     inject,
     bindable
 } from 'aurelia-framework';
+import { EventAggregator } from 'aurelia-event-aggregator';
 
+@inject(EventAggregator)
 export class BoardService {
 
-    constructor() {
+    constructor(eventAggregator) {
+        this.ea = eventAggregator;
         this.partSize = 40;
         this.boardType = 'square';
         this.boardTypes = {
@@ -92,6 +95,7 @@ export class BoardService {
     setBoardType(shape) {
         this.boardType = shape;
         this.calculatePartSize();
+        this.ea.publish('board-type-changed', shape);
     }
 
     getWidth() {
