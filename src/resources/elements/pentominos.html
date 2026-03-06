@@ -119,7 +119,7 @@
                       stroke-width="1.2" />
 
                 <!-- 4. Inner Reflection Softening Overlay -->
-                <g clip-path="url(#${svg.id}-clip)"
+                <!-- <g clip-path="url(#${svg.id}-clip)"
                    opacity="0.35">
                     <ellipse cx.bind="svg.glowX"
                              cy.bind="svg.glowY"
@@ -127,7 +127,7 @@
                              ry.bind="svg.glowRY"
                              fill="rgba(255,255,255,0.15)"
                              style="filter:blur(4px)" />
-                </g>
+                </g> -->
             </svg>
 
             <!-- C and T blocks don't need mirrorring around symmetric axis -->
@@ -137,13 +137,13 @@
             <let flip-v.bind="!(
                 pentomino.index === 1 && pentomino.face % 2 === 1 ||
                 pentomino.index === 6 && pentomino.face % 2 === 1)"></let>
-            <div repeat.for="part of pentomino.faces[pentomino.face]"
+            <button repeat.for="part of pentomino.faces[pentomino.face]"
                  class="fa part ${!isSolving && $index === 0 && pentomino.type < 5 ? 'fa-refresh rotate' : ''}
                  ${!isSolving && $index === 1 && pentomino.type < 4 && flipH ? 'fa-arrows-h flipH' : ''}
                  ${!isSolving && $index === 2 && pentomino.type < 4 && flipV ? 'fa-arrows-v flipV' : ''}"
                  css.bind="{left: 'calc(' + part[0] + ' * var(--part-size, 40px))', top: 'calc(' + part[1] + ' * var(--part-size, 40px))'}"
                  pointerdown.trigger="ds.startDrag(pentomino, $index, $event)">
-            </div>
+            </button>
         </div>
     </div>
 </template>
