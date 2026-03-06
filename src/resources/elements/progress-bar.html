@@ -1,0 +1,13 @@
+<template>
+    <div class="progress-outer"
+         if.bind="isSolving">
+        <div class="progress-container glassy">
+            <div class="progress-fill"
+                 css.bind="{width: progress + '%'}"></div>
+        </div>
+        <div class="progress-meta">
+            <span class="progress-count">${currentCount} solutions found</span>
+            <span class="progress-percent">${progress}%</span>
+        </div>
+    </div>
+</template>

@@ -12,32 +12,38 @@ export class BoardService {
             'square': {
                 w: 8,
                 h: 8,
-                surface: 64
+                surface: 64,
+                totalSolutions: 16368
             },
             'rectangle': {
                 w: 6,
                 h: 10,
-                surface: 60
+                surface: 60,
+                totalSolutions: 2339
             },
             'dozen': {
                 w: 12,
                 h: 5,
-                surface: 60
+                surface: 60,
+                totalSolutions: 1010
             },
             'beam': {
                 w: 15,
                 h: 4,
-                surface: 60
+                surface: 60,
+                totalSolutions: 368
             },
             'stick': {
                 w: 16,
                 h: 4,
-                surface: 64
+                surface: 64,
+                totalSolutions: 132
             },
             'twig': {
                 w: 20,
                 h: 3,
-                surface: 60
+                surface: 60,
+                totalSolutions: 2
             }
         };
         this.solved = false;

@@ -5,12 +5,14 @@
     <require from="resources/elements/solving"></require>
     <require from="resources/elements/footer.html"></require>
     <require from="resources/elements/confetti"></require>
+    <require from="resources/elements/progress-bar"></require>
     <div class="dragArea"
          pointermove.delegate="ds.doDrag($event)"
          pointerup.delegate="ds.stopDrag($event)">
         <confetti></confetti>
         <header></header>
         <board class="glassy"></board>
+        <progress-bar></progress-bar>
         <solving class="glassy"></solving>
         <controls class="glassy"></controls>
         <footer class="glassy"></footer>

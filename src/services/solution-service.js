@@ -91,6 +91,7 @@ export class SolutionService {
                     this.ea.publish('user-solution-found');
                 }
             }
+            this.ea.publish('solution-processed');
         } else {
             this.ds.saveSolution();
         }
