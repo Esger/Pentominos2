@@ -116,7 +116,6 @@ export class SolvingCustomElement {
                     setTimeout(() => { this.bufferSolution(pentominos) });
                     break;
                 case 'finish':
-                    this.alert = 'No more solutions found!';
                     this.canStop = false;
                     break;
                 case 'noSolution':
@@ -156,6 +155,7 @@ export class SolvingCustomElement {
         } else {
             self.sls.saveSolution();
             this.ea.publish('solving', false);
+            this.alert = `${this.currentCount} solutions found!`;
         }
     }
 
