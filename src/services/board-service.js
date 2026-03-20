@@ -60,17 +60,18 @@ export class BoardService {
         const boardW = this.getWidth();
         const boardH = this.getHeight();
 
-        // 1/3 viewport sizes
-        const maxW = window.innerWidth / 3;
-        const maxH = window.innerHeight / 3;
+        // Target 80% of viewport to leave space for pieces
+        const maxW = window.innerWidth * 0.71;
+        const maxH = window.innerHeight * 0.71;
 
         const sizeW = maxW / boardW;
         const sizeH = maxH / boardH;
 
         let newSize = Math.floor(Math.min(sizeW, sizeH));
 
-        // ensure minimum is 40
-        this.partSize = Math.max(40, newSize);
+        // On small screens, we must allow the part size to go below 40 to fit the board.
+        // We'll set a new minimum of 28px for better mobile support.
+        this.partSize = Math.max(28, Math.min(newSize, 45));
 
         // Sync CSS variable for LESS files
         document.documentElement.style.setProperty('--part-size', this.partSize + 'px');
