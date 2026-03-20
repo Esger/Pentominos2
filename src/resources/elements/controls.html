@@ -1,25 +1,37 @@
 <template>
-    <div class="controls"
+    <div class="buttonRow">
+        <button class="button" title="flip board horizontally" click.delegate="flipBoardYAxis()" touchstart.trigger="flipBoardYAxis()">
+            <icon class="fa fa-arrows-h fa-lg"></icon>
+        </button>
+        <button class="button" title="rotate board" click.delegate="rotateBoard()" touchstart.trigger="rotateBoard()">
+            <icon class="fa fa-rotate-right fa-lg"></icon>
+        </button>
+        <button class="button" title="shuffle pieces" click.delegate="mixBoard()" touchstart.trigger="mixBoard()">
+            <icon class="fa fa-recycle fa-lg"></icon>
+        </button>
+    </div>
+
+    <div class="buttonRow"
          if.bind="solutionCount">
         <button class="button small"
-                title="Show previous solution"
-                disabled.bind="disablePreviousButton(sls.currentSolution)"
-                click.delegate="showPreviousSolution()"
-                touchstart.trigger="showPreviousSolution()">
-         <icon class="fa fa-step-backward fa-lg"></icon>
+                    title="Show previous solution"
+                    disabled.bind="disablePreviousButton(sls.currentSolution)"
+                    click.delegate="showPreviousSolution()"
+                    touchstart.trigger="showPreviousSolution()">
+             <icon class="fa fa-step-backward fa-lg"></icon>
         </button>
         <button class.bind="getIndicatorClass(bs.solved)"
-                disabled.bind="disabledButtons"
-                innerhtml="${indicatorText}"
-                click.delegate="showFirstSolution()"
-                touchstart.trigger="showFirstSolution()">
+                    disabled.bind="disabledButtons"
+                    innerhtml="${indicatorText}"
+                    click.delegate="showFirstSolution()"
+                    touchstart.trigger="showFirstSolution()">
         </button>
         <button class="button small"
-                title="Show next solution"
-                disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
-                click.delegate="showNextSolution()"
-                touchstart.trigger="showNextSolution()">
-            <icon class="fa fa-step-forward fa-lg"></icon>
+                    title="Show next solution"
+                    disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
+                    click.delegate="showNextSolution()"
+                    touchstart.trigger="showNextSolution()">
+                <icon class="fa fa-step-forward fa-lg"></icon>
         </button>
     </div>
 </template>

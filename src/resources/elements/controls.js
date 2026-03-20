@@ -4,19 +4,35 @@ import { BoardService } from 'services/board-service';
 import { SettingService } from 'services/setting-service';
 import { PentominoService } from 'services/pentomino-service';
 import { SolutionService } from 'services/solution-service';
+import { PermutationService } from 'services/permutation-service';
 
-@inject(BoardService, EventAggregator, SettingService, PentominoService, SolutionService)
-
+@inject(BoardService, EventAggregator, SettingService, PentominoService, SolutionService, PermutationService)
 export class ControlsCustomElement {
 
-    constructor(boardService, eventAggregator, settingService, pentominoService, solutionService) {
+    constructor(boardService, eventAggregator, settingService, pentominoService, solutionService, permutationService) {
         this.ea = eventAggregator;
         this.bs = boardService;
         this.ss = settingService;
         this.ps = pentominoService;
         this.sls = solutionService;
+        this.prms = permutationService;
         this.disabledButtons = false;
         this.setSubscribers();
+    }
+
+    mixBoard() {
+        this.prms.mixBoard(this.ps.pentominos);
+        this.ps.registerPieces();
+    }
+
+    rotateBoard() {
+        this.prms.rotateBoard(this.ps.pentominos);
+        this.ps.registerPieces();
+    }
+
+    flipBoardYAxis() {
+        this.prms.flipBoardYAxis(this.ps.pentominos);
+        this.ps.registerPieces();
     }
 
     get solutionCount() {
@@ -36,11 +52,11 @@ export class ControlsCustomElement {
 
         if (currentSolution >= 0) {
             // Browsing mode: Show which solution is active
-            return `Solution&nbsp;&nbsp;${currentSolution + 1} / ${totalCount}`;
+            return `<span class="solution">Solution&nbsp;&nbsp;${currentSolution + 1} / ${totalCount}</span>`;
         } else {
             // Playing mode: Show how many found solutions match current board
             const possible = this.sls.getPossibleSolutionsCount();
-            return `Solutions: ${possible} / ${totalCount}`;
+            return `<span class="solution">Solutions: ${possible} / ${totalCount}</span>`;
         }
     }
 
