@@ -21,7 +21,7 @@
                     class.bind="getActiveBoardClass(boardType)"
                     click.delegate="setStartPosition(boardType)"
                     touchstart.trigger="setStartPosition(boardType)"
-                    innerhtml.bind="getBoardDimensions(boardType)"></li>
+                    innerhtml.bind="getBoardDimensions(boardType, bs.boardTypes[boardType].w, bs.boardTypes[boardType].h)"></li>
             </ul>
         </li>
 

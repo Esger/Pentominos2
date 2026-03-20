@@ -37,10 +37,10 @@ export class SolutionService {
             this._solutionSets.source = solutions;
         }
 
-        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        const rotations = 4;
         let flipRotatedOnboardStrings = [];
 
-        // 2. Generate all 4 or 8 board orientations
+        // 2. Generate all 8 board orientations
         for (let flip = 0; flip < 2; flip++) {
             for (let rotation = 0; rotation < rotations; rotation++) {
                 let onBoardStrings = onBoardPentominos.map(p => this.pentomino2string(p));
@@ -102,7 +102,7 @@ export class SolutionService {
     }
 
     isNewSolution(pentominos) {
-        const rotations = (this.bs.boardType == 'square') ? 4 : 2;
+        const rotations = 4;
         const foundSolStr = this.solution2String(pentominos);
         // use .split() to create arrays
         // Mirror

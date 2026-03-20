@@ -93,8 +93,8 @@ export class MenuCustomElement {
         return false;
     }
 
-    getBoardDimensions(boardType) {
-        let text = ('' + this.bs.boardTypes[boardType].w + '&nbsp;&times;&nbsp;' + this.bs.boardTypes[boardType].h);
+    getBoardDimensions(boardType, w, h) {
+        let text = ('' + w + '&nbsp;&times;&nbsp;' + h);
         return text;
     }
 

@@ -8,11 +8,10 @@ export class BoardCustomElement {
         this.bs = boardService;
     }
 
-    getBoardSizeCSS(shape) {
-        let boardType = this.bs.boardTypes[shape];
+    getBoardSizeCSS(shape, w, h) {
         let css = {
-            width: `calc(${boardType.w} * var(--part-size, 40px))`,
-            flex: `0 0 calc(${boardType.h} * var(--part-size, 40px))`
+            width: `calc(${w} * var(--part-size, 40px))`,
+            flex: `0 0 calc(${h} * var(--part-size, 40px))`
         };
         return css;
     }

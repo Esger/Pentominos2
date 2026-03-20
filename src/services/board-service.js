@@ -49,6 +49,12 @@ export class BoardService {
                 totalSolutions: 2
             }
         };
+
+        for (const key in this.boardTypes) {
+            this.boardTypes[key].defaultW = this.boardTypes[key].w;
+            this.boardTypes[key].defaultH = this.boardTypes[key].h;
+        }
+
         this.solved = false;
         this.newSolution = false;
 

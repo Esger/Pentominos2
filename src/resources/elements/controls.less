@@ -1,13 +1,9 @@
 controls {
-    margin-bottom: 10px;
-}
-
-.controls {
-    width: 320px;
-    height: 40px;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    gap: 32px;
 
     & [class*='fa-step-'] {
         vertical-align: 0;
@@ -16,6 +12,8 @@ controls {
 
 .button,
 .indicator {
+    display: flex;
+    align-items: center;
     height: 30px;
     line-height: 30px;
     font-family: inherit;
@@ -38,7 +36,6 @@ controls {
 }
 
 .indicator {
-    margin-left: 5px;
 
     &.solved {
         border: 1px dotted lime;

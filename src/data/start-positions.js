@@ -9,84 +9,96 @@ export const startSquare = [
             "x": 1,
             "y": 0
         }
-    }, {
+    },
+    {
         "name": "c",
         "face": 2,
         "position": {
             "x": 4,
             "y": 5
         }
-    }, {
+    },
+    {
         "name": "f",
         "face": 1,
         "position": {
             "x": 2,
             "y": 1
         }
-    }, {
+    },
+    {
         "name": "i",
         "face": 0,
         "position": {
             "x": 1,
             "y": 9
         }
-    }, {
+    },
+    {
         "name": "l",
         "face": 1,
         "position": {
             "x": 5,
             "y": 0
         }
-    }, {
+    },
+    {
         "name": "n",
         "face": 4,
         "position": {
             "x": 2,
             "y": 7
         }
-    }, {
+    },
+    {
         "name": "t",
         "face": 1,
         "position": {
             "x": 4,
             "y": 7
         }
-    }, {
+    },
+    {
         "name": "v",
         "face": 2,
         "position": {
             "x": 1,
             "y": 3
         }
-    }, {
+    },
+    {
         "name": "w",
         "face": 2,
         "position": {
             "x": 3,
             "y": 0
         }
-    }, {
+    },
+    {
         "name": "x",
         "face": 0,
         "position": {
             "x": 4,
             "y": 3
         }
-    }, {
+    },
+    {
         "name": "y",
         "face": 6,
         "position": {
             "x": 1,
             "y": 5
         }
-    }, {
+    },
+    {
         "name": "z",
         "face": 3,
         "position": {
             "x": 1,
             "y": 4
         }
-    }, {
+    },
+    {
         "name": "o",
         "face": 0,
         "position": {
@@ -204,94 +216,106 @@ export const startRectangle = [
 export const startStick = [
     {
         "name": "b",
-        "face": 7,
-        "position": {
-            "x": 5,
-            "y": 0
-        }
-    }, {
-        "name": "c",
-        "face": 2,
-        "position": {
-            "x": 8,
-            "y": 5
-        }
-    }, {
-        "name": "f",
-        "face": 1,
-        "position": {
-            "x": 6,
-            "y": 1
-        }
-    }, {
-        "name": "i",
-        "face": 0,
-        "position": {
-            "x": 5,
-            "y": 9
-        }
-    }, {
-        "name": "l",
-        "face": 1,
-        "position": {
-            "x": 9,
-            "y": 0
-        }
-    }, {
-        "name": "n",
         "face": 4,
         "position": {
-            "x": 6,
-            "y": 7
+            "x": 11,
+            "y": -1
         }
-    }, {
-        "name": "t",
-        "face": 1,
-        "position": {
-            "x": 8,
-            "y": 7
-        }
-    }, {
-        "name": "v",
-        "face": 2,
-        "position": {
-            "x": 5,
-            "y": 3
-        }
-    }, {
-        "name": "w",
-        "face": 2,
+    },
+    {
+        "name": "c",
+        "face": 3,
         "position": {
             "x": 7,
+            "y": 2
+        }
+    },
+    {
+        "name": "f",
+        "face": 2,
+        "position": {
+            "x": 10,
             "y": 0
         }
-    }, {
+    },
+    {
+        "name": "i",
+        "face": 1,
+        "position": {
+            "x": 4,
+            "y": -1
+        }
+    },
+    {
+        "name": "l",
+        "face": 2,
+        "position": {
+            "x": 10,
+            "y": 3
+        }
+    },
+    {
+        "name": "n",
+        "face": 5,
+        "position": {
+            "x": 5,
+            "y": 0
+        }
+    },
+    {
+        "name": "t",
+        "face": 2,
+        "position": {
+            "x": 4,
+            "y": 2
+        }
+    },
+    {
+        "name": "v",
+        "face": 3,
+        "position": {
+            "x": 8,
+            "y": -1
+        }
+    },
+    {
+        "name": "w",
+        "face": 3,
+        "position": {
+            "x": 11,
+            "y": 1
+        }
+    },
+    {
         "name": "x",
         "face": 0,
         "position": {
             "x": 8,
-            "y": 3
+            "y": 2
         }
-    }, {
+    },
+    {
         "name": "y",
-        "face": 6,
+        "face": 7,
         "position": {
             "x": 5,
-            "y": 5
+            "y": -1
         }
-    }, {
+    },
+    {
         "name": "z",
-        "face": 3,
+        "face": 2,
         "position": {
-            "x": 5,
-            "y": 4
+            "x": 7,
+            "y": -1
         }
-    }, {
+    },
+    {
         "name": "o",
         "face": 0,
         "position": {
-            "x": 7,
-            "y": 10
+            "x": 2,
+            "y": 1
         }
     }
 ];
@@ -406,7 +430,7 @@ export const startBeam = [
         "face": 4,
         "position": {
             "x": 7,
-            "y": 0
+            "y": -2
         }
     },
     {
@@ -414,7 +438,7 @@ export const startBeam = [
         "face": 0,
         "position": {
             "x": 4,
-            "y": 0
+            "y": -2
         }
     },
     {
@@ -422,7 +446,7 @@ export const startBeam = [
         "face": 2,
         "position": {
             "x": 3,
-            "y": 3
+            "y": 1
         }
     },
     {
@@ -430,7 +454,7 @@ export const startBeam = [
         "face": 1,
         "position": {
             "x": 3,
-            "y": 0
+            "y": -2
         }
     },
     {
@@ -438,7 +462,7 @@ export const startBeam = [
         "face": 1,
         "position": {
             "x": 9,
-            "y": 4
+            "y": 2
         }
     },
     {
@@ -446,7 +470,7 @@ export const startBeam = [
         "face": 6,
         "position": {
             "x": 4,
-            "y": 6
+            "y": 4
         }
     },
     {
@@ -454,7 +478,7 @@ export const startBeam = [
         "face": 1,
         "position": {
             "x": 6,
-            "y": 4
+            "y": 2
         }
     },
     {
@@ -462,7 +486,7 @@ export const startBeam = [
         "face": 3,
         "position": {
             "x": 7,
-            "y": 5
+            "y": 3
         }
     },
     {
@@ -470,7 +494,7 @@ export const startBeam = [
         "face": 0,
         "position": {
             "x": 7,
-            "y": 1
+            "y": -1
         }
     },
     {
@@ -478,7 +502,7 @@ export const startBeam = [
         "face": 0,
         "position": {
             "x": 4,
-            "y": 1
+            "y": -1
         }
     },
     {
@@ -486,7 +510,7 @@ export const startBeam = [
         "face": 2,
         "position": {
             "x": 9,
-            "y": 0
+            "y": -2
         }
     },
     {
@@ -494,7 +518,7 @@ export const startBeam = [
         "face": 2,
         "position": {
             "x": 3,
-            "y": 5
+            "y": 3
         }
     }
 ];
@@ -505,7 +529,7 @@ export const startTwig = [
         "face": 4,
         "position": {
             "x": 10,
-            "y": 0
+            "y": -3
         }
     },
     {
@@ -513,7 +537,7 @@ export const startTwig = [
         "face": 0,
         "position": {
             "x": 7,
-            "y": 0
+            "y": -3
         }
     },
     {
@@ -521,7 +545,7 @@ export const startTwig = [
         "face": 2,
         "position": {
             "x": 6,
-            "y": 3
+            "y": 0
         }
     },
     {
@@ -529,7 +553,7 @@ export const startTwig = [
         "face": 1,
         "position": {
             "x": 6,
-            "y": 0
+            "y": -3
         }
     },
     {
@@ -537,7 +561,7 @@ export const startTwig = [
         "face": 1,
         "position": {
             "x": 12,
-            "y": 4
+            "y": 1
         }
     },
     {
@@ -545,7 +569,7 @@ export const startTwig = [
         "face": 6,
         "position": {
             "x": 7,
-            "y": 6
+            "y": 3
         }
     },
     {
@@ -553,7 +577,7 @@ export const startTwig = [
         "face": 1,
         "position": {
             "x": 9,
-            "y": 4
+            "y": 1
         }
     },
     {
@@ -561,7 +585,7 @@ export const startTwig = [
         "face": 3,
         "position": {
             "x": 10,
-            "y": 5
+            "y": 2
         }
     },
     {
@@ -569,7 +593,7 @@ export const startTwig = [
         "face": 0,
         "position": {
             "x": 10,
-            "y": 1
+            "y": -2
         }
     },
     {
@@ -577,7 +601,7 @@ export const startTwig = [
         "face": 0,
         "position": {
             "x": 7,
-            "y": 1
+            "y": -2
         }
     },
     {
@@ -585,7 +609,7 @@ export const startTwig = [
         "face": 2,
         "position": {
             "x": 12,
-            "y": 0
+            "y": -3
         }
     },
     {
@@ -593,7 +617,7 @@ export const startTwig = [
         "face": 2,
         "position": {
             "x": 6,
-            "y": 5
+            "y": 2
         }
     }
 ];

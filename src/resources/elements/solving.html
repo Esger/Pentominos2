@@ -1,13 +1,7 @@
 <template>
     <require from="resources/value-converters/thousands-value-converter"></require>
-    <div show.bind="solvingPanelVisible">
+    <template if.bind="solvingPanelVisible">
         <div class="buttonRow">
-            <button class="button"
-                    title="shuffle"
-                    click.delegate="mixBoard()"
-                    touchstart.trigger="mixBoard()">
-                    <icon class="fa fa-recycle fa-lg"></icon>
-            </button>
             <button class="button"
                     title="find all solutions"
                     click.delegate="autoSolve()"
@@ -45,5 +39,5 @@
            if.bind="positionsTried > 0">Tried ${positionsTried | thousands} positions</p>
         <p class="message"
            if.bind="message">${message}</p>
-    </div>
+    </template>
 </template>

@@ -1,5 +1,5 @@
 <template class.bind="getBoardClasses(bs.newSolution)"
-          css.bind="getBoardSizeCSS(bs.boardType)">
+          css.bind="getBoardSizeCSS(bs.boardType, bs.boardTypes[bs.boardType].w, bs.boardTypes[bs.boardType].h)">
     <require from="./pentominos"></require>
     <pentominos></pentominos>
 </template>
