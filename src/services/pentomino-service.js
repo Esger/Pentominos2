@@ -2,14 +2,16 @@ import { inject } from 'aurelia-framework';
 import { DataService } from './data-service';
 import { BoardService } from './board-service';
 import { SolutionService } from './solution-service';
+import { PermutationService } from './permutation-service';
 
-@inject(DataService, BoardService, SolutionService)
+@inject(DataService, BoardService, SolutionService, PermutationService)
 export class PentominoService {
 
-    constructor(dataService, boardService, solutionService) {
+    constructor(dataService, boardService, solutionService, permutationService) {
         this.ds = dataService;
         this.bs = boardService;
         this.sls = solutionService;
+        this.prms = permutationService;
 
         this.pentominos = [];
         this.offBoardPentominos = [];
@@ -195,16 +197,21 @@ export class PentominoService {
         }
     }
 
-    // Get the starting position for the given board type
     getStartPosition() {
         return this.ds.getStartPosition().then((response) => {
+            // Restore default board dimensions to align with default start-positions
+            let boardConfig = this.bs.boardTypes[this.bs.boardType];
+            boardConfig.w = boardConfig.defaultW;
+            boardConfig.h = boardConfig.defaultH;
+            this.bs.calculatePartSize();
+
             this.sls.currentSolution = -1;
             let count = response.length;
             this.toggleOblock();
             for (let i = 0; i < count; i++) {
                 let pentomino = this.pentominos[i];
                 pentomino.face = response[i].face;
-                pentomino.position = response[i].position;
+                pentomino.position = Object.assign({}, response[i].position);
                 pentomino.active = false;
                 pentomino.index = i;
                 if (!pentomino.initialDimensions) {
@@ -216,6 +223,17 @@ export class PentominoService {
                     pentomino.dimensions.reverse();
                 }
             }
+            
+            // Align orientation with window if not a square board
+            let boardW = this.bs.getWidth();
+            let boardH = this.bs.getHeight();
+            let isWindowPortrait = window.innerHeight > window.innerWidth;
+            let isBoardPortrait = boardH > boardW;
+
+            if (isWindowPortrait !== isBoardPortrait && boardW !== boardH) {
+                this.prms.rotateBoard(this.pentominos);
+            }
+
             this.registerPieces();
         });
     }

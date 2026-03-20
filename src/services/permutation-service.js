@@ -133,50 +133,24 @@ export class PermutationService {
         });
     }
 
-    // 90° clockwise rotation
-    rotateSquareBoard(pentominos) {
+    rotateBoard(pentominos) {
         pentominos.forEach(pentomino => {
             // bottom left of current rectangle occupied by pentomino
             const origin = {};
             origin.x = pentomino.position.x;
             origin.y = pentomino.position.y + pentomino.dimensions[1];
             // rotated position on board
-            pentomino.position.x = this.bs.getWidth() - origin.y;
+            pentomino.position.x = this.bs.getHeight() - origin.y;
             pentomino.position.y = origin.x;
             // rotated pentomino
             this._flipRotate(pentomino, 0);
         });
-    }
 
-    shiftPieces(pentominos, dx, dy) {
-        pentominos.forEach(pentomino => {
-            pentomino.position.x += dx;
-            pentomino.position.y += dy;
-        });
-    }
-
-    shiftPiecesToTop(pentominos) {
-        const topMostY = Math.min(...pentominos.map(pentomino => {
-            return pentomino.position.y;
-        }));
-        this.shiftPieces(pentominos, 0, -topMostY);
-    }
-
-    // Thanks Ben Nierop, for the idea
-    _adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
-        const dx = oldActivePartPosition[0] - newActivePartPosition[0];
-        const dy = oldActivePartPosition[1] - newActivePartPosition[1];
-        this.shiftPieces([pentomino], dx, dy);
-    }
-
-    rotateBoard(pentominos) {
-        if (this.bs.boardType == 'square') {
-            this.rotateSquareBoard(pentominos);
-        } else {
-            // rotate twice and shift pentominos to top
-            for (let i = 0; i < 2; i++) this.rotateSquareBoard(pentominos);
-            this.shiftPiecesToTop(pentominos);
-        }
+        const board = this.bs.boardTypes[this.bs.boardType];
+        const tempW = board.w;
+        board.w = board.h;
+        board.h = tempW;
+        this.bs.calculatePartSize();
     }
 
     mixBoard(pentominos) {
