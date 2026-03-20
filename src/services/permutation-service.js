@@ -133,18 +133,19 @@ export class PermutationService {
         });
     }
 
-    rotateBoard(pentominos) {
+    rotatePieces(pentominos, boardHeight) {
         pentominos.forEach(pentomino => {
-            // bottom left of current rectangle occupied by pentomino
             const origin = {};
             origin.x = pentomino.position.x;
             origin.y = pentomino.position.y + pentomino.dimensions[1];
-            // rotated position on board
-            pentomino.position.x = this.bs.getHeight() - origin.y;
+            pentomino.position.x = boardHeight - origin.y;
             pentomino.position.y = origin.x;
-            // rotated pentomino
             this._flipRotate(pentomino, 0);
         });
+    }
+
+    rotateBoard(pentominos) {
+        this.rotatePieces(pentominos, this.bs.getHeight());
 
         const board = this.bs.boardTypes[this.bs.boardType];
         const tempW = board.w;

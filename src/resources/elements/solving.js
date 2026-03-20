@@ -91,14 +91,53 @@ export class SolvingCustomElement {
         this.startPosXBlock = 0;
         this.positionsTried = 0;
         this.solutionsBuffer = [];
+
+        let targetW = this.bs.boardTypes[this.bs.boardType].defaultW;
+        let targetH = this.bs.boardTypes[this.bs.boardType].defaultH;
+        let isRotated = this.bs.getWidth() !== targetW;
+
+        let clonedOn = JSON.parse(JSON.stringify(this.ps.onBoards));
+        let clonedOff = JSON.parse(JSON.stringify(this.ps.offBoards));
+
+        if (isRotated) {
+            let currW = this.bs.getWidth();
+            let currH = this.bs.getHeight();
+            // Rotate 270 degrees clockwise to return to the original layout natively
+            for (let i = 0; i < 3; i++) {
+                this.prms.rotatePieces(clonedOn, currH);
+                this.prms.rotatePieces(clonedOff, currH);
+                let temp = currW;
+                currW = currH;
+                currH = temp;
+            }
+        }
+
+        // Repopulate mathematical native fields matching targetW and targetH
+        let fields = [];
+        for (let y = 0; y < targetH; y++) {
+            fields.push(new Array(targetW).fill(0));
+        }
+        for (let i = 0; i < clonedOn.length; i++) {
+            let pentomino = clonedOn[i];
+            let face = pentomino.faces[pentomino.face];
+            for (let j = 0; j < face.length; j++) {
+                let part = face[j];
+                let x = part[0] + pentomino.position.x;
+                let y = part[1] + pentomino.position.y;
+                if (x >= 0 && x < targetW && y >= 0 && y < targetH) {
+                    fields[y][x] = 1;
+                }
+            }
+        }
+
         let workerData = {
             message: 'solve',
             boardType: this.bs.boardType,
-            boardWidth: this.bs.getWidth(),
-            boardHeight: this.bs.getHeight(),
-            fields: this.ps.getFields(),
-            onBoards: this.ps.onBoards,
-            offBoards: this.ps.offBoards
+            boardWidth: targetW,
+            boardHeight: targetH,
+            fields: fields,
+            onBoards: clonedOn,
+            offBoards: clonedOff
         };
 
         this.ea.publish('solving', true);
@@ -106,7 +145,12 @@ export class SolvingCustomElement {
         this.handleSolutions();
 
         this.slvrWrkr.onmessage = (e) => {
-            let pentominos = this.ps.sortPentominos(e.data.onBoards);
+            let onBoards = e.data.onBoards;
+            if (isRotated && onBoards && onBoards.length > 0) {
+                // Return geometrically to the portrait screen dimension 90 degrees clockwise
+                this.prms.rotatePieces(onBoards, targetH);
+            }
+            let pentominos = this.ps.sortPentominos(onBoards);
             let offBoards = e.data.offBoards;
             let message = e.data.message;
             this.positionsTried = e.data.positions;
