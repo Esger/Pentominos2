@@ -19,7 +19,7 @@
   },
   "peerDependencies": {},
   "devDependencies": {
-    "aurelia-cli": "^0.23.0",
+    "aurelia-cli": "^3.0.7",
     "aurelia-testing": "^1.0.0-beta.2.0.0",
     "aurelia-tools": "^0.2.2",
     "autoprefixer": "^8.2.0",
@@ -34,7 +34,7 @@
     "babel-preset-es2015-loose": "^7.0.0",
     "babel-preset-stage-1": "^6.5.0",
     "babel-register": "^6.9.0",
-    "browser-sync": "^2.13.0",
+    "browser-sync": "^2.29.3",
     "connect-history-api-fallback": "^1.2.0",
     "gulp": "^4.0.2",
     "gulp-babel": "^6.1.2",
