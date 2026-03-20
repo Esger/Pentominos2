@@ -133,6 +133,19 @@ export class PermutationService {
         });
     }
 
+    shiftPieces(pentominos, dx, dy) {
+        pentominos.forEach(pentomino => {
+            pentomino.position.x += dx;
+            pentomino.position.y += dy;
+        });
+    }
+
+    _adjustPosition(pentomino, oldActivePartPosition, newActivePartPosition) {
+        const dx = oldActivePartPosition[0] - newActivePartPosition[0];
+        const dy = oldActivePartPosition[1] - newActivePartPosition[1];
+        this.shiftPieces([pentomino], dx, dy);
+    }
+
     rotatePieces(pentominos, boardHeight) {
         pentominos.forEach(pentomino => {
             const origin = {};
