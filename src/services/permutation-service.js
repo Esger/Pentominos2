@@ -172,8 +172,16 @@ export class PermutationService {
         const partSize = this.bs.partSize;
         const areaWidth = Math.floor(dragArea.clientWidth / partSize);
         const areaHeight = Math.floor(dragArea.clientHeight / partSize);
-        const boardOffsetX = Math.floor((areaWidth - this.bs.getWidth()) / 2);
-        const boardOffsetY = Math.floor((areaHeight - this.bs.getHeight()) / 2);
+        let boardOffsetX = Math.floor((areaWidth - this.bs.getWidth()) / 2);
+        let boardOffsetY = Math.floor((areaHeight - this.bs.getHeight()) / 2);
+        const boardEl = document.querySelector('board');
+        
+        if (boardEl && dragArea) {
+            const dragRect = dragArea.getBoundingClientRect();
+            const boardRect = boardEl.getBoundingClientRect();
+            boardOffsetX = Math.floor((boardRect.left - dragRect.left) / partSize);
+            boardOffsetY = Math.floor((boardRect.top - dragRect.top) / partSize);
+        }
 
         // Initial reserved area for the board, including a 1-square gap
         const occupiedRectangles = [{
@@ -184,15 +192,21 @@ export class PermutationService {
         }];
 
         pentominos.forEach(pentomino => {
+            let placed = false;
+            let fallbackX = 0, fallbackY = 0, fallbackFace = 0;
+            let foundNonBoardOverlap = false;
+
             for (let attempt = 0; attempt < 100; attempt++) {
-                pentomino.face = Math.floor(Math.random() * pentomino.faces.length);
-                const face = pentomino.faces[pentomino.face];
+                const faceIndex = Math.floor(Math.random() * pentomino.faces.length);
+                const face = pentomino.faces[faceIndex];
                 const pieceWidth = Math.max(...face.map(part => part[0])) + 1;
                 const pieceHeight = Math.max(...face.map(part => part[1])) + 1;
 
                 // Attempt to find a random position, avoiding the top and bottom 2 rows
-                const screenX = Math.floor(Math.random() * (areaWidth - pieceWidth));
-                const screenY = Math.floor(Math.random() * (areaHeight - pieceHeight - 4)) + 2;
+                const safeAreaWidth = Math.max(1, areaWidth - pieceWidth);
+                const safeAreaHeight = Math.max(1, areaHeight - pieceHeight - 4);
+                const screenX = Math.floor(Math.random() * safeAreaWidth);
+                const screenY = Math.floor(Math.random() * safeAreaHeight) + (areaHeight - pieceHeight >= 4 ? 2 : 0);
 
                 const overlaps = occupiedRectangles.some(rect =>
                     screenX < rect.x + rect.width &&
@@ -201,7 +215,29 @@ export class PermutationService {
                     screenY + pieceHeight > rect.y
                 );
 
+                const boardRect = occupiedRectangles[0];
+                const overlapsBoard = (
+                    screenX < boardRect.x + boardRect.width &&
+                    screenX + pieceWidth > boardRect.x &&
+                    screenY < boardRect.y + boardRect.height &&
+                    screenY + pieceHeight > boardRect.y
+                );
+
+                if (attempt === 0) {
+                    fallbackX = screenX;
+                    fallbackY = screenY;
+                    fallbackFace = faceIndex;
+                }
+
+                if (!overlapsBoard) {
+                    fallbackX = screenX;
+                    fallbackY = screenY;
+                    fallbackFace = faceIndex;
+                    foundNonBoardOverlap = true;
+                }
+
                 if (!overlaps) {
+                    pentomino.face = faceIndex;
                     Object.assign(pentomino.position, {
                         x: screenX - boardOffsetX,
                         y: screenY - boardOffsetY
@@ -214,8 +250,18 @@ export class PermutationService {
                         width: pieceWidth + 2,
                         height: pieceHeight + 2
                     });
+                    placed = true;
                     break;
                 }
+            }
+
+            if (!placed) {
+                pentomino.face = fallbackFace;
+                Object.assign(pentomino.position, {
+                    x: fallbackX - boardOffsetX,
+                    y: fallbackY - boardOffsetY
+                });
+                pentomino.onBoard = false;
             }
         });
         this.bs.unsetSolved();
