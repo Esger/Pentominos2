@@ -55,23 +55,44 @@ menu ul {
     }
 
     li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 14px;
-        color: rgba(255, 255, 255, 0.82);
-        background: transparent;
-        line-height: 20px;
-        padding: 12px 16px;
         margin: 2px 0;
         border-radius: 8px;
         white-space: nowrap;
-        cursor: pointer;
+        background: transparent;
         transition: all 0.2s;
 
-        &:not(:first-child):hover {
+        button.menu-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 20px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            backdrop-filter: none;
+
+            &:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+        }
+
+        &:not(:first-child):not(.disabled):hover {
             background: rgba(255, 255, 255, 0.1);
             color: white;
+
+            button.menu-item {
+                color: white;
+                background: transparent;
+            }
 
             & > .subMenu {
                 display: block;
@@ -80,13 +101,14 @@ menu ul {
 
         &.active {
             background: rgba(255, 255, 255, 0.15);
-            font-weight: 600;
-            color: white;
+            
+            button.menu-item {
+                font-weight: 600;
+                color: white;
+            }
         }
 
-        &.disabled {
-            opacity: 0.3;
-        }
+
 
         &.boards {
             anchor-name: --boards-anchor;

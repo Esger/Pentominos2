@@ -1,46 +1,59 @@
 <template class="hamburger">
     <button class="fa fa-bars"
-       class.bind="menuDisabled ? 'disabled' : ''"
+       disabled.bind="menuDisabled"
        popovertarget="menu"></button>
 
     <ul popover="auto"
         id="menu">
         <li><button class="fa fa-times"
-                   class.bind="menuDisabled ? 'disabled' : ''"
+                   disabled.bind="menuDisabled"
                    popovertarget="menu"></button>
         </li>
         <li class="boards ${disableBoardSwitch ? 'disabled' : ''}"
-            mouseenter.trigger="toggleSubmenuBoards()"
-            mouseleave.trigger="toggleSubmenuBoards()"
-            touchend.trigger="toggleSubmenuBoards()">
-            Boards&nbsp;<i class="fa fa-angle-right"></i>
+            mouseenter.trigger="disableBoardSwitch ? null : toggleSubmenuBoards()"
+            mouseleave.trigger="disableBoardSwitch ? null : toggleSubmenuBoards()"
+            touchend.trigger="disableBoardSwitch ? null : toggleSubmenuBoards()">
+            <button class="menu-item" disabled.bind="disableBoardSwitch">
+                Boards&nbsp;<i class="fa fa-angle-right"></i>
+            </button>
             <ul if.bind="settings.submenuBoardsVisible"
                 class="subMenu">
                 <li repeat.for="boardType of boardTypes"
                     if.bind="showThisBoard(boardType)"
-                    class.bind="getActiveBoardClass(boardType)"
-                    click.delegate="setStartPosition(boardType)"
-                    touchstart.trigger="setStartPosition(boardType)"
-                    innerhtml.bind="getBoardDimensions(boardType, bs.boardTypes[boardType].w, bs.boardTypes[boardType].h)"></li>
+                    class.bind="getActiveBoardClass(boardType)">
+                    <button class="menu-item"
+                            click.delegate="setStartPosition(boardType)"
+                            touchstart.trigger="setStartPosition(boardType)"
+                            innerhtml.bind="getBoardDimensions(boardType, bs.boardTypes[boardType].w, bs.boardTypes[boardType].h)"></button>
+                </li>
             </ul>
         </li>
 
-        <li class="rotate"
-            click.delegate="rotateBoard()"
-            touchstart.trigger="rotateBoard()">Rotate</li>
+        <li class="rotate">
+            <button class="menu-item"
+                    click.delegate="rotateBoard()"
+                    touchstart.trigger="rotateBoard()">Rotate</button>
+        </li>
 
-        <li class="flip"
-            click.delegate="flipBoardYAxis()"
-            touchstart.trigger="flipBoardYAxis()">Flip</li>
+        <li class="flip">
+            <button class="menu-item"
+                    click.delegate="flipBoardYAxis()"
+                    touchstart.trigger="flipBoardYAxis()">Flip</button>
+        </li>
 
         <li if.bind="screenIsLargeEnough()"
-            class="shuffle"
-            click.delegate="mixBoard()"
-            touchstart.trigger="mixBoard()">Shuffle</li>
+            class="shuffle">
+            <button class="menu-item"
+                    click.delegate="mixBoard()"
+                    touchstart.trigger="mixBoard()">Shuffle</button>
+        </li>
 
-        <li class="spoiler ${solverDisabled ? 'disabled' : ''}"
-            click.delegate="showSolvingPanel()"
-            touchstart.trigger="showSolvingPanel()">Spoiler</li>
+        <li class="spoiler ${solverDisabled ? 'disabled' : ''}">
+            <button class="menu-item"
+                    disabled.bind="solverDisabled"
+                    click.delegate="showSolvingPanel()"
+                    touchstart.trigger="showSolvingPanel()">Spoiler</button>
+        </li>
     </ul>
 
 </template>
