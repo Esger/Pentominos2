@@ -16,7 +16,7 @@ export class BoardService {
                 w: 8,
                 h: 8,
                 surface: 64,
-                totalSolutions: 16368
+                totalSolutions: 16146
             },
             'rectangle': {
                 w: 6,
