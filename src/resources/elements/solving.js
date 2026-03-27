@@ -57,9 +57,12 @@ export class SolvingCustomElement {
         return board ? board.totalSolutions : 0;
     }
 
-    get progress() {
-        if (!this.total) return 0;
-        return this.currentCount;
+    get positionsLog() {
+        return this.positionsTried > 1 ? Math.log10(this.positionsTried) : 0;
+    }
+
+    get solutionsFound() {
+        return this.currentCount + this.solutionsBuffer.length;
     }
 
     get solutionsInQueue() {
