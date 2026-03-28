@@ -13,11 +13,12 @@ export class DataService {
         this.bs = boardService;
         this.client = new HttpClient();
         this.solutions = this.getSolutions();
+        this.userSolutions = this.getUserSolutions();
         this.timeOutHandle = undefined;
     }
 
     deleteSolutions() {
-        this.solutions[this.bs.boardType] = [];
+        this.solutions[this.bs.boardType] = [...this.userSolutions[this.bs.boardType]];
         this.saveSolution();
     }
 
@@ -73,6 +74,29 @@ export class DataService {
         return solutions;
     }
 
+    getUserSolutions() {
+        let userSolutions;
+        if (localStorage.getItem('pentominos2_user')) {
+            userSolutions = JSON.parse(localStorage.getItem('pentominos2_user'));
+        } else {
+            userSolutions = {};
+            let boardTypes = this.bs.boardTypes;
+            for (let type in boardTypes) {
+                if (boardTypes.hasOwnProperty(type)) {
+                    userSolutions[type] = [];
+                }
+            }
+        }
+        return userSolutions;
+    }
+
+    addUserSolution(solutionString) {
+        if (!this.userSolutions[this.bs.boardType].includes(solutionString)) {
+            this.userSolutions[this.bs.boardType].push(solutionString);
+            this.saveToLocalStorage();
+        }
+    }
+
     saveSolution(solutionString) {
         if (solutionString) {
             this.solutions[this.bs.boardType].push(solutionString);
@@ -88,6 +112,8 @@ export class DataService {
 
     saveToLocalStorage() {
         localStorage.setItem('pentominos2', JSON.stringify(this.solutions));
+        localStorage.setItem('pentominos2_user', JSON.stringify(this.userSolutions));
         clearTimeout(this.timeOutHandle);
+        this.timeOutHandle = undefined;
     }
 }

@@ -68,6 +68,8 @@ export class SolutionService {
     deleteSolutions() {
         this.ds.deleteSolutions();
         this.getSolutions();
+        this.currentSolution = this.solutions[this.bs.boardType].length > 0 ? 0 : -1;
+        this.ea.publish('solution-processed');
     }
 
     saveSolution(pentominos, isUser = false) {
@@ -79,6 +81,7 @@ export class SolutionService {
                 // show this solution only if manually played, prevents slider jitter during auto-solve
                 if (isUser) {
                     this.currentSolution = solutionResult;
+                    this.ds.addUserSolution(this.solutions[this.bs.boardType][solutionResult]);
                     this.ea.publish('user-solution-found');
                 }
                 this.bs.unsetNewSolution();
@@ -88,6 +91,7 @@ export class SolutionService {
                 this.bs.setNewSolution();
                 this.ds.saveSolution(solutionResult);
                 if (isUser) {
+                    this.ds.addUserSolution(solutionResult);
                     this.ea.publish('user-solution-found');
                 }
             }
