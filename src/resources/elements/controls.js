@@ -39,6 +39,24 @@ export class ControlsCustomElement {
         return this.sls.solutions[this.bs.boardType].length;
     }
 
+    get sliderValue() {
+        const val = this.sls.currentSolution;
+        return val >= 0 ? val : 0;
+    }
+
+    set sliderValue(newValue) {
+        const val = parseInt(newValue, 10);
+        if (this.sls.currentSolution !== val && val >= 0) {
+            this.sls.currentSolution = val;
+            if (this._sliderRaf) {
+                cancelAnimationFrame(this._sliderRaf);
+            }
+            this._sliderRaf = requestAnimationFrame(() => {
+                this.showSolution();
+            });
+        }
+    }
+
     getIndicatorClass() {
         let classes = ['indicator', 'rounded'];
         let solvedClass = (this.bs.solved && !this.bs.newSolution) ? 'solved' : '';

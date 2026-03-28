@@ -76,12 +76,12 @@ export class SolutionService {
             // A number indicates an existing solution
             // A string indicate a new solution
             if (!isNaN(solutionResult)) {
-                // show this solution
-                this.currentSolution = solutionResult;
-                this.bs.unsetNewSolution();
+                // show this solution only if manually played, prevents slider jitter during auto-solve
                 if (isUser) {
+                    this.currentSolution = solutionResult;
                     this.ea.publish('user-solution-found');
                 }
+                this.bs.unsetNewSolution();
             } else {
                 this.solutions[this.bs.boardType].push(solutionResult);
                 this.currentSolution = this.solutions[this.bs.boardType].length - 1;
