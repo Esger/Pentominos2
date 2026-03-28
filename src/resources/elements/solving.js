@@ -62,7 +62,17 @@ export class SolvingCustomElement {
     }
 
     get solutionsFound() {
-        return this.currentCount + this.solutionsBuffer.length;
+        let est = this.currentCount + this.solutionsBuffer.length;
+        if (this.solutionsBuffer.length === 0) {
+            this._maxSolutionsFound = this.currentCount;
+        } else if (!this._maxSolutionsFound || est > this._maxSolutionsFound) {
+            this._maxSolutionsFound = est;
+        }
+        return this._maxSolutionsFound || this.currentCount;
+    }
+
+    get solutionsShown() {
+        return this.sls.currentSolution >= 0 ? this.sls.currentSolution + 1 : 0;
     }
 
     get solutionsInQueue() {

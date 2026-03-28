@@ -10,107 +10,122 @@ solving {
     line-height: 30px;
 }
 
-.progressRow {
+.solverControls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    
+    &__progressRow {
+        width: 100%;
+        padding: 0 5px;
+        margin-bottom: 5px;
+    }
+}
+
+.solverProgress {
+    position: relative;
     width: 100%;
-    flex: 1 1 100%;
-    padding: 0 10px;
+    margin-top: 5px;
     margin-bottom: 5px;
 
-    .integrated-progress {
-        position: relative;
+    progress {
         width: 100%;
-        margin-top: 5px;
-        margin-bottom: 5px;
-        
-        progress {
-            width: 100%;
-            appearance: none;
-            border: none;
+        appearance: none;
+        border: none;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+        overflow: hidden;
+        display: block;
+
+        &::-webkit-progress-bar {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 4px;
-            overflow: hidden;
-            display: block;
-            
-            &::-webkit-progress-bar {
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 4px;
-            }
         }
-        
-        .progress-tried {
-            height: 2px;
-            margin-bottom: 4px;
-            &::-webkit-progress-value {
-                background: #00bfff;
-                box-shadow: 0 0 8px #00bfff;
-                border-radius: 4px;
-            }
-            &::-moz-progress-bar {
-                background: #00bfff;
-                border-radius: 4px;
-            }
+    }
+
+    &__tried {
+        height: 2px;
+        margin-bottom: 4px;
+
+        &::-webkit-progress-value {
+            background: #00bfff;
+            box-shadow: 0 0 8px #00bfff;
+            border-radius: 4px;
         }
-        
-        .progress-found {
-            height: 2px;
-            margin-top: 4px;
-            &::-webkit-progress-value {
-                background: #00ff7f;
-                box-shadow: 0 0 8px #00ff7f;
-                border-radius: 4px;
-            }
-            &::-moz-progress-bar {
-                background: #00ff7f;
-                border-radius: 4px;
-            }
+
+        &::-moz-progress-bar {
+            background: #00bfff;
+            border-radius: 4px;
         }
-        
-        .progress-meter {
+    }
+
+    &__found {
+        height: 2px;
+        margin-top: 4px;
+
+        &::-webkit-progress-value {
+            background: #00ff7f;
+            box-shadow: 0 0 8px #00ff7f;
+            border-radius: 4px;
+        }
+
+        &::-moz-progress-bar {
+            background: #00ff7f;
+            border-radius: 4px;
+        }
+    }
+
+    &__meter {
+        height: 20px;
+        position: relative;
+
+        .solverProgress__shown {
             height: 20px;
-            position: relative;
-            
-            .progress-shown {
-                height: 20px;
-                margin: 0;
-                box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-                
-                &::-webkit-progress-value {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 4px;
-                }
-                &::-moz-progress-bar {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 4px;
-                }
+            margin: 0;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+
+            &::-webkit-progress-value {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
             }
-            
-            .progress-text {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                text-align: center;
-                line-height: 20px;
-                font-size: 11px;
-                color: #ddd;
-                pointer-events: none;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-                white-space: nowrap;
-                
-                .text-tried {
-                    color: #00bfff;
-                    font-weight: bold;
-                }
-                .text-found {
-                    color: #00ff7f;
-                    font-weight: bold;
-                }
-                .text-shown {
-                    color: #fff;
-                    font-weight: bold;
-                }
+
+            &::-moz-progress-bar {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 4px;
             }
+        }
+
+        .solverProgress__text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 11px;
+            color: #ddd;
+            pointer-events: none;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+    }
+
+    &__value {
+        font-weight: bold;
+
+        &--tried {
+            color: #00bfff;
+        }
+
+        &--found {
+            color: #00ff7f;
+        }
+
+        &--shown {
+            color: #fff;
         }
     }
 }
