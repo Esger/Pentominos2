@@ -80,7 +80,9 @@ export class SolvingCustomElement {
     }
 
     get noSolutions() {
-        return this.sls.solutions[this.bs.boardType].length === 0;
+        let solutions = this.sls.solutions[this.bs.boardType] || [];
+        let userSolutions = this.sls.ds.userSolutions[this.bs.boardType] || [];
+        return solutions.length === userSolutions.length;
     }
 
     get noSpaceForSolving() {
