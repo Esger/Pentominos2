@@ -73,16 +73,6 @@ export class DataService {
         return solutions;
     }
 
-    sortSolutions(solutions) {
-        let sortedSolutions = solutions;
-        if (Array.isArray(solutions)) {
-            sortedSolutions = solutions.sort((a, b) => {
-                return a < b;
-            });
-        }
-        return sortedSolutions;
-    }
-
     saveSolution(solutionString) {
         if (solutionString) {
             this.solutions[this.bs.boardType].push(solutionString);
@@ -97,7 +87,6 @@ export class DataService {
     }
 
     saveToLocalStorage() {
-        this.solutions[this.bs.boardType] = this.sortSolutions(this.solutions[this.bs.boardType]);
         localStorage.setItem('pentominos2', JSON.stringify(this.solutions));
         clearTimeout(this.timeOutHandle);
     }

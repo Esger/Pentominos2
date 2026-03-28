@@ -11,27 +11,35 @@
         </button>
     </div>
 
-    <div class="buttonRow"
+    <div class="sliderRow"
          if.bind="solutionCount">
-        <button class="button small"
+        <button class.bind="getIndicatorClass()"
+                disabled.bind="disabledButtons"
+                innerhtml="${indicatorText}"
+                click.delegate="showFirstSolution()"
+                touchstart.trigger="showFirstSolution()">
+        </button>
+        <div class="rangeContainer">
+            <button class="button small"
                     title="Show previous solution"
                     disabled.bind="disablePreviousButton(sls.currentSolution)"
                     click.delegate="showPreviousSolution()"
                     touchstart.trigger="showPreviousSolution()">
-             <icon class="fa fa-step-backward fa-lg"></icon>
-        </button>
-        <button class.bind="getIndicatorClass(bs.solved)"
-                    disabled.bind="disabledButtons"
-                    innerhtml="${indicatorText}"
-                    click.delegate="showFirstSolution()"
-                    touchstart.trigger="showFirstSolution()">
-        </button>
-        <button class="button small"
+                 <icon class="fa fa-step-backward fa-lg"></icon>
+            </button>
+            <input type="range" 
+                   class="solutionSlider"
+                   min="0" 
+                   max.bind="solutionCount - 1" 
+                   value.bind="sliderValue"
+                   disabled.bind="disabledButtons">
+            <button class="button small"
                     title="Show next solution"
                     disabled.bind="disableNextButton(sls.currentSolution, sls.solutions[bs.boardType].length)"
                     click.delegate="showNextSolution()"
                     touchstart.trigger="showNextSolution()">
                 <icon class="fa fa-step-forward fa-lg"></icon>
-        </button>
+            </button>
+        </div>
     </div>
 </template>

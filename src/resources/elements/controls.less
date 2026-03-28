@@ -52,3 +52,70 @@ controls {
     height: 30px;
     line-height: 30px;
 }
+
+.sliderRow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+
+    button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.rangeContainer {
+    width: 320px;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.solutionSlider {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #00bfff;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+        border: 2px solid white;
+    }
+
+    &::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #00bfff;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+        border: 2px solid white;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: default;
+        &::-webkit-slider-thumb {
+            cursor: default;
+        }
+        &::-moz-range-thumb {
+            cursor: default;
+        }
+    }
+}
