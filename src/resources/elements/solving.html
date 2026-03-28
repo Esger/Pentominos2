@@ -1,6 +1,6 @@
 <template>
     <require from="resources/value-converters/thousands-value-converter"></require>
-    <template if.bind="solvingPanelVisible">
+    <div class="solverControls" if.bind="solvingPanelVisible">
         <div class="buttonRow">
             <button class="button"
                     title="find all solutions"
@@ -30,22 +30,22 @@
                     <icon class="fa fa-close fa-lg"></icon>
             </button>
         </div>
-        <div class="progressRow">
-            <div class="integrated-progress"
+        <div class="solverControls__progressRow">
+            <div class="solverProgress"
                  title="Tried: ${positionsTried | thousands} | Found: ${solutionsFound} | Shown: ${currentCount}">
-                <progress class="progress-tried" value.bind="positionsLog" max="8.176"></progress>
-                <div class="progress-meter">
-                    <progress class="progress-shown" value.bind="currentCount" max.bind="total"></progress>
-                    <div class="progress-text">
-                        <span class="text-tried">${positionsTried | thousands}</span> pos / 
-                        <span class="text-found">${solutionsFound}</span> / 
-                        <span class="text-shown">${currentCount}</span> sol
+                <progress class="solverProgress__tried" value.bind="positionsLog" max="8.176"></progress>
+                <div class="solverProgress__meter">
+                    <progress class="solverProgress__shown" value.bind="solutionsShown" max.bind="total"></progress>
+                    <div class="solverProgress__text">
+                        <span class="solverProgress__value solverProgress__value--tried">${positionsTried | thousands}</span> pos / 
+                        <span class="solverProgress__value solverProgress__value--found">${solutionsFound}</span> fnd / 
+                        <span class="solverProgress__value solverProgress__value--shown">${solutionsShown}</span> shwn
                     </div>
                 </div>
-                <progress class="progress-found" value.bind="solutionsFound" max.bind="total"></progress>
+                <progress class="solverProgress__found" value.bind="solutionsFound" max.bind="total"></progress>
             </div>
         </div>
         <p class="message"
            if.bind="message">${message}</p>
-    </template>
+    </div>
 </template>

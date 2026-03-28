@@ -17,6 +17,7 @@
         &.fa-times {
             color: white;
             padding: 8px 12px;
+            margin: .1em 1em;
         }
 
         &.fa-bars {
@@ -36,7 +37,7 @@ menu ul {
         position: absolute;
         // Anchor to the menu button
         position-anchor: --menu-anchor;
-        top: calc(anchor(top) - 20px);
+        top: calc(anchor(top) - 20pxz);
         left: calc(anchor(left) - 26px);
         background: rgba(15, 15, 20, 0.3);
         backdrop-filter: blur(20px) saturate(180%);
@@ -101,7 +102,7 @@ menu ul {
 
         &.active {
             background: rgba(255, 255, 255, 0.15);
-            
+
             button.menu-item {
                 font-weight: 600;
                 color: white;
